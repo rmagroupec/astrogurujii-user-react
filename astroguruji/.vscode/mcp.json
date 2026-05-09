@@ -1,0 +1,34 @@
+{
+	"servers": {
+		"figma-developer-mcp": {
+			"command": "npx",
+			"args": [
+				"-y",
+				"figma-developer-mcp",
+				"--figma-api-key=${input:figma-api-key}",
+				"--stdio"
+			],
+			"type": "stdio"
+		},
+		"chrome-devtools-mcp": {
+			"command": "npx",
+			"args": [
+				"-y",
+				"@anthropic-ai/chrome-devtools-mcp@latest"
+			],
+			"type": "stdio"
+		},
+		"figma-local-mco": {
+			"url": "http://127.0.0.1:3845/mcp",
+			"type": "http"
+		}
+	},
+	"inputs": [
+		{
+			"id": "figma-api-key",
+			"type": "promptString",
+			"description": "Figma Personal Access Token (from .env FIGMA_ACCESS_TOKEN)",
+			"password": true
+		}
+	]
+}

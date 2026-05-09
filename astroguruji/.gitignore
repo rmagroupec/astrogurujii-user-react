@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+storybook-static/
+
+# Environment
+.env
+.env.local
+
+# Coverage
+coverage/
+
+# Test results
+test-results/
+playwright-report/
+tests/visual/**/*.png
+!tests/visual/**/*-baseline.png
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Figma pipeline artifacts
+figma-dump.json
+figma-pages-dump.json
+figma-pages-tree.txt
+figma-tree.txt
+dump-pages.cjs

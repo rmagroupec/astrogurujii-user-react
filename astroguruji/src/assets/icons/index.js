@@ -1,0 +1,9 @@
+export { default as ChatIcon } from "./ChatIcon";
+export { default as TalkIcon } from "./TalkIcon";
+export { default as MallIcon } from "./MallIcon";
+export { default as PoojaIcon } from "./PoojaIcon";
+export { default as LongArrowRightIcon } from "./LongArrowRightIcon";
+export { default as CircleChevronLeftIcon } from "./CircleChevronLeftIcon";
+export { default as CircleChevronRightIcon } from "./CircleChevronRightIcon";
+export { default as BrandLogoSmallIcon } from "./BrandLogoSmallIcon";
+export { default as StarYellowIcon } from "./star-yellow.svg";
