@@ -1,7 +1,10 @@
 import type { ConsultantDetailData, Specialty } from "@/data/consultant-detail";
 import { StarYellowIcon } from "@/assets/icons";
 import "./ProfileSidebar.css";
-
+import ConnectionModal, { IntakeFormData } from "../ConnectionModal";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { call_initiate } from "@/https_service";
 interface ProfileSidebarProps {
   consultant: ConsultantDetailData;
   specialties: Specialty[];
@@ -12,6 +15,78 @@ export default function ProfileSidebar({
   consultant,
   onSendGiftClick,
 }: Readonly<ProfileSidebarProps>) {
+
+
+  const navigate = useNavigate();
+
+  // ─── Modal State ───
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeCallType, setActiveCallType] = useState<"chat" | "audio" | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  // ─── Mock Data (Replace with real API/Context data) ───
+  const userWalletBalance = 250; // Get from global state / API
+  const astrologerData = {
+    id: "astro_987",
+    name: "Astrologer Rahul",
+    profileImage: "/images/v2/consultant-1.png",
+    ratePerMinute: 20, 
+  };
+
+  // ─── Open Modal ───
+  const handleOpenConnection = (type: "chat" | "audio") => {
+    setActiveCallType(type);
+    setIsModalOpen(true);
+  };
+
+  // ─── Handle Final Submit (API Call) ───
+ const handleFinalSubmit = async (formData: IntakeFormData, type: "chat" | "audio" | "video") => {
+  setIsConnecting(true);
+  
+  try {
+    // Structure the data exactly as the Flutter api helper expects
+    const payload = {
+      astrologer_id: astrologerData.id,
+      call_type: type, // "chat", "audio", or "video"
+      fb_channel_id: "", // Sent as empty string, just like the Flutter example
+      kundli: {
+        name: formData.name,
+        gender: formData.gender,
+        dob: formData.dob,
+        tob: formData.timeOfBirth,
+        place: formData.placeOfBirth,
+      }
+    };
+
+    console.log("Initiating API Call with:", payload);
+
+    // Call the actual HTTP Service
+    const res = await call_initiate(payload);
+    
+    // Handle Navigation based on response
+    if (res?.status === true) {
+      setIsModalOpen(false); // Close Intake Modal
+
+      // Route the user to the correct screen passing the newly generated channel_id
+      if (type === "chat") {
+        navigate(`/chat/${res.channel_id}`);
+      } else if (type === "audio") {
+        navigate(`/audio-call/${res.channel_id}`);
+      } else if (type === "video") {
+        // Matching the VideoCallScreen push from Flutter
+        navigate(`/video-call/${res.channel_id}`);
+      }
+    } else {
+      alert(res?.message || "Failed to initiate call. Please try again.");
+    }
+
+  } catch (error) {
+    console.error("Connection Error:", error);
+    alert("Something went wrong while connecting to the astrologer.");
+  } finally {
+    setIsConnecting(false);
+  }
+};
   return (
     <aside
       className="w-full shrink-0 flex flex-col gap-5 lg:w-[394px] lg:top-4 lg:self-start"
@@ -102,6 +177,7 @@ export default function ProfileSidebar({
         <div className="flex justify-center mt-[14px]">
           <button
             className="flex items-center w-full max-w-[330px] h-[50px] rounded-[4px] px-4"
+            onClick={() => handleOpenConnection("chat")}
             style={{
               border: "1px solid #FFDDC4",
               background: "rgba(255, 238, 225, 0.26)",
@@ -130,6 +206,7 @@ export default function ProfileSidebar({
         <div className="flex justify-center mt-2">
           <button
             className="flex items-center w-full max-w-[330px] h-[50px] rounded-[4px] px-4"
+            onClick={() => handleOpenConnection("audio")}
             style={{
               border: "1px solid #FFDDC4",
               background: "rgba(255, 238, 225, 0.26)",
@@ -210,6 +287,16 @@ export default function ProfileSidebar({
             </button>
           </div>
         </div>
+        {/* ─── Inject The Modal ─── */}
+      <ConnectionModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        astrologer={astrologerData}
+        userWalletBalance={userWalletBalance}
+        callType={activeCallType}
+        onSubmit={handleFinalSubmit}
+        isLoading={isConnecting}
+      />
       </div>
     </aside>
   );

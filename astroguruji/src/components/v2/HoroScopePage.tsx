@@ -1,8 +1,74 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
 import Navbar from "@/components/v2/Navbar";
 import Footer from "@/components/v2/Footer";
 import BreadcrumbHeader from "@/components/v2/BreadcrumbHeader";
+
+// ─── SVG Icons for Theme Consistency ─────────────────────────────────────────
+
+const LoveIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+  </svg>
+);
+
+const CareerIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+  </svg>
+);
+
+const HealthIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+  </svg>
+);
+
+const FinanceIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="1" x2="12" y2="23"></line>
+    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+  </svg>
+);
+
+const NumberIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="4" y1="9" x2="20" y2="9"></line>
+    <line x1="4" y1="15" x2="20" y2="15"></line>
+    <line x1="10" y1="3" x2="8" y2="21"></line>
+    <line x1="16" y1="3" x2="14" y2="21"></line>
+  </svg>
+);
+
+const ColorIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path>
+    <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle>
+    <circle cx="15.5" cy="7.5" r=".5" fill="currentColor"></circle>
+    <circle cx="12" cy="11.5" r=".5" fill="currentColor"></circle>
+  </svg>
+);
+
+const TimeIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"></circle>
+    <polyline points="12 6 12 12 16 14"></polyline>
+  </svg>
+);
+
+const CompatibleIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 10a2 2 0 0 0-2 2c0 1.1.9 2 2 2s2-.9 2-2a2 2 0 0 0-2-2Z"></path>
+    <path d="M21 12c0 1.66-4 6-9 6s-9-4.34-9-6 4-6 9-6 9 4.34 9 6Z"></path>
+  </svg>
+);
+
+const SparkleIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand-orange mt-0.5 shrink-0">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+  </svg>
+);
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -345,7 +411,7 @@ const SIGNS: ZodiacSign[] = [
     horoscope: {
       today: { overview: "The Moon, your ruler, is in a harmonious position today, Cancer. Your intuition is extraordinarily sharp — trust those gut feelings completely. Home and family matters feel warm and comforting. A nurturing gesture you extend today returns to you tenfold.", love: "Deep emotional bonds strengthen today. Your empathy makes your partner feel truly seen and valued. Singles: your emotional authenticity is your most attractive quality.", career: "Your emotional intelligence navigates a tricky workplace dynamic beautifully. Your colleagues feel your supportive presence and reciprocate with loyalty.", health: "Emotional and physical wellbeing are closely linked for you today. A relaxing bath, good music, and an early night do wonders.", finance: "Home-related investments look favorable. A family financial matter resolves in your favor.", luckyNumber: "2", luckyColor: "Pearl White", luckyTime: "8:00 PM – 10:00 PM", compatibleSign: "Scorpio", tip: "Your sensitivity is your strength — never suppress it.",
         scores: [{ label: "Love", value: 92, color: "#e74c8b" }, { label: "Career", value: 70, color: "#FF6F00" }, { label: "Health", value: 75, color: "#34a853" }, { label: "Finance", value: 72, color: "#4a90d9" }, { label: "Luck", value: 78, color: "#9b59b6" }] },
-      tomorrow: { overview: "A reflective tomorrow for Cancer. The emotional undercurrents of recent days surface and demand acknowledgment. Giving yourself permission to feel is not weakness — it's wisdom.", love: "Vulnerability deepens connection. Share something personal with your partner.", career: "Creative projects flourish. Your imagination is a professional asset today.", health: "Extra rest is non-negotiable tonight. Honor your need for recuperation.", finance: "Avoid emotional spending. Make financial decisions from logic, not feeling.", luckyNumber: "7", luckyColor: "Silver Blue", luckyTime: "9:00 AM – 11:00 AM", compatibleSign: "Pisces", tip: "Rest is productive — you're processing more than you realize.",
+      tomorrow: { overview: "A reflective tomorrow for Cancer. The emotional undercurrents of recent days surface and demand acknowledgment. Giving yourself permission to feel is not weakness — it's wisdom.", love: "Vulnerability deepens connection. Share something personal with your partner.", career: "Creative projects flourishes. Your imagination is a professional asset today.", health: "Extra rest is non-negotiable tonight. Honor your need for recuperation.", finance: "Avoid emotional spending. Make financial decisions from logic, not feeling.", luckyNumber: "7", luckyColor: "Silver Blue", luckyTime: "9:00 AM – 11:00 AM", compatibleSign: "Pisces", tip: "Rest is productive — you're processing more than you realize.",
         scores: [{ label: "Love", value: 80, color: "#e74c8b" }, { label: "Career", value: 72, color: "#FF6F00" }, { label: "Health", value: 68, color: "#34a853" }, { label: "Finance", value: 60, color: "#4a90d9" }, { label: "Luck", value: 65, color: "#9b59b6" }] },
       weekly: { overview: "Emotional growth and professional achievement go hand in hand this week for Cancer. The full moon mid-week illuminates your career sector with startling clarity — an important decision becomes obvious.", love: "Deep intimacy defines your week. Make time for genuine connection beyond surface conversation.", career: "Career full moon brings recognition or an important decision point. Trust your instincts.", health: "Water is your element — swimming, baths, or water-based exercise rejuvenates you.", finance: "A property or home-related financial matter progresses positively.", luckyNumber: "22", luckyColor: "Aqua", luckyTime: "Evening", compatibleSign: "Taurus", tip: "Let your emotions guide your decisions — they're your compass.",
         scores: [{ label: "Love", value: 88, color: "#e74c8b" }, { label: "Career", value: 80, color: "#FF6F00" }, { label: "Health", value: 78, color: "#34a853" }, { label: "Finance", value: 75, color: "#4a90d9" }, { label: "Luck", value: 82, color: "#9b59b6" }] },
@@ -522,14 +588,16 @@ function DetailCard({
   label,
   content,
 }: {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   content: string;
 }) {
   return (
     <div className="rounded-xl border border-[#F0E8DF] bg-white p-4 shadow-sm hover:border-brand-orange/40 hover:shadow-md transition-all">
-      <div className="mb-2 flex items-center gap-2">
-        <span className="text-[18px]">{icon}</span>
+      <div className="mb-3 flex items-center gap-3">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FFF5EC] text-brand-orange">
+          {icon}
+        </span>
         <span className="font-poppins text-[12px] font-bold uppercase tracking-wide text-brand-orange">
           {label}
         </span>
@@ -695,8 +763,8 @@ export default function HoroscopePage() {
               </div>
 
               {/* Daily Tip */}
-              <div className="mt-3 flex items-start gap-2 rounded-lg border border-brand-orange/30 bg-brand-orange/5 p-3">
-                <span className="text-[16px]">✨</span>
+              <div className="mt-3 flex items-start gap-3 rounded-lg border border-brand-orange/30 bg-brand-orange/5 p-3">
+                <SparkleIcon />
                 <p className="font-poppins text-[12px] font-semibold italic text-brand-orange">
                   {horoscope.tip}
                 </p>
@@ -705,8 +773,11 @@ export default function HoroscopePage() {
 
             {/* Scores */}
             <div className="mb-6 rounded-2xl border border-[#F0E8DF] bg-white p-5 shadow-sm">
-              <h3 className="mb-4 font-poppins text-[14px] font-bold text-[#1A1A1A]">
-                ⭐ {PERIOD_LABELS[activePeriod]} Scores
+              <h3 className="mb-4 font-poppins text-[14px] font-bold text-[#1A1A1A] flex items-center gap-2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF6F00" stroke="#FF6F00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                {PERIOD_LABELS[activePeriod]} Scores
               </h3>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {horoscope.scores.map((s) => (
@@ -718,22 +789,22 @@ export default function HoroscopePage() {
             {/* Detail Cards Grid */}
             <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <DetailCard
-                icon="💕"
+                icon={<LoveIcon />}
                 label="Love & Relationships"
                 content={horoscope.love}
               />
               <DetailCard
-                icon="💼"
+                icon={<CareerIcon />}
                 label="Career & Work"
                 content={horoscope.career}
               />
               <DetailCard
-                icon="🌿"
+                icon={<HealthIcon />}
                 label="Health & Wellness"
                 content={horoscope.health}
               />
               <DetailCard
-                icon="💰"
+                icon={<FinanceIcon />}
                 label="Finance & Money"
                 content={horoscope.finance}
               />
@@ -742,16 +813,18 @@ export default function HoroscopePage() {
             {/* Lucky Details Strip */}
             <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
-                { icon: "🔢", label: "Lucky Number", value: horoscope.luckyNumber },
-                { icon: "🎨", label: "Lucky Color", value: horoscope.luckyColor },
-                { icon: "⏰", label: "Lucky Time", value: horoscope.luckyTime },
-                { icon: "♾️", label: "Compatible Sign", value: horoscope.compatibleSign },
+                { icon: <NumberIcon />, label: "Lucky Number", value: horoscope.luckyNumber },
+                { icon: <ColorIcon />, label: "Lucky Color", value: horoscope.luckyColor },
+                { icon: <TimeIcon />, label: "Lucky Time", value: horoscope.luckyTime },
+                { icon: <CompatibleIcon />, label: "Compatible Sign", value: horoscope.compatibleSign },
               ].map((item) => (
                 <div
                   key={item.label}
-                  className="flex flex-col items-center gap-1 rounded-xl border border-[#F0E8DF] bg-[#FAFAFA] p-4 text-center shadow-sm"
+                  className="flex flex-col items-center gap-1.5 rounded-xl border border-[#F0E8DF] bg-[#FAFAFA] p-4 text-center shadow-sm"
                 >
-                  <span className="text-[24px]">{item.icon}</span>
+                  <div className="mb-1 flex h-10 w-10 items-center justify-center rounded-full bg-[#FFF5EC] text-brand-orange">
+                    {item.icon}
+                  </div>
                   <span className="font-poppins text-[10px] text-gray-400 uppercase tracking-wide">
                     {item.label}
                   </span>

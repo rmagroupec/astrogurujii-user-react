@@ -1,5 +1,7 @@
 // ConsultantCardNew.tsx — updated to match ApiAstrologer shape from home_data
 
+import { useNavigate } from "react-router-dom";
+
 type ApiAstrologer = {
     id: string;
     name: string;
@@ -19,6 +21,7 @@ type ApiAstrologer = {
     consultant: ApiAstrologer;
     showStatusBadge?: boolean;
   }>) {
+    const navigate = useNavigate();
     // Derive display values from API fields
     const price = consultant.per_min_chat;
     const offerPrice = consultant.per_min_chat_offer
@@ -37,7 +40,7 @@ type ApiAstrologer = {
     const experienceLabel = `${consultant.experience} Yr${consultant.experience !== 1 ? "s" : ""}`;
   
     return (
-      <div className="group relative w-full rounded-[10px] border border-[#DADADA] bg-white transition-all hover:border-brand-amber">
+      <div onClick={() => navigate(`/consultants/${consultant.id}`)} className="group relative w-full rounded-[10px] border border-[#DADADA] bg-white transition-all hover:border-brand-amber">
         {/* Online / Offline badge */}
         {showStatusBadge &&
           (consultant.online ? (

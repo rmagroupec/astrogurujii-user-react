@@ -14,6 +14,7 @@ import WalletPage from "./components/v2/User Account/UserWalletPage";
 import RechargePage from "./components/v2/User Account/WalletRechargePage";
 import OrdersPage from "./components/v2/Reports/OrderPage";
 import SupportChatPage from "./components/v2/Reports/CustomerChatSupport";
+import ChatScreen from "./pages/ChatScreen";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
       <Route path="/recharge-now" element={<RechargePage />} />
       <Route path="/user-reports" element={<OrdersPage />} />
       <Route path="/customer-chat-support" element={<SupportChatPage />} />
+      <Route path="/chat/:channelId" element={<ChatScreen />} />
     </Routes>
   );
 }

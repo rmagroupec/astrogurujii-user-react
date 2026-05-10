@@ -6,7 +6,8 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
   const [step, setStep] = useState("mobile");
   const [mobile, setMobile] = useState("");
   const [dialCode] = useState("91");
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  // 1. Updated state to hold exactly 4 digits
+  const [otp, setOtp] = useState(["", "", "", ""]);
   const [timer, setTimer] = useState(59);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -26,7 +27,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
     if (!isOpen) {
       setStep("mobile");
       setMobile("");
-      setOtp(["", "", "", "", "", ""]);
+      setOtp(["", "", "", ""]); // Reset to 4
       setError("");
       setTimer(59);
     }
@@ -66,7 +67,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
       if (data.status === true) {
         setStep("otp");
         setTimer(59);
-        setOtp(["", "", "", "", "", ""]);
+        setOtp(["", "", "", ""]); // Reset to 4
         setTimeout(() => otpRefs.current[0]?.focus(), 100);
       } else {
         setError(data.message ?? "Failed to send OTP");
@@ -97,7 +98,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
         }),
       });
       setTimer(59);
-      setOtp(["", "", "", "", "", ""]);
+      setOtp(["", "", "", ""]); // Reset to 4
       otpRefs.current[0]?.focus();
     } catch (err) {
       setError("Failed to resend OTP.");
@@ -106,7 +107,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
 
   const verifyOtp = async () => {
     const finalOtp = otp.join("");
-    if (finalOtp.length !== 4) { setError("Please enter the complete OTP"); return; }
+    if (finalOtp.length !== 4) { setError("Please enter the complete 4-digit OTP"); return; }
     setError("");
     try {
       setIsLoading(true);
@@ -165,7 +166,8 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
-    if (value && index < 5) otpRefs.current[index + 1]?.focus();
+    // 2. Updated focus shift to cap at index 3 instead of 5
+    if (value && index < 3) otpRefs.current[index + 1]?.focus();
   };
 
   const handleOtpKeyDown = (e, index) => {
@@ -252,12 +254,12 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
         {/* OTP STEP */}
         {step === "otp" && (
           <>
-            <p className="text-gray-500 text-sm mb-5">
+            <p className="text-gray-500 text-sm mb-5 text-center">
               OTP sent to <span className="font-medium text-black">+91 {mobile}</span>
             </p>
 
-            {/* 6-box OTP input */}
-            <div className="flex justify-between gap-2 mb-5">
+            {/* 4-box OTP input (Updated UI) */}
+            <div className="flex justify-center gap-4 mb-5">
               {otp.map((digit, i) => (
                 <input
                   key={i}
@@ -267,8 +269,8 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
                   onKeyDown={(e) => handleOtpKeyDown(e, i)}
                   maxLength={1}
                   inputMode="numeric"
-                  className="w-11 border-2 rounded-lg text-center text-lg font-semibold focus:border-orange-400 focus:outline-none transition-colors"
-                  style={{ height: "52px" }}
+                  className="w-14 border-2 rounded-lg text-center text-xl font-semibold focus:border-orange-400 focus:outline-none transition-colors"
+                  style={{ height: "56px" }}
                 />
               ))}
             </div>
@@ -303,7 +305,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
             </div>
 
             <button
-              onClick={() => { setStep("mobile"); setError(""); setOtp(["", "", "", "", "", ""]); }}
+              onClick={() => { setStep("mobile"); setError(""); setOtp(["", "", "", ""]); }}
               className="mt-3 w-full text-sm text-gray-500 hover:text-gray-700"
             >
               ← Change number

@@ -12,6 +12,7 @@ import Testimonials from "@/components/v2/Testimonials";
 import Faq from "@/components/v2/Faq";
 import Footer from "@/components/v2/Footer";
 import MasterLoader from "@/components/v2/common/MasterLoader";
+import MainAstrologerProfile from "@/components/v2/User Account/component/MainAstrologerProfile";
 
 
 
@@ -61,7 +62,7 @@ export default function Home() {
       <Testimonials />
       <Faq /> */}
       <Hero />
-
+<MainAstrologerProfile />
 <Services  />
 
  <Consultants data={homeData?.astrologer || []} />

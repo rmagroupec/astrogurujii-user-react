@@ -1,4 +1,5 @@
 import { CONSULTANTS } from "@/data/home";
+import { useNavigate } from "react-router-dom";
 
 export default function ConsultantCard({
   consultant,
@@ -7,9 +8,10 @@ export default function ConsultantCard({
   consultant: (typeof CONSULTANTS)[0];
   showStatusBadge?: boolean;
 }>) {
+  const navigate = useNavigate(); 
   return (
     // hover:shadow-[0_4px_20px_rgba(255,111,0,0.15)]
-    <div className="group relative w-full rounded-[10px] border border-[#DADADA] bg-white transition-all hover:border-brand-amber ">
+    <div onClick={() => navigate(`/consultants/${consultant.id}`)} className="group relative w-full rounded-[10px] border border-[#DADADA] bg-white transition-all hover:border-brand-amber ">
       {/* Online / Offline badge */}
       {showStatusBadge &&
         (consultant.online ? (
