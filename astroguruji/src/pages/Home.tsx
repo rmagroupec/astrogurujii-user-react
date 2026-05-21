@@ -13,6 +13,7 @@ import Faq from "@/components/v2/Faq";
 import Footer from "@/components/v2/Footer";
 import MasterLoader from "@/components/v2/common/MasterLoader";
 import MainAstrologerProfile from "@/components/v2/User Account/component/MainAstrologerProfile";
+import HomeBannerSlider from "./HomebannerSlider";
 
 
 
@@ -61,13 +62,22 @@ export default function Home() {
       <StatsBanner />
       <Testimonials />
       <Faq /> */}
+      <HomeBannerSlider
+        banners={homeData?.banner || []}
+        isLoading={loading}
+      />
       <Hero />
+      
 <MainAstrologerProfile />
 <Services  />
 
  <Consultants data={homeData?.astrologer || []} />
 
 <LiveAstrologers data={homeData?.live_astrologers || []} />
+{/* <HomeBannerSlider
+        banners={homeData?.banner_ads || []}
+        isLoading={loading}
+      /> */}
 
 {/* ✅ FIX HERE */}
 <Blog data={homeData?.blog || []} />

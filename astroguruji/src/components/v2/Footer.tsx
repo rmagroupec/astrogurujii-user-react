@@ -123,12 +123,12 @@ export default function Footer() {
             </h4>
             <ul className="space-y-[8px]">
               {FOOTER_USEFUL_LINKS.map((item) => (
-                <li key={item}>
+                <li key={item.link}>
                   <a
-                    href="#"
+                    href={item.link}
                     className="font-euclid text-[13px] text-white/70 transition-colors hover:text-white"
                   >
-                    {item}
+                    {item.name}
                   </a>
                 </li>
               ))}

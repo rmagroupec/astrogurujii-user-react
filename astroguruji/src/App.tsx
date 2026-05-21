@@ -15,10 +15,22 @@ import RechargePage from "./components/v2/User Account/WalletRechargePage";
 import OrdersPage from "./components/v2/Reports/OrderPage";
 import SupportChatPage from "./components/v2/Reports/CustomerChatSupport";
 import ChatScreen from "./pages/ChatScreen";
+import ChatCallingScreen from "./pages/ChatCallingScreen";
+import ActiveCallBar from "./pages/ActiveCallBar";
+import { AudioCallProvider } from "./pages/AudioCallContext";
+import AudioCallScreen from "./pages/AudioCallScreen";
+import PrivacyPolicyPage from "./pages/PrivacyPolicy";
+import TermsAndConditionsPage from "./pages/TermsAndConditions";
+import { AboutSection } from "./components/v2/consultant-detail";
+import AboutUsPage from "./pages/AboutUsPage";
+import CareersPage from "./pages/CareerPage";
+import AstrologerRegistration from "./pages/AstrologerRegistrationPage";
 
 function App() {
   return (
+     <AudioCallProvider>
     <Routes>
+      
       <Route path="/" element={<Home />} />
       <Route path="/chat-with-astrolger" element={<ConsultantListing />} />
       <Route path="/call-with-astrolger" element={<CallWithAstrologer />} />
@@ -34,8 +46,19 @@ function App() {
       <Route path="/recharge-now" element={<RechargePage />} />
       <Route path="/user-reports" element={<OrdersPage />} />
       <Route path="/customer-chat-support" element={<SupportChatPage />} />
-      <Route path="/chat/:channelId" element={<ChatScreen />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+      <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
+      <Route path="/about-us" element={<AboutUsPage />} />
+      <Route path="/career" element={<CareersPage />} />
+      <Route path="/astrologer-registration" element={<AstrologerRegistration />} />
+      <Route path="/chat-calling" element={<ChatCallingScreen />} />
+      <Route path="/chat" element={<ChatScreen />} />
+      <Route path="/audio-call" element={<AudioCallScreen />} />
+        
+    
     </Routes>
+    <ActiveCallBar />
+    </AudioCallProvider>
   );
 }
 

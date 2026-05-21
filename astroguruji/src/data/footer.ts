@@ -85,14 +85,26 @@ export const FOOTER_IMPORTANT_LINKS_2 = [
 ];
 
 export const FOOTER_USEFUL_LINKS = [
-  "Customer Support",
-  "Privacy Policy",
-  "Terms & Conditions",
-  "Careers",
-  "About Us",
-  "Astrologer Registration",
-  "Events",
-  "Help",
+  {
+    "name":"Customer Support",
+    "link":"customer-chat-support"
+  },
+  {"name":"Privacy Policy",
+    "link":"privacy-policy"},
+
+  {"name":"Terms & Conditions",
+    "link":'terms-and-conditions'},
+  {"name":"Careers",
+    "link":"career"},
+  {"name":"About Us",
+    "link":"about-us"},
+ {"name": "Astrologer Registration",
+  "link":"astrologer-registration"
+ },
+ 
+  {"name":"Help",
+    "link":"help"
+  }
 ];
 
 export const FOOTER_CONTACT = {

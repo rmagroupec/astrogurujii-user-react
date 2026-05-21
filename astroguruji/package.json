@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@react-google-maps/api": "^2.20.8",
+    "agora-rtc-sdk-ng": "^4.24.3",
     "axios": "^1.15.1",
     "firebase": "^12.13.0",
     "motion": "^12.38.0",

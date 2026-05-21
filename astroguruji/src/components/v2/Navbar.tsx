@@ -2,6 +2,7 @@ import { NAV_LINKS } from "@/data/home";
 import { useState } from "react";
 import LoginModal from "./UserLoginModal";
 import LanguageModal from "./LanguageModal";
+import { useNavigate } from "react-router-dom";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -11,7 +12,7 @@ export default function Navbar() {
 
 const isLoggedIn = typeof window !== "undefined" && localStorage.getItem("token");
 const userName = typeof window !== "undefined" && localStorage.getItem("name");
-
+const navigate = useNavigate();
 const handleLogout = () => {
   localStorage.clear();
   window.location.reload();
@@ -110,6 +111,7 @@ const handleLogout = () => {
           {/* Notification bell */}
           <button
             aria-label="Notifications"
+            onClick={()=> navigate('/notify_list')}
             className="flex items-center justify-center"
           >
             <svg width="17" height="20" viewBox="0 0 17 20" fill="none">
