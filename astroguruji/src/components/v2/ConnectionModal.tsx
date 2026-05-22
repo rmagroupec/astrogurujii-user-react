@@ -375,7 +375,7 @@ export default function ConnectionModal({
             state: {
               ...sessionState,
               _channel_id: res.channel_id,
-              _fb_channel_id: res.fb_channel_id || preChannelId,
+              // _fb_channel_id: res.fb_channel_id || preChannelId,
             },
           });
         }

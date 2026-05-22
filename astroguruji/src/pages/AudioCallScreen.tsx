@@ -27,7 +27,7 @@ import AgoraRTC, {
 import { useAudioCall } from "./AudioCallContext";
 import { call_initiate_status, call_status_update, add_rating } from "@/https_service";
 
-const AGORA_APP_ID = import.meta.env.VITE_AGORA_APP_ID ?? "";
+const AGORA_APP_ID = import.meta.env.VITE_AGORA_APP_ID ?? "8782e154141a4c0bbc8acaa3004d21f2";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

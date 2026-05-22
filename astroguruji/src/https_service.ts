@@ -35,6 +35,26 @@ export type CallInitiateStatusResponse = {
   results: { status: string } | null;
 };
 
+export type LastCallData = {
+  callType: string;        // "chat" | "audio"
+  status: string;          // "accept_astro" | "pending" | etc
+  channelId: string;       // API channel_id — used as gid for Firebase + polling
+  fbChannelId: string;     // fb_channel_id
+  astroId: string;
+  astroName: string;
+  astroProfileImg: string;
+  callRate: string;
+  userName: string;
+  difference: number;      // elapsed seconds
+};
+
+export type LastCallListResponse = {
+  result: boolean;
+  message?: string;
+  data2?: LastCallData;
+};
+
+
 export type GeocodeResult = { lat: string; lng: string };
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
@@ -158,6 +178,19 @@ export async function profile_api(): Promise<any> {
   try {
     const response = await axios.get(
       `${API_BASE_URL}/user_api/get_profile`,
+      { headers: authHeaders() }
+    );
+    return response.data;
+  } catch {
+    return null;
+  }
+}
+
+export async function lastCallList(): Promise<LastCallListResponse | null> {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}/user_api/last_call_list`,
+      {},
       { headers: authHeaders() }
     );
     return response.data;

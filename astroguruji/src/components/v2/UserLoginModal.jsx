@@ -124,6 +124,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
           country: "INR",
           otp: finalOtp,
           type: "",
+          // 
         }),
       });
       const data = await res.json();

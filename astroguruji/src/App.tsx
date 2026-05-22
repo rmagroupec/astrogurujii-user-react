@@ -18,6 +18,7 @@ import ChatScreen from "./pages/ChatScreen";
 import ChatCallingScreen from "./pages/ChatCallingScreen";
 import ActiveCallBar from "./pages/ActiveCallBar";
 import { AudioCallProvider } from "./pages/AudioCallContext";
+import { ChatProvider } from "./pages/ChatContext"; 
 import AudioCallScreen from "./pages/AudioCallScreen";
 import PrivacyPolicyPage from "./pages/PrivacyPolicy";
 import TermsAndConditionsPage from "./pages/TermsAndConditions";
@@ -25,10 +26,13 @@ import { AboutSection } from "./components/v2/consultant-detail";
 import AboutUsPage from "./pages/AboutUsPage";
 import CareersPage from "./pages/CareerPage";
 import AstrologerRegistration from "./pages/AstrologerRegistrationPage";
+import ActiveChatBar from "./pages/ActiveChatBar";  // ADD this import
+
 
 function App() {
   return (
      <AudioCallProvider>
+      <ChatProvider> 
     <Routes>
       
       <Route path="/" element={<Home />} />
@@ -58,6 +62,8 @@ function App() {
     
     </Routes>
     <ActiveCallBar />
+    <ActiveChatBar />
+      </ChatProvider>
     </AudioCallProvider>
   );
 }
