@@ -249,8 +249,7 @@ export default function ChatScreen() {
     dob,
     tob,
     place,
-    gender,
-    _resume,  // true when returning from ActiveChatBar — resume timer from sessionStorage
+    gender, // true when returning from ActiveChatBar — resume timer from sessionStorage
   } = location.state || {};
 
   const userId          = localStorage.getItem("id")    || "";
@@ -268,8 +267,6 @@ export default function ChatScreen() {
   const [showRatingDialog, setShowRatingDialog] = useState(false);
   const [previewImage, setPreviewImage]       = useState<string | null>(null);
   const [isEnding, setIsEnding]               = useState(false);
-  const [showLowBalance, setShowLowBalance]   = useState(false);
-  const [showRecharge, setShowRecharge]       = useState(false);
 
  // Countdown timer — resume from sessionStorage if returning from ActiveChatBar
   // Resume from sessionStorage when returning from ActiveChatBar
@@ -295,6 +292,8 @@ export default function ChatScreen() {
   // Ref holds latest session data — avoids stale closure in setInterval
   // ── Read timeLeft from global context (keeps ticking even off this page) ─
   const timeLeft     = chatCtx.chatTimeLeft;
+  const showLowBalance = timeLeft > 0 && timeLeft <= 5 * 60;   // under 5 min
+  const showRecharge   = timeLeft > 0 && timeLeft <= 1 * 60; 
 
   // ── Start global timer on mount — skip if already running for same session
   useEffect(() => {

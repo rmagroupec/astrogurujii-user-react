@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useChat } from "./ChatContext";
 import { profile_api } from "@/https_service";
@@ -8,22 +8,34 @@ export default function ActiveChatBar() {
   const location  = useLocation();
   const { chatActive, chatInfo, chatTimeLeft } = useChat();
 
-  const [dismissed, setDismissed]   = useState(false);
-  const [prevGid, setPrevGid]       = useState<string | null>(null);
+  const [dismissed,  setDismissed]  = useState(false);
   const [dismissing, setDismissing] = useState(false);
-  const [loading, setLoading]       = useState(false);
+  const [loading,    setLoading]    = useState(false);
+  const [prevGid,    setPrevGid]    = useState<string | null>(null);
 
   const isOnChatPage =
     location.pathname === "/chat" ||
     location.pathname === "/chat-calling";
 
-  // Reset dismissed when a NEW chat session starts
-  if (chatInfo?.gid && chatInfo.gid !== prevGid) {
-    setPrevGid(chatInfo.gid);
-    setDismissed(false);
-  }
+  // ── Reset dismissed whenever a new session starts ─────────────────────────
+  useEffect(() => {
+    if (chatInfo?.gid && chatInfo.gid !== prevGid) {
+      setPrevGid(chatInfo.gid);
+      setDismissed(false);
+    }
+  }, [chatInfo?.gid]);   // eslint-disable-line react-hooks/exhaustive-deps
 
-  const shouldShow = chatActive && chatTimeLeft > 0 && !isOnChatPage && !dismissed && !!chatInfo;
+  // ── Also un-dismiss when bar becomes active ───────────────────────────────
+  useEffect(() => {
+    if (chatActive) setDismissed(false);
+  }, [chatActive]);
+
+  const shouldShow =
+    chatActive       &&
+    chatTimeLeft > 0 &&
+    !isOnChatPage    &&
+    !dismissed       &&
+    !!chatInfo;
 
   const formatTime = (s: number) =>
     `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
@@ -32,22 +44,23 @@ export default function ActiveChatBar() {
     if (!chatInfo || loading) return;
     setLoading(true);
 
-    // Fetch current wallet balance
     let currentWallet = chatInfo.wallet;
     try {
       const res = await profile_api();
       if (res?.status === true && res.results) {
         const w = parseFloat(
-          res.results.wallet ?? res.results.balance ??
-          res.results.amount ?? res.results.wallet_amount ?? "0"
+          res.results.wallet     ??
+          res.results.balance    ??
+          res.results.amount     ??
+          res.results.wallet_amount ?? "0"
         );
         if (!isNaN(w) && w > 0) currentWallet = String(w);
       }
-    } catch { /* use existing */ }
+    } catch { /* keep existing */ }
 
     setLoading(false);
 
-    // Navigate back to chat — timer is already running in ChatContext, not reset
+    // Timer is already ticking in ChatContext — not restarted on navigate
     navigate("/chat", {
       replace: false,
       state: {
@@ -77,9 +90,10 @@ export default function ActiveChatBar() {
 
   if (!shouldShow) return null;
 
-  const rateDisplay = chatInfo.rate && chatInfo.rate !== "0"
-    ? `₹${chatInfo.rate}/min`
-    : "Chat";
+  const rateDisplay =
+    chatInfo.rate && chatInfo.rate !== "0"
+      ? `₹${chatInfo.rate}/min`
+      : "Chat";
 
   return (
     <>
@@ -105,9 +119,9 @@ export default function ActiveChatBar() {
         <div
           className="relative rounded-2xl overflow-hidden"
           style={{
-            background: "linear-gradient(135deg, #fffbf7 0%, #ffffff 100%)",
-            border: "1.5px solid rgba(255,111,0,0.25)",
-            boxShadow: "0 8px 32px rgba(255,111,0,0.15), 0 2px 8px rgba(0,0,0,0.08)",
+            background:  "linear-gradient(135deg, #fffbf7 0%, #ffffff 100%)",
+            border:      "1.5px solid rgba(255,111,0,0.25)",
+            boxShadow:   "0 8px 32px rgba(255,111,0,0.15), 0 2px 8px rgba(0,0,0,0.08)",
           }}
         >
           {/* Top accent */}
@@ -119,7 +133,8 @@ export default function ActiveChatBar() {
             className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors z-10"
           >
             <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6"  y1="6" x2="18" y2="18"/>
             </svg>
           </button>
 
@@ -148,11 +163,15 @@ export default function ActiveChatBar() {
                   Chat in Progress
                 </span>
               </div>
-              <p className="text-sm font-bold text-gray-900 truncate">{chatInfo.astroName}</p>
+              <p className="text-sm font-bold text-gray-900 truncate">
+                {chatInfo.astroName}
+              </p>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-xs font-semibold text-orange-500">{rateDisplay}</span>
+                <span className="text-xs font-semibold text-orange-500">
+                  {rateDisplay}
+                </span>
                 <span className="text-[10px] text-gray-300">•</span>
-                {/* Live ticking countdown from ChatContext */}
+                {/* Live countdown — same timer as ChatScreen */}
                 <span className="text-xs font-bold text-red-500">
                   ⏱ {formatTime(chatTimeLeft)}
                 </span>
@@ -166,8 +185,8 @@ export default function ActiveChatBar() {
               className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-white text-xs font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-60"
               style={{
                 background: "linear-gradient(135deg, #FF6F00, #FF9800)",
-                boxShadow: "0 4px 14px rgba(255,111,0,0.35)",
-                minWidth: 80,
+                boxShadow:  "0 4px 14px rgba(255,111,0,0.35)",
+                minWidth:   80,
               }}
             >
               {loading ? (
@@ -182,6 +201,7 @@ export default function ActiveChatBar() {
                 </>
               )}
             </button>
+
           </div>
         </div>
       </div>
