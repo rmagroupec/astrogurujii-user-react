@@ -340,23 +340,15 @@ export default function ConsultantDetail() {
 
       // ✅ Pricing FIX (critical)
       chatPrice: Number(
-        consultant.per_min_chat_offer || consultant.perMinChat || 0
-      ),
-      callPrice: Number(
-        consultant.per_min_voice_call_offer ||
-        consultant.perMinVoiceCall ||
-        0
-      ),
-      
-      videoPrice: Number(
-        consultant.per_min_video_call_offer ||
-        consultant.perMinVideoCall ||
-        0
-      ),
+  consultant.per_min_chat_offer || consultant.per_min_chat || 0
+),
+callPrice: Number(
+  consultant.per_min_voice_call_offer || consultant.per_min_voice_call || 0
+),
 
-      chatOriginal: consultant.perMinChat || 0,
-      callOriginal: consultant.perMinVoiceCall || 0,
-      videoOriginal: consultant.perMinVideoCall || 0,
+chatOriginal: consultant.per_min_chat || 0,
+callOriginal: consultant.per_min_voice_call || 0,
+videoOriginal: consultant.per_min_video_call || 0,
 
       // ✅ Experience
       experience: String(consultant.experience || 0),
