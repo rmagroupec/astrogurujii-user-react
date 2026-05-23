@@ -176,7 +176,7 @@ const formatTimeForInput = (time: string) => {
                     />
 
                     {/* Rashi */}
-                    <MainInput label="Rashi" value={form.rashi} onChange={(v: string) => handleChange("rashi", v)} />
+                    {/* <MainInput label="Rashi" value={form.rashi} onChange={(v: string) => handleChange("rashi", v)} /> */}
 
                     {/* Button */}
                     <button

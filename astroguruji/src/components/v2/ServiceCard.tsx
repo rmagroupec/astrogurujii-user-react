@@ -1,6 +1,9 @@
+import { useNavigate } from "react-router-dom";
+
 interface ServiceCardProps {
   title: string;
   description: string;
+  link: string; // ← was missing from interface
 }
 
 function LotusIcon() {
@@ -16,10 +19,14 @@ function LotusIcon() {
 export default function ServiceCard({
   title,
   description,
+  link,
 }: Readonly<ServiceCardProps>) {
+  const navigate = useNavigate();
+
   return (
     <div
-      className="group bg-white rounded-[10px] border-b-4 border-primary shadow-[0px_5px_25px_0px_rgba(0,0,0,0.15)] p-4 grid grid-rows-subgrid gap-3"
+      onClick={() => navigate(link)} // ← capital C, link now in props
+      className="group bg-white rounded-[10px] border-b-4 border-primary shadow-[0px_5px_25px_0px_rgba(0,0,0,0.15)] p-4 grid grid-rows-subgrid gap-3 cursor-pointer"
       style={{ gridRow: "1 / -1" }}
     >
       {/* Icon + Title bar */}

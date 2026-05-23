@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { SERVICE_CARDS } from "@/data/home";
 import ServiceCard from "./ServiceCard";
+import { useNavigate } from "react-router-dom";
 
 function useVisibleCount() {
   const getCount = () => {
@@ -9,6 +10,7 @@ function useVisibleCount() {
     if (globalThis.window.innerWidth < 1024) return 2;
     return 4;
   };
+
   const [count, setCount] = useState(getCount);
 
   useEffect(() => {
@@ -24,6 +26,7 @@ const ServicesSection = () => {
   const visibleCount = useVisibleCount();
   const [index, setIndex] = useState(0);
   const maxIndex = Math.max(0, SERVICE_CARDS.length - visibleCount);
+    const navigate = useNavigate();
 
   // Clamp index when visibleCount changes (e.g. on resize)
   useEffect(() => {
@@ -71,13 +74,15 @@ const ServicesSection = () => {
             {/* Mobile: horizontal scroll */}
             <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 sm:hidden">
               {SERVICE_CARDS.map((card) => (
-                <div
+                <div 
                   key={card.title}
                   className="w-full flex-shrink-0 snap-center"
+                 
                 >
                   <ServiceCard
                     title={card.title}
                     description={card.description}
+                    link={card.link}
                   />
                 </div>
               ))}
@@ -101,6 +106,7 @@ const ServicesSection = () => {
                   <ServiceCard
                     title={card.title}
                     description={card.description}
+                    link={card.link}
                   />
                 </div>
               ))}

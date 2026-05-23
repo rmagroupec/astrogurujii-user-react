@@ -22,15 +22,16 @@ export const HERO_STATS = [
 ];
 
 export const SERVICE_PILLS = [
-  { label: "Chat to Astrologer", icon: "chat", color: "#ff81ca" },
-  { label: "Talk to Astrologer", icon: "talk", color: "#34cfb6" },
-  { label: "Astro Mall", icon: "mall", color: "#67a9ff" },
-  { label: "Book A Pooja", icon: "pooja", color: "#34a853" },
+  { label: "Chat to Astrologer", icon: "chat", color: "#ff81ca", link:"/chat-with-astrolger" },
+  { label: "Talk to Astrologer", icon: "talk", color: "#34cfb6", link:"/call-with-astrolger" },
+  { label: "Astro Mall", icon: "mall", color: "#67a9ff", link:"#" },
+  { label: "Book A Pooja", icon: "pooja", color: "#34a853", link:"#" },
 ];
 
 export interface ServiceCard {
   title: string;
   description: string;
+  link: string;
 }
 
 
@@ -39,36 +40,43 @@ export interface ServiceCard {
       title: "Chadhava",
       description:
         "Get detailed insights about upcoming auspicious dates, festivals, and rituals with accurate Chadwas calculations.",
+      link: "#"
     },
     {
       title: "Free Kundali",
       description:
         "Generate your free Kundali instantly with complete birth chart analysis, dosha details, and future predictions.",
+      link: "/free_kundli"
     },
     {
       title: "Today's Horoscope",
       description:
         "Check your daily horoscope for accurate predictions on love, career, health, and finances.",
+      link: "/horoscope"   
     },
     {
       title: "Today Panchang",
       description:
         "Get today's Panchang details including tithi, nakshatra, yoga, and auspicious timings for important activities.",
+      link: "/panchang"
     },
     {
       title: "Vastu Shastra",
       description:
         "Improve your home and workplace energy with expert Vastu tips for success, prosperity, and peace.",
+      link: "/vastu"
     },
     {
       title: "Numerology",
       description:
         "Discover the power of numbers in your life with personalized numerology predictions and guidance.",
+      link: "/numerology"
     },
     {
       title: "Tarot Reading",
       description:
         "Get intuitive tarot card readings to uncover answers about love, career, and life decisions.",
+      link: "/tarot-reading"
     },
   ];
 
@@ -96,38 +104,54 @@ export interface Consultant {
 export const mapAstrologerData = (apiData: any[]) => {
   return apiData.map((item) => ({
     id: item.id,
-
     name: item.name,
     profile_img: item.profile_img,
-
+ 
     // Pricing
     price: item.per_min_chat || 0,
-    originalPrice:
-      item.per_min_chat_offer || item.per_min_chat + 10, // fallback fake strike price
-
+    originalPrice: item.per_min_chat_offer
+      ? parseFloat(item.per_min_chat_offer)
+      : item.per_min_chat + 10,
+ 
+    // Pass raw pricing fields through for ConsultantCard
+    per_min_chat: item.per_min_chat || 0,
+    per_min_chat_offer: item.per_min_chat_offer || "",
+    per_min_voice_call: item.per_min_voice_call || 0,
+    per_min_voice_call_offer: item.per_min_voice_call_offer || "",
+ 
     // Specialty (join categories)
     specialty: item.category
       ?.map((c: any) => c.name.trim())
       .slice(0, 3)
       .join(", "),
-
-    // Location (since not available)
+ 
+    // Location
     location: "India",
-
+ 
     // Rating
     rating: item.avg_rate || 0,
-    reviews: item.rating || 0, // your API uses "rating" as count
-
+    reviews: item.consult || 0,
+ 
     // Experience
     experience: `${item.experience} Years`,
-
-    // Online status
+ 
+    // ✅ FIXED: correct field names from API (isChatOnline not is_chat_online)
+    isChatOnline: item.isChatOnline || "off",
+    isVoiceOnline: item.isVoiceOnline || "off",
+    isVideoOnline: item.isVideoOnline || "off",
+    is_busy: item.is_busy ?? 0,
+    is_Follow: item.is_Follow || "no",
+    watting_time: item.watting_time || 0,
+ 
+    // online boolean for backward compat — derived from correct fields
     online:
-      item.is_chat_online === "on" ||
-      item.is_voice_online === "on" ||
-      item.is_video_online === "on",
+      (item.isChatOnline === "on" || item.isVoiceOnline === "on") &&
+      item.is_busy === 0,
   }));
 };
+ 
+
+
 export const CONSULTANTS: Consultant[] = [
   // ── Kundali (10 consultants) ──
   {

@@ -22,11 +22,16 @@ import { ChatProvider } from "./pages/ChatContext";
 import AudioCallScreen from "./pages/AudioCallScreen";
 import PrivacyPolicyPage from "./pages/PrivacyPolicy";
 import TermsAndConditionsPage from "./pages/TermsAndConditions";
-import { AboutSection } from "./components/v2/consultant-detail";
 import AboutUsPage from "./pages/AboutUsPage";
 import CareersPage from "./pages/CareerPage";
 import AstrologerRegistration from "./pages/AstrologerRegistrationPage";
 import ActiveChatBar from "./pages/ActiveChatBar";  // ADD this import
+import ChatViewOnlyScreen from "./pages/Chatviewonlyscreen";
+import VastuPage from "./pages/Vastupagr";
+import NumerologyPage from "./pages/Numerologypage";
+import FreeKundliPage from "./pages/Freekundli";
+import TarotReadingPage from "./pages/Tarotreadingpage";
+
 
 
 function App() {
@@ -57,7 +62,16 @@ function App() {
       <Route path="/astrologer-registration" element={<AstrologerRegistration />} />
       <Route path="/chat-calling" element={<ChatCallingScreen />} />
       <Route path="/chat" element={<ChatScreen />} />
+      <Route path="/chat-view-only" element={<ChatViewOnlyScreen />} />
       <Route path="/audio-call" element={<AudioCallScreen />} />
+      <Route path="/vastu" element ={<VastuPage/>} />
+      <Route path="/numerology" element ={<NumerologyPage/>} />
+      <Route path="/free_kundli" element ={<FreeKundliPage/>} />
+            <Route path="/tarot_reading" element ={<TarotReadingPage/>} />
+
+      
+
+      
         
     
     </Routes>
