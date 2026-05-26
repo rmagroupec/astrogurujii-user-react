@@ -31,6 +31,7 @@ import VastuPage from "./pages/Vastupagr";
 import NumerologyPage from "./pages/Numerologypage";
 import FreeKundliPage from "./pages/Freekundli";
 import TarotReadingPage from "./pages/Tarotreadingpage";
+import ThankYou from "./components/v2/User Account/component/Thankyou";
 
 
 
@@ -68,6 +69,7 @@ function App() {
       <Route path="/numerology" element ={<NumerologyPage/>} />
       <Route path="/free_kundli" element ={<FreeKundliPage/>} />
             <Route path="/tarot-reading" element ={<TarotReadingPage/>} />
+      <Route path="/thank-you" element={<ThankYou />} />
 
       
 

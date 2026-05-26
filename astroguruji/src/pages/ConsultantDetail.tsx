@@ -217,10 +217,6 @@ export default function ConsultantDetail() {
   
       const token = localStorage.getItem("token");
   
-      if (!token) {
-        setError("User not authenticated");
-        return;
-      }
   
       const res = await axios.post(
         `${API_BASE_URL}/user_api/astrologer_profile`,

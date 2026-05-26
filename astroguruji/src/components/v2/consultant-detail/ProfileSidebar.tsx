@@ -2,6 +2,7 @@ import type { ConsultantDetailData, Specialty } from "@/data/consultant-detail";
 import { StarYellowIcon } from "@/assets/icons";
 import "./ProfileSidebar.css";
 import ConnectionModal from "../ConnectionModal";
+import LoginModal from "@/components/v2/UserLoginModal";
 import { useState, useEffect } from "react";
 import { profile_api } from "@/https_service";
 
@@ -11,22 +12,26 @@ interface ProfileSidebarProps {
   onSendGiftClick?: () => void;
 }
 
+function isLoggedIn(): boolean {
+  const token = localStorage.getItem("token");
+  const isSkip = localStorage.getItem("is_skip");
+  return !!token && isSkip !== "Y";
+}
+
 export default function ProfileSidebar({
   consultant,
   onSendGiftClick,
 }: Readonly<ProfileSidebarProps>) {
 
-  // ─── Modal state ──────────────────────────────────────────────────────────
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeCallType, setActiveCallType] = useState<"chat" | "audio" | null>(null);
-
-  // ─── Real wallet balance from profile API ─────────────────────────────────
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [pendingCallType, setPendingCallType] = useState<"chat" | "audio" | null>(null);
   const [userWallet, setUserWallet] = useState<number>(0);
 
   useEffect(() => {
     profile_api().then((res) => {
       if (res?.status === true && res.results) {
-        // API may return wallet under different field names
         const raw =
           res.results.wallet ??
           res.results.balance ??
@@ -39,26 +44,36 @@ export default function ProfileSidebar({
     });
   }, []);
 
-  // ─── Open modal ───────────────────────────────────────────────────────────
   const handleOpenConnection = (type: "chat" | "audio") => {
+    if (!isLoggedIn()) {
+      setPendingCallType(type);
+      setShowLoginModal(true);
+      return;
+    }
     setActiveCallType(type);
     setIsModalOpen(true);
   };
 
-  // Rate for the active call type — read from ConsultantDetailData
+  const handleLoginSuccess = () => {
+    setShowLoginModal(false);
+    if (pendingCallType) {
+      setActiveCallType(pendingCallType);
+      setPendingCallType(null);
+      setIsModalOpen(true);
+    }
+  };
+
   const activeRate =
     activeCallType === "chat"
       ? Number(consultant.chatPrice) || 0
       : Number(consultant.callPrice) || 0;
 
-  // ─── UI — exactly the original, no style changes ──────────────────────────
   return (
     <>
       <aside
         className="w-full shrink-0 flex flex-col gap-5 lg:w-[394px] lg:top-4 lg:self-start"
         data-testid="profile-sidebar"
       >
-        {/* Profile Card */}
         <div
           className="bg-white rounded-[10px] overflow-hidden pt-3"
           style={{ border: "1px solid rgba(238, 128, 44, 0.23)" }}
@@ -200,9 +215,7 @@ export default function ProfileSidebar({
           {/* Bottom Stats Bar */}
           <div
             className="flex items-center justify-around mt-[24px]"
-            style={{
-              background: "#FFF5EE",
-            }}
+            style={{ background: "#FFF5EE" }}
           >
             <div className="flex items-center justify-around h-[72px] w-full max-w-[350px]">
               {[
@@ -227,7 +240,17 @@ export default function ProfileSidebar({
         </div>
       </aside>
 
-      {/* ConnectionModal — mounted outside aside so it can overlay the full viewport */}
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => {
+          setShowLoginModal(false);
+          setPendingCallType(null);
+        }}
+        onLoginSuccess={handleLoginSuccess}
+      />
+
+      {/* Connection Modal */}
       {isModalOpen && activeCallType && (
         <ConnectionModal
           isOpen={isModalOpen}

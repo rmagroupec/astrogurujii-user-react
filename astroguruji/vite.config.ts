@@ -12,6 +12,15 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
+    proxy: {
+      // All requests to /api/* are forwarded to the backend
+      "/api": {
+        target: "https://admin.astrogurujii.com",
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/api/, ""), // strips /api prefix
+      },
+    },
   },
   build: {
     outDir: "dist",

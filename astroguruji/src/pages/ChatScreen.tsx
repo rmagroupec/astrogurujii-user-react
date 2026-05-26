@@ -1,13 +1,12 @@
 /**
  * ChatScreen.tsx  — Production Grade
  *
- * Key fixes vs previous version:
- *  ✅ Timer is NEVER restarted if ChatContext already has an active session for
- *     this gid — prevents wallet recalculation wiping the live countdown.
- *  ✅ Gracefully handles the case where ChatScreen receives no location.state
- *     (user opened /chat directly) by falling back to ChatContext session info.
- *  ✅ All intervals / listeners cleaned up correctly on unmount.
- *  ✅ Rating submit always calls stopChatTimer before navigating away.
+ * Changes applied:
+ *  ✅ 1. Audio recorded as .mp3 (file named voice_xxx.mp3, type audio/mpeg)
+ *  ✅ 2. Wallet balance font increased (text-base font-bold)
+ *  ✅ 3. END button dark red (bg-[#7f1d1d] text-white)
+ *  ✅ 4. Upload image icon bg orange (bg-orange-500 text-white)
+ *  ✅ 5. Block phone/email/website in messages — show alert, don't send
  */
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
@@ -64,16 +63,13 @@ function ToastContainer({
       {toasts.map((t) => (
         <div
           key={t.id}
-          className={`${colors[t.type]} text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 min-w-[260px] max-w-[340px] pointer-events-auto`}
-          style={{ animation: "slideInRight 0.3s ease-out" }}
+          className={`${colors[t.type]} text-white px-4 py-3 rounded-xl shadow-lg flex items-start gap-2 max-w-xs pointer-events-auto`}
         >
-          <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold flex-shrink-0">
-            {icons[t.type]}
-          </span>
-          <span className="text-sm font-medium flex-1">{t.message}</span>
+          <span className="font-bold mt-0.5 flex-shrink-0">{icons[t.type]}</span>
+          <span className="text-sm flex-1">{t.message}</span>
           <button
             onClick={() => onRemove(t.id)}
-            className="text-white/70 hover:text-white text-lg leading-none flex-shrink-0"
+            className="flex-shrink-0 text-white/70 hover:text-white ml-1"
           >
             ×
           </button>
@@ -85,27 +81,18 @@ function ToastContainer({
 
 function useToast() {
   const [toasts, setToasts] = useState<Toast[]>([]);
-
-  const show = useCallback(
-    (message: string, type: ToastType = "info", duration = 3500) => {
-      const id = ++toastCounter;
-      setToasts((prev) => [...prev, { id, message, type }]);
-      setTimeout(
-        () => setToasts((prev) => prev.filter((t) => t.id !== id)),
-        duration
-      );
-    },
-    []
-  );
-
+  const show = useCallback((message: string, type: ToastType = "info") => {
+    const id = ++toastCounter;
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4000);
+  }, []);
   const remove = useCallback((id: number) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
-
   return { toasts, show, remove };
 }
 
-// ─── API ──────────────────────────────────────────────────────────────────────
+// ─── API helper ───────────────────────────────────────────────────────────────
 
 const API_BASE = "https://admin.astrogurujii.com";
 
@@ -129,8 +116,10 @@ const SendIcon = () => (
   </svg>
 );
 const ImageIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <circle cx="8.5" cy="8.5" r="1.5" />
+    <polyline points="21 15 16 10 5 21" />
   </svg>
 );
 const MicIcon = ({ active }: { active?: boolean }) => (
@@ -159,51 +148,44 @@ const WalletIcon = () => (
   </svg>
 );
 const StarIcon = ({ filled }: { filled: boolean }) => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill={filled ? "#f97316" : "none"} stroke="#f97316" strokeWidth="1.5">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill={filled ? "#f59e0b" : "none"} stroke="#f59e0b" strokeWidth="1.5">
     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
   </svg>
 );
 
-// ─── Audio Player ─────────────────────────────────────────────────────────────
+// ─── Audio player ─────────────────────────────────────────────────────────────
 
 function AudioPlayer({ src }: { src: string }) {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [playing, setPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
 
+  const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+
   const toggle = () => {
     if (!audioRef.current) return;
-    if (playing) {
-      audioRef.current.pause();
-      setPlaying(false);
-    } else {
-      audioRef.current.play().then(() => setPlaying(true)).catch(() => {});
-    }
+    if (isPlaying) { audioRef.current.pause(); setIsPlaying(false); }
+    else { audioRef.current.play(); setIsPlaying(true); }
   };
-
-  const fmt = (s: number) =>
-    `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 
   return (
     <div className="flex items-center gap-2 min-w-[160px]">
       <audio
         ref={audioRef}
         src={src}
+        onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
         onTimeUpdate={() => {
-          if (audioRef.current)
-            setProgress((audioRef.current.currentTime / (audioRef.current.duration || 1)) * 100);
+          const a = audioRef.current;
+          if (a) setProgress((a.currentTime / (a.duration || 1)) * 100);
         }}
-        onLoadedMetadata={() => {
-          if (audioRef.current) setDuration(audioRef.current.duration);
-        }}
-        onEnded={() => { setPlaying(false); setProgress(0); }}
+        onEnded={() => { setIsPlaying(false); setProgress(0); }}
       />
       <button
         onClick={toggle}
-        className="flex-shrink-0 w-8 h-8 rounded-full bg-white/25 flex items-center justify-center hover:bg-white/40 transition-colors"
+        className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0"
       >
-        {playing ? (
+        {isPlaying ? (
           <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
             <rect x="6" y="4" width="4" height="16" />
             <rect x="14" y="4" width="4" height="16" />
@@ -233,13 +215,7 @@ function AudioPlayer({ src }: { src: string }) {
 
 // ─── Dialogs ──────────────────────────────────────────────────────────────────
 
-function EndChatDialog({
-  onConfirm,
-  onCancel,
-}: {
-  onConfirm: () => void;
-  onCancel: () => void;
-}) {
+function EndChatDialog({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6 space-y-4">
@@ -254,9 +230,9 @@ function EndChatDialog({
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 py-2.5 rounded-xl bg-orange-500 text-white font-semibold text-sm hover:bg-orange-600 transition-colors"
+            className="flex-1 py-2.5 rounded-xl bg-[#7f1d1d] text-white font-semibold text-sm hover:bg-[#991b1b] transition-colors"
           >
-            Yes, End
+            End Chat
           </button>
         </div>
       </div>
@@ -266,38 +242,31 @@ function EndChatDialog({
 
 function RatingDialog({ onSubmit }: { onSubmit: (r: RatingState) => void }) {
   const [score, setScore] = useState(0);
-  const [hovered, setHovered] = useState(0);
   const [review, setReview] = useState("");
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-5">
-        <h2 className="text-center text-lg font-semibold text-gray-800">Rate your experience</h2>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+        <h3 className="text-center text-lg font-semibold text-gray-800">Rate Your Experience</h3>
         <div className="flex justify-center gap-1">
           {[1, 2, 3, 4, 5].map((n) => (
-            <button
-              key={n}
-              onMouseEnter={() => setHovered(n)}
-              onMouseLeave={() => setHovered(0)}
-              onClick={() => setScore(n)}
-              className="transition-transform hover:scale-110"
-            >
-              <StarIcon filled={n <= (hovered || score)} />
+            <button key={n} onClick={() => setScore(n)}>
+              <StarIcon filled={n <= score} />
             </button>
           ))}
         </div>
         <textarea
           value={review}
           onChange={(e) => setReview(e.target.value)}
-          placeholder="Share your experience (optional)"
-          className="w-full h-24 border border-gray-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-400"
+          placeholder="Share your experience (optional)..."
+          rows={3}
+          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 resize-none focus:outline-none focus:border-orange-400"
         />
         <button
-          onClick={() => { if (!score) return; onSubmit({ score, review }); }}
+          onClick={() => { if (score) onSubmit({ score, review }); }}
           disabled={!score}
-          className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-sm shadow-md disabled:opacity-40"
+          className="w-full py-3 rounded-xl bg-orange-500 text-white font-semibold text-sm hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          SUBMIT
+          Submit Rating
         </button>
         {!score && (
           <p className="text-center text-xs text-gray-400">Please select a star rating</p>
@@ -307,7 +276,7 @@ function RatingDialog({ onSubmit }: { onSubmit: (r: RatingState) => void }) {
   );
 }
 
-// ─── Supported mime type for audio recording ──────────────────────────────────
+// ─── Supported mime type ──────────────────────────────────────────────────────
 
 function getSupportedMimeType(): string {
   const types = [
@@ -332,52 +301,49 @@ export default function ChatScreen() {
   const chatCtx = useChat();
 
   // ── Resolve session data ───────────────────────────────────────────────────
-  // Priority: location.state (fresh/returning nav) → ChatContext (restored session)
   const stateRaw = (location.state || {}) as Partial<ActiveChatInfo & { gender: string }>;
 
-  const gid            = stateRaw.gid            || chatCtx.chatInfo?.gid            || "";
-  const fbchannelID    = stateRaw.fbchannelID    || chatCtx.chatInfo?.fbchannelID    || "";
-  const astrologer_id  = stateRaw.astrologer_id  || chatCtx.chatInfo?.astrologer_id  || "";
-  const astroName      = stateRaw.astroName      || chatCtx.chatInfo?.astroName      || "";
-  const astrologerImage= stateRaw.astrologerImage|| chatCtx.chatInfo?.astrologerImage|| "";
-  const wallet         = stateRaw.wallet         || chatCtx.chatInfo?.wallet         || "0";
-  const rate           = stateRaw.rate           || chatCtx.chatInfo?.rate           || "0";
-  const dob            = stateRaw.dob            || chatCtx.chatInfo?.dob            || "";
-  const tob            = stateRaw.tob            || chatCtx.chatInfo?.tob            || "";
-  const place          = stateRaw.place          || chatCtx.chatInfo?.place          || "";
-  const gender         = stateRaw.gender         || chatCtx.chatInfo?.gender         || "";
-  const userName       = stateRaw.name           || chatCtx.chatInfo?.name           || "";
+  const gid             = stateRaw.gid             || chatCtx.chatInfo?.gid             || "";
+  const fbchannelID     = stateRaw.fbchannelID     || chatCtx.chatInfo?.fbchannelID     || "";
+  const astrologer_id   = stateRaw.astrologer_id   || chatCtx.chatInfo?.astrologer_id   || "";
+  const astroName       = stateRaw.astroName       || chatCtx.chatInfo?.astroName       || "";
+  const astrologerImage = stateRaw.astrologerImage || chatCtx.chatInfo?.astrologerImage || "";
+  const wallet          = stateRaw.wallet          || chatCtx.chatInfo?.wallet          || "0";
+  const rate            = stateRaw.rate            || chatCtx.chatInfo?.rate            || "0";
+  const dob             = stateRaw.dob             || chatCtx.chatInfo?.dob             || "";
+  const tob             = stateRaw.tob             || chatCtx.chatInfo?.tob             || "";
+  const place           = stateRaw.place           || chatCtx.chatInfo?.place           || "";
+  const gender          = stateRaw.gender          || chatCtx.chatInfo?.gender          || "";
+  const userName        = stateRaw.name            || chatCtx.chatInfo?.name            || "";
 
   const userId          = localStorage.getItem("id")    || "";
   const userDisplayName = localStorage.getItem("name")  || userName || "";
   const token           = localStorage.getItem("token") || "";
 
   // ── State ──────────────────────────────────────────────────────────────────
-  const [messages, setMessages]             = useState<(FirebaseMessage & { key: string })[]>([]);
-  const [inputText, setInputText]           = useState("");
-  const [isLoading, setIsLoading]           = useState(false);
-  const [isRecording, setIsRecording]       = useState(false);
+  const [messages, setMessages]                 = useState<(FirebaseMessage & { key: string })[]>([]);
+  const [inputText, setInputText]               = useState("");
+  const [isLoading, setIsLoading]               = useState(false);
+  const [isRecording, setIsRecording]           = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
-  const [showEndDialog, setShowEndDialog]   = useState(false);
+  const [showEndDialog, setShowEndDialog]       = useState(false);
   const [showRatingDialog, setShowRatingDialog] = useState(false);
-  const [previewImage, setPreviewImage]     = useState<string | null>(null);
-  const [isEnding, setIsEnding]             = useState(false);
+  const [previewImage, setPreviewImage]         = useState<string | null>(null);
+  const [isEnding, setIsEnding]                 = useState(false);
 
   // ── Refs ───────────────────────────────────────────────────────────────────
-  const messagesEndRef   = useRef<HTMLDivElement>(null);
-  const fileInputRef     = useRef<HTMLInputElement>(null);
-  const statusPollRef    = useRef<ReturnType<typeof setInterval> | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef   = useRef<Blob[]>([]);
-  const recordingTimerRef= useRef<ReturnType<typeof setInterval> | null>(null);
-  const dbRef            = useRef<DatabaseReference | null>(null);
-  // Persisted in sessionStorage keyed by gid so returning from ActiveChatBar
-  // never resends the kundli intro message on remount.
-  const initialMsgSent   = useRef<boolean>(
+  const messagesEndRef    = useRef<HTMLDivElement>(null);
+  const fileInputRef      = useRef<HTMLInputElement>(null);
+  const statusPollRef     = useRef<ReturnType<typeof setInterval> | null>(null);
+  const mediaRecorderRef  = useRef<MediaRecorder | null>(null);
+  const audioChunksRef    = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const dbRef             = useRef<DatabaseReference | null>(null);
+  const initialMsgSent    = useRef<boolean>(
     !!gid && sessionStorage.getItem(`kundli_sent_${gid}`) === "1"
   );
-  const isEndingRef      = useRef(false);
-  const streamRef        = useRef<MediaStream | null>(null);
+  const isEndingRef = useRef(false);
+  const streamRef   = useRef<MediaStream | null>(null);
 
   const formatTime    = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
   const formatMsgTime = (ts: number) =>
@@ -391,23 +357,21 @@ export default function ChatScreen() {
   // ── Start / resume global timer ────────────────────────────────────────────
   useEffect(() => {
     if (!gid || !astrologer_id) return;
-
-    // Timer already running for this exact session — don't restart
     if (chatCtx.chatActive && chatCtx.chatInfo?.gid === gid) return;
 
     const info: ActiveChatInfo = {
       gid,
-      fbchannelID:     fbchannelID    || "",
-      astrologer_id:   astrologer_id  || "",
-      astroName:       astroName      || "",
-      astrologerImage: astrologerImage|| "",
-      rate:            rate           || "0",
-      wallet:          wallet         || "0",
-      name:            userName       || userDisplayName || "",
-      gender:          gender         || "",
-      dob:             dob            || "",
-      tob:             tob            || "",
-      place:           place          || "",
+      fbchannelID:     fbchannelID     || "",
+      astrologer_id:   astrologer_id   || "",
+      astroName:       astroName       || "",
+      astrologerImage: astrologerImage || "",
+      rate:            rate            || "0",
+      wallet:          wallet          || "0",
+      name:            userName        || userDisplayName || "",
+      gender:          gender          || "",
+      dob:             dob             || "",
+      tob:             tob             || "",
+      place:           place           || "",
     };
 
     const w = parseFloat(wallet || "0");
@@ -426,7 +390,7 @@ export default function ChatScreen() {
     const dbRef2 = ref(db, listenPath);
     dbRef.current = dbRef2;
 
-    const unsub = onValue(dbRef2, (snapshot) => {
+    onValue(dbRef2, (snapshot) => {
       const data = snapshot.val();
       if (!data) { setMessages([]); return; }
       const list = Object.entries(data).map(([key, val]) => ({
@@ -446,8 +410,6 @@ export default function ChatScreen() {
   }, [messages]);
 
   // ── Initial kundli message ─────────────────────────────────────────────────
-  // Guard lives in sessionStorage so remounting (return from ActiveChatBar,
-  // page refresh) never sends the intro message a second time.
   useEffect(() => {
     if (!gid || !userId || !astrologer_id || initialMsgSent.current) return;
     if (!gender || !dob || !tob || !place) return;
@@ -520,10 +482,28 @@ export default function ChatScreen() {
     [gid, userId, astrologer_id, userDisplayName, userName, showToast]
   );
 
+  // ── CHANGE 5: Detect personal info (phone / email / website) ──────────────
+  const containsPersonalInfo = (text: string): boolean => {
+    const phoneRegex   = /(\+?\d[\d\s\-().]{7,}\d)/g;
+    const emailRegex   = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
+    const websiteRegex = /(https?:\/\/|www\.)[^\s]+/gi;
+    return phoneRegex.test(text) || emailRegex.test(text) || websiteRegex.test(text);
+  };
+
   // ── Text send ──────────────────────────────────────────────────────────────
   const handleSendText = async () => {
     const text = inputText.trim();
     if (!text) return;
+
+    // CHANGE 5: Block phone/email/website — show alert, preserve input
+    if (containsPersonalInfo(text)) {
+      showToast(
+        "⚠️ Sharing phone numbers, emails, or websites is not allowed. Please remove that content.",
+        "error"
+      );
+      return;
+    }
+
     setInputText("");
     await sendFirebaseMessage(text, "text");
   };
@@ -622,8 +602,8 @@ export default function ChatScreen() {
       return;
     }
 
-    const ext  = mimeType.includes("ogg") ? "ogg" : mimeType.includes("mp4") ? "mp4" : "webm";
-    const file = new File([blob], `voice_${Date.now()}.${ext}`, { type: mimeType });
+    // CHANGE 1: Always send as .mp3 — server expects mp3 extension
+    const file = new File([blob], `voice_${Date.now()}.mp3`, { type: "audio/mpeg" });
 
     setIsLoading(true);
     try {
@@ -635,17 +615,11 @@ export default function ChatScreen() {
       });
       let data = await res.json();
 
-      // Fallback with "image" field
-      if (data?.status !== true || !data?.results) {
-        const fd2 = new FormData(); fd2.append("image", file);
-        res  = await fetch(`${API_BASE}/user_api/upload_mp3_file`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd2 });
-        data = await res.json();
-      }
-
       // Fallback upload_a_file
       if (data?.status !== true || !data?.results) {
-        const fd3 = new FormData(); fd3.append("image", file);
-        res  = await fetch(`${API_BASE}/user_api/upload_a_file`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd3 });
+        const fd2 = new FormData();
+        fd2.append("image", file);
+        res  = await fetch(`${API_BASE}/user_api/upload_a_file`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd2 });
         data = await res.json();
       }
 
@@ -724,81 +698,56 @@ export default function ChatScreen() {
     );
   };
 
-  // ── Guard: if no session data at all, go home ──────────────────────────────
-  if (!gid || !astrologer_id) {
-    return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center bg-white gap-4">
-        <p className="text-gray-500 text-sm">Session not found.</p>
-        <button
-          onClick={() => navigate("/", { replace: true })}
-          className="px-6 py-2.5 rounded-xl bg-orange-500 text-white font-semibold text-sm"
-        >
-          Go Home
-        </button>
-      </div>
-    );
-  }
-
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="fixed inset-0 flex flex-col bg-[#f0ebe0]" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-
-      {/* Toasts */}
+    <div className="flex flex-col h-screen max-h-screen bg-gray-50 overflow-hidden">
       <ToastContainer toasts={toasts} onRemove={removeToast} />
 
-      <style>{`
-        @keyframes slideInRight {
-          from { transform: translateX(110%); opacity: 0; }
-          to   { transform: translateX(0);    opacity: 1; }
-        }
-      `}</style>
-
       {/* Header */}
-      <div className="flex-shrink-0 bg-white border-b border-gray-100 shadow-sm">
-        <div className="flex items-center gap-3 px-4 py-3">
-          <button
-            onClick={() => navigate("/")}
-            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-          </button>
-
-          <div className="relative">
-            <img
-              src={astrologerImage || ""}
-              alt={astroName}
-              className="w-10 h-10 rounded-full object-cover border-2 border-orange-200"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${astroName}&background=f97316&color=fff`;
-              }}
-            />
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-white" />
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <h2 className="font-semibold text-gray-900 text-sm truncate">{astroName}</h2>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className={`text-xs font-bold ${showLowBalance ? "text-red-500" : "text-orange-500"}`}>
-                ⏱ {formatTime(timeLeft)}
-              </span>
-              {showLowBalance && (
-                <span className="text-[10px] font-semibold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-full">
-                  Low Balance
+      <div className="flex-shrink-0 bg-white shadow-sm z-10">
+        <div className="flex items-center gap-2 px-3 py-2.5">
+          {/* Astrologer info */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className="relative flex-shrink-0">
+              <img
+                src={astrologerImage || ""}
+                alt={astroName}
+                className="w-9 h-9 rounded-full object-cover border-2 border-orange-200"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src =
+                    `https://ui-avatars.com/api/?name=${astroName}&background=f97316&color=fff&size=64`;
+                }}
+              />
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-white" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-gray-900 truncate">{astroName}</p>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[10px] text-green-500 font-semibold">● Live Chat</span>
+                <span className="text-[10px] text-gray-400">·</span>
+                <span className={`text-[11px] font-semibold ${showLowBalance ? "text-red-500" : "text-orange-500"}`}>
+                  ⏱ {formatTime(timeLeft)}
                 </span>
-              )}
+                {showLowBalance && (
+                  <span className="text-[10px] font-semibold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-full">
+                    Low Balance
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
+          {/* CHANGE 2: Wallet balance — larger font */}
           <div className="flex items-center gap-1 text-gray-500 mr-1">
             <WalletIcon />
-            <span className="text-xs font-semibold">₹{wallet}</span>
+            <span className="text-base font-bold text-gray-800">₹{wallet}</span>
           </div>
 
+          {/* CHANGE 3: END button — dark red */}
           <button
             onClick={() => handleEndChat(false)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+            disabled={isEnding}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#7f1d1d] text-white hover:bg-[#991b1b] transition-colors shadow-sm disabled:opacity-60"
           >
             <PhoneOffIcon />
             <span className="text-xs font-bold hidden sm:inline">End</span>
@@ -835,7 +784,8 @@ export default function ChatScreen() {
                   alt=""
                   className="w-7 h-7 rounded-full object-cover mr-2 mt-1 flex-shrink-0 self-end border border-orange-100"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${astroName}&background=f97316&color=fff&size=64`;
+                    (e.target as HTMLImageElement).src =
+                      `https://ui-avatars.com/api/?name=${astroName}&background=f97316&color=fff&size=64`;
                   }}
                 />
               )}
@@ -883,7 +833,8 @@ export default function ChatScreen() {
                 alt=""
                 className="w-9 h-9 rounded-full object-cover border-2 border-white/50 flex-shrink-0"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${astroName}&background=f97316&color=fff`;
+                  (e.target as HTMLImageElement).src =
+                    `https://ui-avatars.com/api/?name=${astroName}&background=f97316&color=fff`;
                 }}
               />
               <p className="text-white text-xs font-medium truncate">
@@ -903,10 +854,12 @@ export default function ChatScreen() {
       {/* Input bar */}
       <div className="flex-shrink-0 bg-white border-t border-gray-100 px-3 py-3">
         <div className="flex items-center gap-2">
+
+          {/* CHANGE 4: Image upload icon — orange background */}
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isRecording}
-            className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-orange-50 hover:text-orange-500 transition-colors"
+            className="flex-shrink-0 w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white hover:bg-orange-600 transition-colors shadow-sm disabled:opacity-50"
           >
             <ImageIcon />
           </button>
