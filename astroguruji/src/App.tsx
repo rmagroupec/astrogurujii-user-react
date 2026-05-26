@@ -67,7 +67,7 @@ function App() {
       <Route path="/vastu" element ={<VastuPage/>} />
       <Route path="/numerology" element ={<NumerologyPage/>} />
       <Route path="/free_kundli" element ={<FreeKundliPage/>} />
-            <Route path="/tarot_reading" element ={<TarotReadingPage/>} />
+            <Route path="/tarot-reading" element ={<TarotReadingPage/>} />
 
       
 

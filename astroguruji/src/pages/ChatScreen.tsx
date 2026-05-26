@@ -631,7 +631,7 @@ export default function ChatScreen() {
       let res = await fetch(`${API_BASE}/user_api/upload_mp3_file`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
-        body: (() => { const fd = new FormData(); fd.append("audio", file); return fd; })(),
+        body: (() => { const fd = new FormData(); fd.append("image", file); return fd; })(),
       });
       let data = await res.json();
 
