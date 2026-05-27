@@ -1,5 +1,5 @@
 import { NAV_LINKS } from "@/data/home";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import LoginModal from "./UserLoginModal";
 import LanguageModal from "./LanguageModal";
 import { useNavigate } from "react-router-dom";
@@ -10,13 +10,31 @@ export default function Navbar() {
   const [showLang, setShowLang] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-const isLoggedIn = typeof window !== "undefined" && localStorage.getItem("token");
-const userName = typeof window !== "undefined" && localStorage.getItem("name");
-const navigate = useNavigate();
-const handleLogout = () => {
-  localStorage.clear();
-  window.location.reload();
-};
+  const isLoggedIn = typeof window !== "undefined" && localStorage.getItem("token");
+  const userName = typeof window !== "undefined" && localStorage.getItem("name");
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    localStorage.clear();
+    window.location.reload();
+  };
+
+  useEffect(() => {
+    const openLoginModal = () => {
+      setShowLogin(true);
+    };
+
+    window.addEventListener(
+      "open-login-modal",
+      openLoginModal as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        "open-login-modal",
+        openLoginModal as EventListener
+      );
+    };
+  }, []);
 
 
   return (
@@ -111,7 +129,7 @@ const handleLogout = () => {
           {/* Notification bell */}
           <button
             aria-label="Notifications"
-            onClick={()=> navigate('/notify_list')}
+            onClick={() => navigate('/notify_list')}
             className="flex items-center justify-center"
           >
             <svg width="17" height="20" viewBox="0 0 17 20" fill="none">
@@ -129,67 +147,67 @@ const handleLogout = () => {
             >
               Login
             </button> */}
-            {isLoggedIn ? (
-  <div className="relative">
-    {/* Avatar Button */}
-    <button
-      onClick={() => setUserMenuOpen(!userMenuOpen)}
-      className="flex items-center gap-2 rounded-full border border-[#E0D5CC] px-3 py-1 hover:border-brand-orange transition"
-    >
-      <div className="h-8 w-8 rounded-full bg-brand-orange text-white flex items-center justify-center text-sm font-bold">
-      {typeof userName === "string" ? userName.charAt(0) : "U"}
-      </div>
-      <span className="hidden md:block text-[12px] font-medium">
-        {userName || "User"}
-      </span>
-    </button>
+          {isLoggedIn ? (
+            <div className="relative">
+              {/* Avatar Button */}
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex items-center gap-2 rounded-full border border-[#E0D5CC] px-3 py-1 hover:border-brand-orange transition"
+              >
+                <div className="h-8 w-8 rounded-full bg-brand-orange text-white flex items-center justify-center text-sm font-bold">
+                  {typeof userName === "string" ? userName.charAt(0) : "U"}
+                </div>
+                <span className="hidden md:block text-[12px] font-medium">
+                  {userName || "User"}
+                </span>
+              </button>
 
-    {/* Dropdown */}
-    {userMenuOpen && (
-      <div className="absolute right-0 mt-2 w-[200px] rounded-xl border border-[#F0E8DF] bg-white shadow-lg overflow-hidden z-50">
-        
-        {/* User Info */}
-        <div className="px-4 py-3 border-b bg-[#FFF7F0]">
-          <p className="text-[13px] font-semibold text-gray-800">
-            {userName || "User"}
-          </p>
-          <p className="text-[11px] text-gray-500">
-            {localStorage.getItem("email")}
-          </p>
-        </div>
+              {/* Dropdown */}
+              {userMenuOpen && (
+                <div className="absolute right-0 mt-2 w-[200px] rounded-xl border border-[#F0E8DF] bg-white shadow-lg overflow-hidden z-50">
 
-        {/* Menu Items */}
-        <div className="flex flex-col">
-          <a href="/user_profile" className="px-4 py-2 text-[13px] hover:bg-gray-50">
-            👤 Edit Profile
-          </a>
-          <a href="/my-wallet" className="px-4 py-2 text-[13px] hover:bg-gray-50">
-            💰 Wallet
-          </a>
-          <a href="/user-reports" className="px-4 py-2 text-[13px] hover:bg-gray-50">
-            📦 My Orders
-          </a>
-          <a href="/customer-chat-support" className="px-4 py-2 text-[13px] hover:bg-gray-50">
-          💻 Customer Chat Support
-          </a>
-          <button
-            onClick={handleLogout}
-            className="text-left px-4 py-2 text-[13px] text-red-500 hover:bg-red-50"
-          >
-            🚪 Logout
-          </button>
-        </div>
-      </div>
-    )}
-  </div>
-) : (
-  <button
-    onClick={() => setShowLogin(true)}
-    className="rounded-full bg-brand-orange px-[16px] py-[4px] text-[12px] text-white md:px-[25px] md:py-[5px]"
-  >
-    Login
-  </button>
-)}
+                  {/* User Info */}
+                  <div className="px-4 py-3 border-b bg-[#FFF7F0]">
+                    <p className="text-[13px] font-semibold text-gray-800">
+                      {userName || "User"}
+                    </p>
+                    <p className="text-[11px] text-gray-500">
+                      {localStorage.getItem("email")}
+                    </p>
+                  </div>
+
+                  {/* Menu Items */}
+                  <div className="flex flex-col">
+                    <a href="/user_profile" className="px-4 py-2 text-[13px] hover:bg-gray-50">
+                      👤 Edit Profile
+                    </a>
+                    <a href="/my-wallet" className="px-4 py-2 text-[13px] hover:bg-gray-50">
+                      💰 Wallet
+                    </a>
+                    <a href="/user-reports" className="px-4 py-2 text-[13px] hover:bg-gray-50">
+                      📦 My Orders
+                    </a>
+                    <a href="/customer-chat-support" className="px-4 py-2 text-[13px] hover:bg-gray-50">
+                      💻 Customer Chat Support
+                    </a>
+                    <button
+                      onClick={handleLogout}
+                      className="text-left px-4 py-2 text-[13px] text-red-500 hover:bg-red-50"
+                    >
+                      🚪 Logout
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowLogin(true)}
+              className="rounded-full bg-brand-orange px-[16px] py-[4px] text-[12px] text-white md:px-[25px] md:py-[5px]"
+            >
+              Login
+            </button>
+          )}
 
           {/* Hamburger — mobile only */}
           <button
@@ -216,7 +234,7 @@ const handleLogout = () => {
             {NAV_LINKS.map((link) => (
               <li key={link}>
                 <a
-                  href={`#${link.toLowerCase().replace(/\s+/g, "-")}`}
+                  href={`${link.toLowerCase().replace(/\s+/g, "-")}`}
                   className="block font-poppins text-[14px] font-medium text-black"
                   onClick={() => setMenuOpen(false)}
                 >
@@ -228,14 +246,14 @@ const handleLogout = () => {
         </div>
       )}
       <LoginModal
-  isOpen={showLogin}
-  onClose={() => setShowLogin(false)}
-  onLoginSuccess={(userData: any) => console.log(userData)}
-/>
+        isOpen={showLogin}
+        onClose={() => setShowLogin(false)}
+        onLoginSuccess={(userData: any) => console.log(userData)}
+      />
       <LanguageModal
-  isOpen={showLang}
-  onClose={() => setShowLang(false)}
-/>
+        isOpen={showLang}
+        onClose={() => setShowLang(false)}
+      />
     </nav>
   );
 }

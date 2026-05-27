@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   call_initiate,
@@ -74,7 +74,7 @@ function PlaceField({
   error?: string;
 }) {
   const [inputVal, setInputVal] = useState(value);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [, setSuggestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 

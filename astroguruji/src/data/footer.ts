@@ -87,23 +87,23 @@ export const FOOTER_IMPORTANT_LINKS_2 = [
 export const FOOTER_USEFUL_LINKS = [
   {
     "name":"Customer Support",
-    "link":"customer-chat-support"
+    "link":"/customer-chat-support"
   },
   {"name":"Privacy Policy",
-    "link":"privacy-policy"},
+    "link":"/privacy-policy"},
 
   {"name":"Terms & Conditions",
-    "link":'terms-and-conditions'},
+    "link":"/terms-and-conditions"},
   {"name":"Careers",
-    "link":"career"},
+    "link":"/career"},
   {"name":"About Us",
-    "link":"about-us"},
+    "link":"/about-us"},
  {"name": "Astrologer Registration",
-  "link":"astrologer-registration"
+  "link":"/astrologer-registration"
  },
  
   {"name":"Help",
-    "link":"help"
+    "link":"/help"
   }
 ];
 

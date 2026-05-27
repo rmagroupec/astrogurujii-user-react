@@ -34,11 +34,11 @@ const WHY_CARDS = [
 ];
 
 // ── Star Rating Component ────────────────────────────────────────────────────
-function Stars({ rating }) {
-  return (
+function Stars({ rating }: { rating: number }) {
+    return (
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map((n) => (
-        <svg key={n} width="10" height="10" viewBox="0 0 24 24" fill={n <= Math.round(parseFloat(rating)) ? "#FFCC33" : "#E0E0E0"}>
+        <svg key={n} width="10" height="10" viewBox="0 0 24 24" fill={n <= Math.round(rating) ? "#FFCC33" : "#E0E0E0"}>
           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
         </svg>
       ))}
@@ -47,7 +47,7 @@ function Stars({ rating }) {
 }
 
 // ── Reader Card ──────────────────────────────────────────────────────────────
-function ReaderCard({ reader }) {
+function ReaderCard({ reader }: { reader: any }) {
   return (
     <div className="group relative w-full rounded-[10px] border border-[#DADADA] bg-white transition-all hover:border-[#FFCC33] hover:shadow-lg cursor-pointer">
       {/* Status badge */}
@@ -203,7 +203,7 @@ export default function TarotReadingPage() {
 }
 
 // ── Tarot Card Tile ──────────────────────────────────────────────────────────
-function TarotCardTile({ card }) {
+function TarotCardTile({ card }: { card: any }) {
   const [flipped, setFlipped] = useState(false);
   return (
     <div
@@ -221,7 +221,7 @@ function TarotCardTile({ card }) {
 }
 
 // ── FAQ Item ─────────────────────────────────────────────────────────────────
-function FaqItem({ q, a }) {
+function FaqItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="rounded-[8px] border border-[rgba(255,111,0,0.15)] bg-white overflow-hidden">

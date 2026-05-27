@@ -198,3 +198,61 @@ export async function lastCallList(): Promise<LastCallListResponse | null> {
     return null;
   }
 }
+
+// ─── Notification Types ───────────────────────────────────────────────────────
+
+export type NotificationResult = {
+  id: number;
+  title: string;
+  text: string;
+  created_date: string;
+};
+
+export type NotificationsListResponse = {
+  status: boolean;
+  results?: NotificationResult[];
+};
+
+export type NotificationsDropResponse = {
+  status: boolean;
+  message?: string;
+};
+
+// ─── Notifications API ────────────────────────────────────────────────────────
+
+/**
+ * Mirrors Flutter HttpServices.notifications_list
+ * GET /user_api/notifications_list
+ */
+export async function notifications_list(): Promise<NotificationsListResponse | null> {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}/user_api/notifications_list`,
+      {},
+      { headers: authHeaders() }
+    );
+    return response.data;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Mirrors Flutter HttpServices.notifications_drop
+ * Deletes one notification (by id) or all (id = "")
+ * POST /user_api/notifications_drop  { id }
+ */
+export async function notifications_drop(
+  id: string
+): Promise<NotificationsDropResponse | null> {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}/user_api/notifications_drop`,
+      { id },
+      { headers: authHeaders() }
+    );
+    return response.data;
+  } catch {
+    return null;
+  }
+}

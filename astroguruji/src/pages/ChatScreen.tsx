@@ -9,7 +9,7 @@
  *  ✅ 5. Block phone/email/website in messages — show alert, don't send
  */
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ref, onValue, push, set, off, DatabaseReference } from "firebase/database";
 import { db } from "../firebase";

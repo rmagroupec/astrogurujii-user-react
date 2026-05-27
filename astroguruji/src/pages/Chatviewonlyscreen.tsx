@@ -36,13 +36,15 @@ type FirebaseMessage = {
   type: MsgType;
   date_time: number;
   seen?: boolean;
+  onEditClick?: () => void;
+
 };
 
 // ─── Audio bubble ─────────────────────────────────────────────────────────────
 
 function AudioBubble({ src }: { src: string }) {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [playing,  setPlaying]  = useState(false);
+  const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
 
@@ -52,7 +54,7 @@ function AudioBubble({ src }: { src: string }) {
   const toggle = () => {
     if (!audioRef.current) return;
     if (playing) { audioRef.current.pause(); setPlaying(false); }
-    else         { audioRef.current.play();  setPlaying(true);  }
+    else { audioRef.current.play(); setPlaying(true); }
   };
 
   return (
@@ -73,11 +75,11 @@ function AudioBubble({ src }: { src: string }) {
       >
         {playing ? (
           <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-            <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+            <rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" />
           </svg>
         ) : (
           <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-            <polygon points="5 3 19 12 5 21 5 3"/>
+            <polygon points="5 3 19 12 5 21 5 3" />
           </svg>
         )}
       </button>
@@ -126,18 +128,21 @@ function ReviewDialog({
   channelId,
   onClose,
   onSaved,
+  onEditClick,
+
 }: {
   initialRating: number;
   initialReview: string;
   channelId: string;
   onClose: () => void;
   onSaved: (rating: number, review: string) => void;
+  onEditClick?: () => void;
 }) {
-  const [score,    setScore]    = useState(initialRating || 0);
-  const [hovered,  setHovered]  = useState(0);
-  const [review,   setReview]   = useState(initialReview || "");
-  const [saving,   setSaving]   = useState(false);
-  const [error,    setError]    = useState("");
+  const [score, setScore] = useState(initialRating || 0);
+  const [hovered, setHovered] = useState(0);
+  const [review, setReview] = useState(initialReview || "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   const token = localStorage.getItem("token") || "";
 
@@ -179,7 +184,7 @@ function ReviewDialog({
               <svg width="32" height="32" viewBox="0 0 24 24"
                 fill={n <= (hovered || score) ? "#f59e0b" : "none"}
                 stroke="#f59e0b" strokeWidth="1.5">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
               </svg>
             </button>
           ))}
@@ -227,6 +232,7 @@ function RatingCard({
   userImage?: string;
   rating: number;
   review: string;
+  onEditClick?: () => void;
 }) {
   const initials = userName
     .split(" ")
@@ -270,7 +276,7 @@ function RatingCard({
               </div>
               {review ? (
                 <p className="mt-2 text-gray-600 text-sm leading-relaxed">
-                  {review}  
+                  {review}
                 </p>
               ) : (
                 <p className="mt-2 text-gray-400 text-xs italic">No written review</p>
@@ -291,32 +297,32 @@ export default function ChatViewOnlyScreen() {
 
   const state = (location.state as any) || {};
   const {
-    gid             = "9gR2UAtT",
-    astrologer_id   = "673f05d77a277b8a9eab665c",
-    astroName       = "Astrologer",
+    gid = "9gR2UAtT",
+    astrologer_id = "673f05d77a277b8a9eab665c",
+    astroName = "Astrologer",
     astrologerImage = "",
-    userName        = "You",
+    userName = "You",
     userImage,
     // channelId for rating API
-    fbchannelID     = "",
+    fbchannelID = "",
     // initial rating from transaction list
-    rating:    initialRating = 0,
-    review:    initialReview = "",
+    rating: initialRating = 0,
+    review: initialReview = "",
     // rate for "Chat Again"
-    rate         = "0",
+    rate = "0",
     per_min_chat = "0",
   } = state;
 
-  const userId = localStorage.getItem("id")    || "";
-  const token  = localStorage.getItem("token") || "";
+  const userId = localStorage.getItem("id") || "";
+  const token = localStorage.getItem("token") || "";
 
   // ── Local state ────────────────────────────────────────────────────────────
-  const [messages,      setMessages]      = useState<FirebaseMessage[]>([]);
-  const [loading,       setLoading]       = useState(true);
-  const [previewImage,  setPreviewImage]  = useState<string | null>(null);
+  const [messages, setMessages] = useState<FirebaseMessage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [walletBalance, setWalletBalance] = useState(0);
-  const [showModal,     setShowModal]     = useState(false);
-  const [showReview,    setShowReview]    = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [showReview, setShowReview] = useState(false);
 
   // Live rating/review (updated after user submits)
   const [currentRating, setCurrentRating] = useState(Number(initialRating) || 0);
@@ -349,10 +355,10 @@ export default function ChatViewOnlyScreen() {
       return;
     }
 
-    const pathUser  = `Group/${gid}/${userId}/${astrologer_id}`;
+    const pathUser = `Group/${gid}/${userId}/${astrologer_id}`;
     const pathAstro = `Group/${gid}/${astrologer_id}/${userId}`;
 
-    let userSnap:  Record<string, any> = {};
+    let userSnap: Record<string, any> = {};
     let astroSnap: Record<string, any> = {};
     let loadedCount = 0;
 
@@ -376,7 +382,7 @@ export default function ChatViewOnlyScreen() {
       setLoading(false);
     };
 
-    const refUser  = ref(db, pathUser);
+    const refUser = ref(db, pathUser);
     const refAstro = ref(db, pathAstro);
 
     // onValue fires immediately with current data and again on changes
@@ -447,7 +453,7 @@ export default function ChatViewOnlyScreen() {
           className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-orange-50 transition-colors text-gray-600"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 18l-6-6 6-6"/>
+            <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
 
@@ -479,7 +485,7 @@ export default function ChatViewOnlyScreen() {
       >
         {loading && (
           <div className="flex justify-center mt-10">
-            <div className="h-6 w-6 border-2 border-orange-400 border-t-transparent rounded-full animate-spin"/>
+            <div className="h-6 w-6 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
           </div>
         )}
 
@@ -512,9 +518,8 @@ export default function ChatViewOnlyScreen() {
               )}
 
               <div className={`max-w-[75%] flex flex-col ${isMe ? "items-end" : "items-start"}`}>
-                <div className={`rounded-2xl px-4 py-2.5 shadow-sm ${
-                  isMe ? "bg-orange-500 rounded-br-sm" : "bg-white rounded-bl-sm border border-gray-100"
-                }`}>
+                <div className={`rounded-2xl px-4 py-2.5 shadow-sm ${isMe ? "bg-orange-500 rounded-br-sm" : "bg-white rounded-bl-sm border border-gray-100"
+                  }`}>
                   {renderContent(msg, isMe)}
                 </div>
                 <span className="text-[9px] text-gray-400 mt-1 px-1">
@@ -536,7 +541,7 @@ export default function ChatViewOnlyScreen() {
           />
         )} */}
 
-        <div ref={bottomRef}/>
+        <div ref={bottomRef} />
       </div>
       <div className="flex-shrink-0">
         <RatingCard
@@ -556,7 +561,7 @@ export default function ChatViewOnlyScreen() {
           style={{ background: "linear-gradient(135deg, #FF6F00, #FF9800)", boxShadow: "0 4px 14px rgba(255,111,0,0.30)" }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
           Chat Again with {astroName}
         </button>
@@ -568,7 +573,7 @@ export default function ChatViewOnlyScreen() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
           onClick={() => setPreviewImage(null)}
         >
-          <img src={previewImage} alt="Preview" className="max-w-full max-h-full rounded-xl object-contain"/>
+          <img src={previewImage} alt="Preview" className="max-w-full max-h-full rounded-xl object-contain" />
           <button className="absolute top-4 right-4 text-white text-3xl leading-none hover:text-gray-300">×</button>
         </div>
       )}

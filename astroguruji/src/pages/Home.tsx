@@ -11,11 +11,8 @@ import StatsBanner from "@/components/v2/StatsBanner";
 import Testimonials from "@/components/v2/Testimonials";
 import Faq from "@/components/v2/Faq";
 import Footer from "@/components/v2/Footer";
-import MasterLoader from "@/components/v2/common/MasterLoader";
 import MainAstrologerProfile from "@/components/v2/User Account/component/MainAstrologerProfile";
 import HomeBannerSlider from "./HomebannerSlider";
-
-
 
 const API_BASE_URL = "https://admin.astrogurujii.com";
 
@@ -28,15 +25,16 @@ export default function Home() {
       setLoading(true);
 
       const token = localStorage.getItem("token");
-
-    const res = await axios.get(
-      `${API_BASE_URL}/user_api/home_data`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
       }
-    );
+
+      const res = await axios.get(`${API_BASE_URL}/user_api/home_data`, {
+        headers,
+        timeout: 10000,
+      });
+
       if (res?.data.status) {
         setHomeData(res?.data);
       }
@@ -46,47 +44,27 @@ export default function Home() {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchHomeData();
   }, []);
-  if (loading) return <MasterLoader text="Loading Home..." />;
+
   return (
-    
     <div className="min-h-screen w-full bg-white font-euclid">
       <Navbar />
-      {/* <Hero /> */}
-      {/* <Services />
-      <Consultants />
-      <LiveAstrologers />
-      <Blog />
-      <StatsBanner />
-      <Testimonials />
-      <Faq /> */}
       <HomeBannerSlider
         banners={homeData?.banner || []}
         isLoading={loading}
       />
       <Hero />
-      
-<MainAstrologerProfile />
-<Services  />
-
- <Consultants data={homeData?.astrologer || []} />
-
-<LiveAstrologers data={homeData?.live_astrologers || []} />
-{/* <HomeBannerSlider
-        banners={homeData?.banner_ads || []}
-        isLoading={loading}
-      /> */}
-
-{/* ✅ FIX HERE */}
-<Blog data={homeData?.blog || []} />
-
-<StatsBanner  />
-
-<Testimonials data={homeData?.testimonials || []} />
-
-<Faq  /> 
+      <MainAstrologerProfile /> {/* ✅ Always visible */}
+      <Services />
+      <Consultants data={homeData?.astrologer || []} />
+      <LiveAstrologers data={homeData?.live_astrologers || []} />
+      <Blog data={homeData?.blog || []} />
+      <StatsBanner />
+      <Testimonials data={homeData?.testimonials || []} />
+      <Faq />
       <Footer />
     </div>
   );

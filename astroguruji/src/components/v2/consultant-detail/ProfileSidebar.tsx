@@ -88,6 +88,10 @@ export default function ProfileSidebar({
                 border: "1px solid #FF6F00",
                 boxShadow: "0 4px 4px 0 rgba(0, 0, 0, 0.05)",
               }}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src =
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.name)}&background=FF6F00&color=fff&size=160`;
+              }}
             />
           </div>
 
@@ -209,6 +213,27 @@ export default function ProfileSidebar({
                   ₹{consultant.callPrice}/Min
                 </span>
               </div>
+            </button>
+          </div>
+
+          {/* ✅ FIX: Send Gift Button — was missing entirely */}
+          <div className="flex justify-center mt-2 mb-1">
+            <button
+              className="flex items-center justify-center gap-2 w-full max-w-[330px] h-[50px] rounded-[4px] px-4 bg-[#FF6F00] hover:bg-[#e06300] transition-colors"
+              onClick={onSendGiftClick}
+            >
+              {/* Gift icon — falls back gracefully if image missing */}
+              <img
+                src="/images/gift-icon.svg"
+                alt=""
+                className="w-[24px] h-[24px]"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = "none";
+                }}
+              />
+              <span className="font-poppins text-[14px] font-semibold text-white">
+                Send Gift
+              </span>
             </button>
           </div>
 

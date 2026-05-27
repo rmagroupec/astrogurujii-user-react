@@ -245,9 +245,9 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
 
             <p className="text-center text-xs text-gray-400 mt-4">
               By continuing, you agree to our{" "}
-              <a href="/terms" className="text-orange-500 underline">Terms of Use</a>{" "}
+              <a href="/terms-and-conditions" className="text-orange-500 underline">Terms of Use</a>{" "}
               &amp;{" "}
-              <a href="/privacy" className="text-orange-500 underline">Privacy Policy</a>
+              <a href="/privacy-policy" className="text-orange-500 underline">Privacy Policy</a>
             </p>
           </>
         )}

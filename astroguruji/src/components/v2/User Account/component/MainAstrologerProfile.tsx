@@ -37,7 +37,7 @@ type ModalState = { astrologer: AstrologerDetail; callType: "chat" | "audio" } |
 
 const StarIcon = ({ size = 14, color = "#F59E0B" }: { size?: number; color?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
   </svg>
 );
 
@@ -46,38 +46,38 @@ const HeartIcon = ({ filled }: { filled: boolean }) => (
     fill={filled ? "#ef4444" : "none"}
     stroke={filled ? "#ef4444" : "#94a3b8"}
     strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
   </svg>
 );
 
 const LocationIcon = () => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
   </svg>
 );
 
 const ChatIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
   </svg>
 );
 
 const PhoneIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07C9.44 17.29 7.76 15.6 6.06 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 5 2.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L9 9.91a16 16 0 0 0 6.06 6.06l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07C9.44 17.29 7.76 15.6 6.06 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 5 2.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L9 9.91a16 16 0 0 0 6.06 6.06l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
   </svg>
 );
 
 const ShieldCheck = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2">
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-    <polyline points="9 12 11 14 15 10"/>
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    <polyline points="9 12 11 14 15 10" />
   </svg>
 );
 
 const ArrowRightIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M5 12h14M12 5l7 7-7 7"/>
+    <path d="M5 12h14M12 5l7 7-7 7" />
   </svg>
 );
 
@@ -85,32 +85,32 @@ const ArrowRightIcon = () => (
 
 function SkeletonCard() {
   return (
-    <div className="relative bg-white rounded-[20px] overflow-hidden shadow-md animate-pulse" style={{border:"1px solid #f1e8d8"}}>
+    <div className="relative bg-white rounded-[20px] overflow-hidden shadow-md animate-pulse" style={{ border: "1px solid #f1e8d8" }}>
       {/* top gradient strip */}
-      <div className="h-[6px] w-full" style={{background:"linear-gradient(90deg,#FFD15B,#FF9800,#FF6F00)"}} />
+      <div className="h-[6px] w-full" style={{ background: "linear-gradient(90deg,#FFD15B,#FF9800,#FF6F00)" }} />
       <div className="p-6 flex flex-col items-center gap-4">
         <div className="flex justify-between w-full">
-          <div className="h-6 w-20 bg-orange-100 rounded-full"/>
-          <div className="w-8 h-8 bg-gray-100 rounded-full"/>
+          <div className="h-6 w-20 bg-orange-100 rounded-full" />
+          <div className="w-8 h-8 bg-gray-100 rounded-full" />
         </div>
-        <div className="w-[90px] h-[90px] rounded-full bg-orange-100"/>
-        <div className="h-4 w-20 bg-green-100 rounded-full"/>
-        <div className="h-6 w-40 bg-gray-100 rounded-lg"/>
-        <div className="h-3 w-32 bg-gray-100 rounded"/>
-        <div className="h-px w-full bg-gray-100"/>
-        <div className="h-3 w-44 bg-gray-100 rounded"/>
+        <div className="w-[90px] h-[90px] rounded-full bg-orange-100" />
+        <div className="h-4 w-20 bg-green-100 rounded-full" />
+        <div className="h-6 w-40 bg-gray-100 rounded-lg" />
+        <div className="h-3 w-32 bg-gray-100 rounded" />
+        <div className="h-px w-full bg-gray-100" />
+        <div className="h-3 w-44 bg-gray-100 rounded" />
         <div className="space-y-2 w-full">
-          <div className="h-3 bg-gray-100 rounded w-full"/>
-          <div className="h-3 bg-gray-100 rounded w-5/6 mx-auto"/>
+          <div className="h-3 bg-gray-100 rounded w-full" />
+          <div className="h-3 bg-gray-100 rounded w-5/6 mx-auto" />
         </div>
-        <div className="h-4 w-28 bg-yellow-100 rounded"/>
-        <div className="h-14 w-full bg-orange-50 rounded-xl"/>
+        <div className="h-4 w-28 bg-yellow-100 rounded" />
+        <div className="h-14 w-full bg-orange-50 rounded-xl" />
         <div className="flex gap-3 w-full">
-          <div className="flex-1 h-11 bg-gray-100 rounded-xl"/>
-          <div className="flex-1 h-11 bg-green-100 rounded-xl"/>
+          <div className="flex-1 h-11 bg-gray-100 rounded-xl" />
+          <div className="flex-1 h-11 bg-green-100 rounded-xl" />
         </div>
-        <div className="h-9 w-full bg-gray-50 rounded-full"/>
-        <div className="h-4 w-28 bg-gray-100 rounded"/>
+        <div className="h-9 w-full bg-gray-50 rounded-full" />
+        <div className="h-4 w-28 bg-gray-100 rounded" />
       </div>
     </div>
   );
@@ -121,7 +121,7 @@ function SkeletonCard() {
 function StarsRow({ rating }: { rating: number }) {
   return (
     <div className="flex items-center gap-0.5">
-      {[1,2,3,4,5].map(n => (
+      {[1, 2, 3, 4, 5].map(n => (
         <StarIcon key={n} size={13} color={n <= Math.round(rating) ? "#F59E0B" : "#E5E7EB"} />
       ))}
     </div>
@@ -138,24 +138,24 @@ function AstrologerCard({
   onOpenModal: (a: AstrologerDetail, t: "chat" | "audio") => void;
 }) {
   const [imgErr, setImgErr] = useState(false);
-  const [liked, setLiked]   = useState(false);
+  const [liked, setLiked] = useState(false);
   const [hovered, setHovered] = useState(false);
 
-  const chatRate  = parseFloat(a.per_min_chat_offer  || String(a.per_min_chat))        || 0;
-  const callRate  = parseFloat(a.per_min_voice_call_offer || String(a.per_min_voice_call)) || 0;
+  const chatRate = parseFloat(a.per_min_chat_offer || String(a.per_min_chat)) || 0;
+  const callRate = parseFloat(a.per_min_voice_call_offer || String(a.per_min_voice_call)) || 0;
   const displayRate = chatRate || callRate;
 
-  const rating      = parseFloat(a.avg_rate) || 0;
+  const rating = parseFloat(a.avg_rate) || 0;
   const totalReviews = a.rating_total_person ?? a.rating?.length ?? 0;
-  const isOnline    = a.isChatOnline === "on" || a.isVoiceOnline === "on";
-  const isChatOn    = a.isChatOnline === "on";
-  const isCallOn    = a.isVoiceOnline === "on";
+  const isOnline = a.isChatOnline === "on" || a.isVoiceOnline === "on";
+  const isChatOn = a.isChatOnline === "on";
+  const isCallOn = a.isVoiceOnline === "on";
 
-  const specialties = a.category?.slice(0,3).map(c => c.name).join(" · ") ||
-                      a.skill?.slice(0,3).map(s => s.name).join(" · ") || "";
-  const languages   = a.language?.map(l => l.name).join(", ") || "";
-  const location    = [a.city, a.state, a.astro_country].filter(Boolean).join(", ");
-  const experience  = a.experience ? `${a.experience} Yrs` : "";
+  const specialties = a.category?.slice(0, 3).map(c => c.name).join(" · ") ||
+    a.skill?.slice(0, 3).map(s => s.name).join(" · ") || "";
+  const languages = a.language?.map(l => l.name).join(", ") || "";
+  const location = [a.city, a.state, a.astro_country].filter(Boolean).join(", ");
+  const experience = a.experience ? `${a.experience} Yrs` : "";
 
   const avatar = imgErr || !a.profile_img
     ? `https://ui-avatars.com/api/?name=${encodeURIComponent(a.name)}&background=FF6F00&color=fff&size=200`
@@ -181,19 +181,18 @@ function AstrologerCard({
         background: isOnline
           ? "linear-gradient(90deg,#34d399,#10b981,#059669)"
           : "linear-gradient(90deg,#FFD15B,#FF9800,#FF6F00)"
-      }}/>
+      }} />
 
       <div className="flex flex-col px-5 pt-4 pb-5 gap-0">
 
         {/* ── Row: status + heart ─────────────────────────────────────────── */}
         <div className="flex items-center justify-between mb-4">
           {/* Online/Offline pill */}
-          <div className={`flex items-center gap-1.5 px-3 py-[5px] rounded-full text-[11px] font-semibold tracking-wide ${
-            isOnline
-              ? "text-emerald-700 bg-emerald-50 border border-emerald-200"
-              : "text-orange-700 bg-orange-50 border border-orange-200"
-          }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? "bg-emerald-500 animate-pulse" : "bg-orange-400"}`}/>
+          <div className={`flex items-center gap-1.5 px-3 py-[5px] rounded-full text-[11px] font-semibold tracking-wide ${isOnline
+            ? "text-emerald-700 bg-emerald-50 border border-emerald-200"
+            : "text-orange-700 bg-orange-50 border border-orange-200"
+            }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? "bg-emerald-500 animate-pulse" : "bg-orange-400"}`} />
             {isOnline ? "Online" : "Offline"}
           </div>
 
@@ -207,7 +206,7 @@ function AstrologerCard({
               background: liked ? "#fff5f5" : "#fafafa",
             }}
           >
-            <HeartIcon filled={liked}/>
+            <HeartIcon filled={liked} />
           </button>
         </div>
 
@@ -243,7 +242,7 @@ function AstrologerCard({
             {/* Verified dot */}
             <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center">
               <svg width="9" height="9" viewBox="0 0 24 24" fill="white">
-                <polyline points="20 6 9 17 4 12" strokeWidth="3" stroke="white" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                <polyline points="20 6 9 17 4 12" strokeWidth="3" stroke="white" fill="none" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
           </div>
@@ -251,14 +250,14 @@ function AstrologerCard({
 
         {/* ── Price ───────────────────────────────────────────────────────── */}
         {displayRate > 0 && (
-          <p className="text-center font-bold text-[20px] mb-1" style={{color:"#16a34a", fontFamily:"'Outfit',sans-serif"}}>
+          <p className="text-center font-bold text-[20px] mb-1" style={{ color: "#16a34a", fontFamily: "'Outfit',sans-serif" }}>
             ₹{displayRate}
             <span className="text-[13px] font-semibold text-gray-400 ml-1">/min</span>
           </p>
         )}
 
         {/* ── Name ────────────────────────────────────────────────────────── */}
-        <h3 className="text-center text-[21px] font-extrabold text-gray-900 leading-tight mb-1" style={{fontFamily:"'Outfit',sans-serif"}}>
+        <h3 className="text-center text-[21px] font-extrabold text-gray-900 leading-tight mb-1" style={{ fontFamily: "'Outfit',sans-serif" }}>
           {a.name}
         </h3>
 
@@ -277,12 +276,12 @@ function AstrologerCard({
         )}
 
         {/* ── Divider ─────────────────────────────────────────────────────── */}
-        <div className="h-px w-full mb-3" style={{background:"linear-gradient(90deg,transparent,#f0e6d3,transparent)"}}/>
+        <div className="h-px w-full mb-3" style={{ background: "linear-gradient(90deg,transparent,#f0e6d3,transparent)" }} />
 
         {/* ── Location ────────────────────────────────────────────────────── */}
         {location && (
           <div className="flex items-center justify-center gap-1.5 text-gray-400 text-[12px] mb-3">
-            <LocationIcon/>
+            <LocationIcon />
             <span className="font-medium">{location}</span>
           </div>
         )}
@@ -297,7 +296,7 @@ function AstrologerCard({
         {/* ── Rating ──────────────────────────────────────────────────────── */}
         {rating > 0 && (
           <div className="flex items-center justify-center gap-2 mb-3">
-            <StarsRow rating={rating}/>
+            <StarsRow rating={rating} />
             <span className="text-[14px] font-bold text-gray-800">{rating.toFixed(1)}</span>
             {totalReviews > 0 && (
               <span className="text-[12px] text-gray-400">({totalReviews} reviews)</span>
@@ -308,10 +307,10 @@ function AstrologerCard({
         {/* ── Review quote ────────────────────────────────────────────────── */}
         {topReview && (
           <div className="relative rounded-xl px-4 py-3 mb-4 overflow-hidden"
-            style={{background:"linear-gradient(135deg,#fff8f0,#fff3e8)", border:"1px solid #fde8cc"}}>
+            style={{ background: "linear-gradient(135deg,#fff8f0,#fff3e8)", border: "1px solid #fde8cc" }}>
             {/* decorative quote mark */}
             <svg className="absolute top-2 left-3 opacity-20" width="24" height="24" viewBox="0 0 24 24" fill="#FF9800">
-              <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1zM15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/>
+              <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1zM15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z" />
             </svg>
             <p className="text-[12px] text-gray-600 leading-relaxed line-clamp-2 italic pl-1">
               "{topReview.review}"
@@ -323,41 +322,83 @@ function AstrologerCard({
         {/* ── CHAT / CALL buttons ──────────────────────────────────────────── */}
         <div className="flex gap-2.5 mb-3">
           <button
-            onClick={() => onOpenModal(a, "chat")}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+
+              const token = localStorage.getItem("token");
+
+              if (!token) {
+                window.dispatchEvent(new CustomEvent("open-login-modal"));
+                return;
+              }
+
+              onOpenModal(a, "chat");
+            }}
             className="flex-1 flex items-center justify-center gap-2 h-[44px] rounded-xl text-[13.5px] font-semibold transition-all duration-200 active:scale-95"
             style={
               isChatOn
-                ? { background:"linear-gradient(135deg,#FF6F00,#FF9800)", color:"#fff", border:"none",
-                    boxShadow:"0 4px 12px rgba(255,111,0,0.30)" }
-                : { background:"#fff", color:"#16a34a", border:"2px solid #16a34a" }
+                ? {
+                  background: "linear-gradient(135deg,#FF6F00,#FF9800)",
+                  color: "#fff",
+                  border: "none",
+                  boxShadow: "0 4px 12px rgba(255,111,0,0.30)",
+                }
+                : {
+                  background: "#fff",
+                  color: "#16a34a",
+                  border: "2px solid #16a34a",
+                }
             }
           >
-            <ChatIcon/> Chat
+            <ChatIcon /> Chat
           </button>
 
           <button
-            onClick={() => onOpenModal(a, "audio")}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+
+              const token = localStorage.getItem("token");
+
+              if (!token) {
+                window.dispatchEvent(new CustomEvent("open-login-modal"));
+                return;
+              }
+
+              onOpenModal(a, "audio");
+            }}
             className="flex-1 flex items-center justify-center gap-2 h-[44px] rounded-xl text-[13.5px] font-semibold transition-all duration-200 active:scale-95"
             style={
               isCallOn
-                ? { background:"linear-gradient(135deg,#FF6F00,#FF9800)", color:"#fff", border:"none",
-                    boxShadow:"0 4px 12px rgba(255,111,0,0.30)" }
-                : { background:"linear-gradient(135deg,#16a34a,#15803d)", color:"#fff", border:"none",
-                    boxShadow:"0 4px 12px rgba(22,163,74,0.25)" }
+                ? {
+                  background: "linear-gradient(135deg,#FF6F00,#FF9800)",
+                  color: "#fff",
+                  border: "none",
+                  boxShadow: "0 4px 12px rgba(255,111,0,0.30)",
+                }
+                : {
+                  background: "linear-gradient(135deg,#16a34a,#15803d)",
+                  color: "#fff",
+                  border: "none",
+                  boxShadow: "0 4px 12px rgba(22,163,74,0.25)",
+                }
             }
           >
-            <PhoneIcon/> Call
+            <PhoneIcon /> Call
           </button>
         </div>
 
         {/* ── Footer pill ─────────────────────────────────────────────────── */}
         <div className="flex items-center justify-center gap-2 rounded-full px-4 py-2 mb-3"
-          style={{background:"#f8faf8", border:"1px solid #e9f5ed"}}>
-          <ShieldCheck/>
+          style={{ background: "#f8faf8", border: "1px solid #e9f5ed" }}>
+          <ShieldCheck />
           {languages && <span className="text-[11.5px] font-semibold text-gray-600">{languages}</span>}
           {experience && (
             <>
-              <span className="w-1 h-1 rounded-full bg-gray-300 inline-block"/>
+              <span className="w-1 h-1 rounded-full bg-gray-300 inline-block" />
               <span className="text-[11.5px] font-semibold text-gray-600">{experience} Experience</span>
             </>
           )}
@@ -371,7 +412,7 @@ function AstrologerCard({
         >
           <span className="group-hover/link:underline underline-offset-2">View Profile</span>
           <span className="transition-transform duration-200 group-hover/link:translate-x-1">
-            <ArrowRightIcon/>
+            <ArrowRightIcon />
           </span>
         </a>
       </div>
@@ -383,38 +424,73 @@ function AstrologerCard({
 
 export default function MainAstrologerProfile() {
   const [astrologers, setAstrologers] = useState<AstrologerDetail[]>([]);
-  const [isLoading, setIsLoading]     = useState(true);
-  const [userWallet, setUserWallet]   = useState(0);
-  const [modal, setModal]             = useState<ModalState>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userWallet, setUserWallet] = useState(0);
+  const [modal, setModal] = useState<ModalState>(null);
 
   const fetchList = useCallback(async () => {
     try {
       setIsLoading(true);
-      const token = localStorage.getItem("token") ?? "";
+
+      const token = localStorage.getItem("token");
+
+      const headers = token
+        ? { Authorization: `Bearer ${token}` }
+        : {};
+
       const res = await axios.post(
         `${API_BASE}/user_api/astrologer_list`,
-        { search:"",page:"",is_chat:"on",followAstro:"",is_voice_call:"",is_video_call:"",
-          cat_id:"",language_id:"",gender:"",sort_val:"",is_question:"",skill_id:"",
-          country:"INR",report_id:"",expert_astro:"on" },
-        { headers:{ Authorization:`Bearer ${token}` } }
+        {
+          search: "",
+          page: "",
+          is_chat: "on",
+          followAstro: "",
+          is_voice_call: "",
+          is_video_call: "",
+          cat_id: "",
+          language_id: "",
+          gender: "",
+          sort_val: "",
+          is_question: "",
+          skill_id: "",
+          country: "INR",
+          report_id: "",
+          expert_astro: "on",
+        },
+        { headers }
       );
-      const top3: AstrologerList[] = res.data?.status ? (res.data.results ?? []).slice(0,3) : [];
+
+      const top3: AstrologerList[] =
+        res.data?.status
+          ? (res.data.results ?? []).slice(0, 3)
+          : [];
 
       const enriched = await Promise.all(
-        top3.map(async a => {
+        top3.map(async (a) => {
           try {
             const d = await axios.post(
               `${API_BASE}/user_api/astrologer_profile`,
               { id: a.id },
-              { headers:{ Authorization:`Bearer ${token}` } }
+              { headers }
             );
-            return { ...a, ...(d.data?.results?.[0] ?? {}) } as AstrologerDetail;
-          } catch { return a as AstrologerDetail; }
+
+            return {
+              ...a,
+              ...(d.data?.results?.[0] ?? {}),
+            } as AstrologerDetail;
+          } catch {
+            return a as AstrologerDetail;
+          }
         })
       );
+
       setAstrologers(enriched);
-    } catch {}
-    finally { setIsLoading(false); }
+
+    } catch (err) {
+      console.log("Astrologer API Error:", err);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const fetchWallet = useCallback(async () => {
@@ -424,15 +500,23 @@ export default function MainAstrologerProfile() {
         const w = parseFloat(res.results.wallet ?? res.results.balance ?? res.results.amount ?? "0");
         setUserWallet(isNaN(w) ? 0 : w);
       }
-    } catch {}
+    } catch { }
   }, []);
 
-  useEffect(() => { fetchList(); fetchWallet(); }, [fetchList, fetchWallet]);
+  useEffect(() => {
+    fetchList();
+
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      fetchWallet();
+    }
+  }, [fetchList, fetchWallet]);
 
   const activeRate = modal
     ? modal.callType === "audio"
       ? parseFloat(modal.astrologer.per_min_voice_call_offer || String(modal.astrologer.per_min_voice_call)) || 0
-      : parseFloat(modal.astrologer.per_min_chat_offer       || String(modal.astrologer.per_min_chat))        || 0
+      : parseFloat(modal.astrologer.per_min_chat_offer || String(modal.astrologer.per_min_chat)) || 0
     : 0;
 
   return (
@@ -445,7 +529,7 @@ export default function MainAstrologerProfile() {
         {/* Subtle background decoration */}
         <div className="absolute inset-0 pointer-events-none" style={{
           backgroundImage: "radial-gradient(circle at 20% 50%, rgba(255,152,0,0.05) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,111,0,0.04) 0%, transparent 40%)"
-        }}/>
+        }} />
 
         <div className="relative max-w-[1200px] mx-auto px-4 md:px-6 lg:px-10">
 
@@ -453,20 +537,20 @@ export default function MainAstrologerProfile() {
           <div className="text-center mb-12">
             {/* Eyebrow */}
             <div className="inline-flex items-center gap-2 mb-3 px-4 py-1.5 rounded-full"
-              style={{background:"rgba(255,152,0,0.1)", border:"1px solid rgba(255,152,0,0.2)"}}>
+              style={{ background: "rgba(255,152,0,0.1)", border: "1px solid rgba(255,152,0,0.2)" }}>
               <span className="text-[10px] font-bold tracking-[0.2em] text-orange-500 uppercase">✦ Our Experts ✦</span>
             </div>
 
             <h2
               className="text-[28px] md:text-[34px] font-extrabold text-gray-900 leading-tight block"
-              style={{ fontFamily:"'Outfit',sans-serif" }}
+              style={{ fontFamily: "'Outfit',sans-serif" }}
             >
               Meet Our Featured{" "}
               <span style={{
-                background:"linear-gradient(135deg,#FF6F00,#FF9800)",
-                WebkitBackgroundClip:"text",
-                WebkitTextFillColor:"transparent",
-                backgroundClip:"text",
+                background: "linear-gradient(135deg,#FF6F00,#FF9800)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
               }}>
                 Astrologers
               </span>
@@ -477,27 +561,27 @@ export default function MainAstrologerProfile() {
 
             {/* Decorative divider */}
             <div className="flex items-center justify-center gap-3 mt-5">
-              <div className="h-px w-16" style={{background:"linear-gradient(90deg,transparent,#FF9800)"}}/>
+              <div className="h-px w-16" style={{ background: "linear-gradient(90deg,transparent,#FF9800)" }} />
               <div className="flex gap-1.5">
-                {[1,0.6,0.3].map((o,i) => (
-                  <span key={i} className="w-1.5 h-1.5 rounded-full inline-block" style={{background:`rgba(255,152,0,${o})`}}/>
+                {[1, 0.6, 0.3].map((o, i) => (
+                  <span key={i} className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: `rgba(255,152,0,${o})` }} />
                 ))}
               </div>
-              <div className="h-px w-16" style={{background:"linear-gradient(90deg,#FF9800,transparent)"}}/>
+              <div className="h-px w-16" style={{ background: "linear-gradient(90deg,#FF9800,transparent)" }} />
             </div>
           </div>
 
           {/* ── Cards ─────────────────────────────────────────────────────── */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 xl:gap-8">
             {isLoading
-              ? [1,2,3].map(i => <SkeletonCard key={i}/>)
+              ? [1, 2, 3].map(i => <SkeletonCard key={i} />)
               : astrologers.map(a => (
-                  <AstrologerCard
-                    key={a.id}
-                    a={a}
-                    onOpenModal={(ast,type) => setModal({astrologer:ast, callType:type})}
-                  />
-                ))
+                <AstrologerCard
+                  key={a.id}
+                  a={a}
+                  onOpenModal={(ast, type) => setModal({ astrologer: ast, callType: type })}
+                />
+              ))
             }
           </div>
 
@@ -508,12 +592,12 @@ export default function MainAstrologerProfile() {
                 href="/consultants"
                 className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-[13.5px] font-semibold text-white transition-all duration-200 hover:opacity-90 active:scale-95"
                 style={{
-                  background:"linear-gradient(135deg,#FF6F00,#FF9800)",
-                  boxShadow:"0 4px 16px rgba(255,111,0,0.30)"
+                  background: "linear-gradient(135deg,#FF6F00,#FF9800)",
+                  boxShadow: "0 4px 16px rgba(255,111,0,0.30)"
                 }}
               >
                 Explore All Astrologers
-                <ArrowRightIcon/>
+                <ArrowRightIcon />
               </a>
             </div>
           )}

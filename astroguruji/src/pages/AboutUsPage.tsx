@@ -333,7 +333,7 @@ export default function AboutUsPage() {
             Your first consultation starts in minutes.
           </p>
           <a
-            href="/consultant-listing"
+            href="/chat-with-astrolger"
             className="inline-block bg-white text-[#FF6F00] font-poppins text-[14px] font-semibold px-6 py-3 rounded-full hover:bg-[#FFF7F0] transition-colors duration-200"
           >
             Talk to an Astrologer →
@@ -359,7 +359,7 @@ export default function AboutUsPage() {
               Terms & Conditions
             </a>
             <a
-              href="/careers"
+              href="/career"
               className="font-poppins text-[12px] text-[#FF6F00] font-medium hover:underline"
             >
               Careers

@@ -1,115 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "@/components/v2/Navbar";
 import Footer from "@/components/v2/Footer";
 import BreadcrumbHeader from "@/components/v2/BreadcrumbHeader";
-
-// ─── Types ─────────────────────────────────────────
-
-type NotificationType =
-  | "horoscope"
-  | "love"
-  | "career"
-  | "finance"
-  | "tip";
-
-type Notification = {
-  id: number;
-  title: string;
-  message: string;
-  time: string;
-  type: NotificationType;
-  read: boolean;
-};
-
-// ─── Mock Data (Dynamic later from API) ─────────────
-
-const NOTIFICATIONS: Notification[] = [
-  {
-    id: 1,
-    title: "Daily Horoscope Ready",
-    message: "Your stars for today are ready. Discover what awaits you.",
-    time: "2 min ago",
-    type: "horoscope",
-    read: false,
-  },
-  {
-    id: 2,
-    title: "Love Insight 💖",
-    message: "A romantic moment may surprise you today.",
-    time: "10 min ago",
-    type: "love",
-    read: false,
-  },
-  {
-    id: 3,
-    title: "Career Growth 🚀",
-    message: "Your work may get recognized today. Stay confident!",
-    time: "1 hour ago",
-    type: "career",
-    read: true,
-  },
-  {
-    id: 4,
-    title: "Finance Alert 💰",
-    message: "Avoid impulsive spending today.",
-    time: "Yesterday",
-    type: "finance",
-    read: true,
-  },
-  {
-    id: 5,
-    title: "Lucky Tip 🔮",
-    message: "Channel your energy into creativity.",
-    time: "Yesterday",
-    type: "tip",
-    read: true,
-  },
-];
-
-// ─── Helpers ───────────────────────────────────────
-
-const ICONS: Record<NotificationType, string> = {
-  horoscope: "🌟",
-  love: "💖",
-  career: "🚀",
-  finance: "💰",
-  tip: "🔮",
-};
-
-const COLORS: Record<NotificationType, string> = {
-  horoscope: "#FF6F00",
-  love: "#e74c8b",
-  career: "#4a90d9",
-  finance: "#34a853",
-  tip: "#9b59b6",
-};
+import {
+  notifications_list,
+  notifications_drop,
+  type NotificationResult,
+} from "@/https_service";
 
 // ─── Notification Card ─────────────────────────────
 
 function NotificationItem({
   data,
-  onClick,
+  onDelete,
 }: {
-  data: Notification;
-  onClick: () => void;
+  data: NotificationResult;
+  onDelete: (id: number) => void;
 }) {
   return (
-    <div
-      onClick={onClick}
-      className={`flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-all
-        ${
-          data.read
-            ? "bg-white border-[#F0E8DF]"
-            : "bg-orange-50 border-brand-orange/40"
-        }
-        hover:shadow-md`}
-    >
-      {/* Icon */}
-      <div
-        className="flex h-10 w-10 items-center justify-center rounded-full text-xl"
-        style={{ backgroundColor: `${COLORS[data.type]}20` }}
-      >
-        {ICONS[data.type]}
+    <div className="flex items-start gap-3 rounded-xl border border-[#F0E8DF] bg-white p-4 hover:shadow-md transition-all">
+      {/* Icon placeholder */}
+      <div className="flex h-10 w-10 items-center justify-center rounded-full text-xl bg-orange-100">
+        🔔
       </div>
 
       {/* Content */}
@@ -118,17 +30,21 @@ function NotificationItem({
           {data.title}
         </h4>
         <p className="font-euclid text-[12px] text-gray-600 mt-1 leading-[1.6]">
-          {data.message}
+          {data.text}
         </p>
         <span className="text-[10px] text-gray-400 mt-2 block">
-          {data.time}
+          {data.created_date}
         </span>
       </div>
 
-      {/* Unread Dot */}
-      {!data.read && (
-        <div className="h-2 w-2 rounded-full bg-brand-orange mt-2"></div>
-      )}
+      {/* Delete button */}
+      <button
+        onClick={() => onDelete(data.id)}
+        className="text-gray-400 hover:text-red-500 transition-colors mt-1"
+        title="Delete"
+      >
+        🗑️
+      </button>
     </div>
   );
 }
@@ -136,24 +52,41 @@ function NotificationItem({
 // ─── Main Page ─────────────────────────────────────
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] =
-    useState<Notification[]>(NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<NotificationResult[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  const markAsRead = (id: number) => {
-    setNotifications((prev) =>
-      prev.map((n) =>
-        n.id === id ? { ...n, read: true } : n
-      )
-    );
-  };
+  // Fetch on mount
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
 
-  const todayNotifications = notifications.filter((n) =>
-    n.time.includes("min") || n.time.includes("hour")
-  );
+  async function fetchNotifications() {
+    setIsLoading(true);
+    setError(null);
+    const res = await notifications_list();
+    if (res?.status && res.results) {
+      setNotifications(res.results);
+    } else {
+      setError("Could not load notifications.");
+    }
+    setIsLoading(false);
+  }
 
-  const earlierNotifications = notifications.filter(
-    (n) => !todayNotifications.includes(n)
-  );
+  async function handleDelete(id: number) {
+    // Optimistic remove
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    await notifications_drop(String(id));
+  }
+
+  async function handleDeleteAll() {
+    setShowConfirm(false);
+    const res = await notifications_drop("");
+    if (res?.status) {
+      setNotifications([]);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#FFFDF9]">
@@ -170,43 +103,68 @@ export default function NotificationsPage() {
       />
 
       <div className="mx-auto max-w-[900px] px-4 py-8 space-y-6">
-        
-        {/* Today */}
-        {todayNotifications.length > 0 && (
-          <div>
-            <h3 className="font-poppins text-sm font-bold text-gray-500 mb-3">
-              Today
-            </h3>
-            <div className="space-y-3">
-              {todayNotifications.map((n) => (
-                <NotificationItem
-                  key={n.id}
-                  data={n}
-                  onClick={() => markAsRead(n.id)}
-                />
-              ))}
-            </div>
+        {/* Header row */}
+        {notifications.length > 0 && (
+          <div className="flex justify-end">
+            <button
+              onClick={() => setShowConfirm(true)}
+              className="text-sm text-red-500 hover:underline font-poppins"
+            >
+              Delete All
+            </button>
           </div>
         )}
 
-        {/* Earlier */}
-        {earlierNotifications.length > 0 && (
-          <div>
-            <h3 className="font-poppins text-sm font-bold text-gray-500 mb-3">
-              Earlier
-            </h3>
-            <div className="space-y-3">
-              {earlierNotifications.map((n) => (
-                <NotificationItem
-                  key={n.id}
-                  data={n}
-                  onClick={() => markAsRead(n.id)}
-                />
-              ))}
-            </div>
+        {/* States */}
+        {isLoading && (
+          <div className="flex justify-center py-20 text-gray-400 text-sm">
+            Loading…
+          </div>
+        )}
+
+        {!isLoading && error && (
+          <div className="text-center py-20 text-red-400 text-sm">{error}</div>
+        )}
+
+        {!isLoading && !error && notifications.length === 0 && (
+          <div className="text-center py-20 text-gray-400 text-sm">
+            No notifications yet.
+          </div>
+        )}
+
+        {!isLoading && !error && notifications.length > 0 && (
+          <div className="space-y-3">
+            {notifications.map((n) => (
+              <NotificationItem key={n.id} data={n} onDelete={handleDelete} />
+            ))}
           </div>
         )}
       </div>
+
+      {/* Delete All Confirmation Modal */}
+      {showConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl p-6 w-[320px] shadow-xl space-y-4">
+            <p className="font-poppins text-sm text-gray-700">
+              Do you want to delete all notifications?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAll}
+                className="px-4 py-2 rounded-lg bg-red-500 text-white text-sm hover:bg-red-600"
+              >
+                Delete All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>
