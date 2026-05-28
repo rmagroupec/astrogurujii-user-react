@@ -1,11 +1,14 @@
 /**
- * ChatContext.tsx  — Production Grade
+ * ChatContext.tsx  — Fixed
  *
- * Responsibilities:
- *  1. Keep a single global countdown timer alive across page navigations.
- *  2. Persist session to sessionStorage every tick so it survives page refresh.
- *  3. Restore session from sessionStorage on mount (fixes "no popup after revisit").
- *  4. Expose startChatTimer / stopChatTimer to ChatScreen & ActiveChatBar.
+ * Root cause of "shows maximum duration everywhere":
+ *   startChatTimer() was resetting chatTimeLeft to initialSeconds whenever called,
+ *   even if a session for the same gid was already ticking. The guard in ChatScreen
+ *   (`if chatActive && chatInfo?.gid === gid return`) could miss if chatInfo was
+ *   briefly null mid-render, causing a full reset back to max duration.
+ *
+ * Fix: startChatTimer checks the gid ref directly (never null mid-render).
+ *   If the same gid is already active, it simply skips — no reset, no restart.
  */
 
 import React, {
@@ -37,7 +40,7 @@ export type ActiveChatInfo = {
 type ChatContextType = {
   chatActive: boolean;
   chatInfo: ActiveChatInfo | null;
-  chatTimeLeft: number; // seconds remaining — ticks globally
+  chatTimeLeft: number;
   startChatTimer: (info: ActiveChatInfo, initialSeconds: number) => void;
   stopChatTimer: () => void;
 };
@@ -52,29 +55,15 @@ type PersistedSession = ActiveChatInfo & { timeLeft: number; savedAt: number };
 
 function saveSession(info: ActiveChatInfo, timeLeft: number): void {
   try {
-    const payload: PersistedSession = {
-      ...info,
-      timeLeft,
-      savedAt: Date.now(), // used to correct drift after tab close
-    };
+    const payload: PersistedSession = { ...info, timeLeft, savedAt: Date.now() };
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(payload));
-  } catch {
-    /* quota errors — ignore */
-  }
+  } catch { /* quota errors */ }
 }
 
 function clearSession(): void {
-  try {
-    sessionStorage.removeItem(SESSION_KEY);
-  } catch {
-    /* ignore */
-  }
+  try { sessionStorage.removeItem(SESSION_KEY); } catch { /* ignore */ }
 }
 
-/**
- * Read back the saved session and correct timeLeft for elapsed wall-clock time.
- * Returns null if there is nothing valid to restore.
- */
 function restoreSession(): { info: ActiveChatInfo; timeLeft: number } | null {
   try {
     const raw = sessionStorage.getItem(SESSION_KEY);
@@ -82,7 +71,6 @@ function restoreSession(): { info: ActiveChatInfo; timeLeft: number } | null {
 
     const parsed: PersistedSession = JSON.parse(raw);
 
-    // Basic shape validation
     if (
       !parsed?.gid ||
       !parsed?.astrologer_id ||
@@ -93,29 +81,28 @@ function restoreSession(): { info: ActiveChatInfo; timeLeft: number } | null {
       return null;
     }
 
-    // Correct for time that elapsed while the tab was closed / navigating
+    // Correct for time elapsed while tab was closed / navigating
     const elapsedSeconds = Math.floor((Date.now() - parsed.savedAt) / 1000);
     const correctedTimeLeft = parsed.timeLeft - elapsedSeconds;
 
     if (correctedTimeLeft <= 0) {
-      // Session already expired while the user was away
       clearSession();
       return null;
     }
 
     const info: ActiveChatInfo = {
-      gid: parsed.gid,
-      fbchannelID: parsed.fbchannelID || "",
-      astrologer_id: parsed.astrologer_id || "",
-      astroName: parsed.astroName || "",
+      gid:             parsed.gid,
+      fbchannelID:     parsed.fbchannelID     || "",
+      astrologer_id:   parsed.astrologer_id   || "",
+      astroName:       parsed.astroName       || "",
       astrologerImage: parsed.astrologerImage || "",
-      rate: parsed.rate || "0",
-      wallet: parsed.wallet || "0",
-      name: parsed.name || "",
-      gender: parsed.gender || "",
-      dob: parsed.dob || "",
-      tob: parsed.tob || "",
-      place: parsed.place || "",
+      rate:            parsed.rate            || "0",
+      wallet:          parsed.wallet          || "0",
+      name:            parsed.name            || "",
+      gender:          parsed.gender          || "",
+      dob:             parsed.dob             || "",
+      tob:             parsed.tob             || "",
+      place:           parsed.place           || "",
     };
 
     return { info, timeLeft: correctedTimeLeft };
@@ -132,24 +119,20 @@ const ChatContext = createContext<ChatContextType | null>(null);
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
-  // Restore from sessionStorage synchronously on first render
-  // so ActiveChatBar renders immediately without a flash
   const [initialised] = useState<{ info: ActiveChatInfo | null; timeLeft: number }>(() => {
     const saved = restoreSession();
-    return saved
-      ? { info: saved.info, timeLeft: saved.timeLeft }
-      : { info: null, timeLeft: 0 };
+    return saved ? { info: saved.info, timeLeft: saved.timeLeft } : { info: null, timeLeft: 0 };
   });
 
-  const [chatActive, setChatActive] = useState<boolean>(!!initialised.info);
-  const [chatInfo, setChatInfo] = useState<ActiveChatInfo | null>(initialised.info);
+  const [chatActive, setChatActive]     = useState<boolean>(!!initialised.info);
+  const [chatInfo, setChatInfo]         = useState<ActiveChatInfo | null>(initialised.info);
   const [chatTimeLeft, setChatTimeLeft] = useState<number>(initialised.timeLeft);
 
-  // Ref so the interval closure always sees current info without re-creating it
-  const chatInfoRef = useRef<ActiveChatInfo | null>(initialised.info);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const chatInfoRef    = useRef<ActiveChatInfo | null>(initialised.info);
+  const timerRef       = useRef<ReturnType<typeof setInterval> | null>(null);
+  // ── KEY FIX: track active gid in a ref so startChatTimer never misses it ──
+  const activeGidRef   = useRef<string | null>(initialised.info?.gid ?? null);
 
-  // Keep ref in sync
   useEffect(() => {
     chatInfoRef.current = chatInfo;
   }, [chatInfo]);
@@ -158,22 +141,19 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!chatActive) return;
 
-    // Clear any stale interval before starting a new one
     if (timerRef.current) clearInterval(timerRef.current);
 
     timerRef.current = setInterval(() => {
       setChatTimeLeft((prev) => {
         const next = prev - 1;
 
-        // Persist every tick (with current timestamp for drift correction)
         const info = chatInfoRef.current;
-        if (info) {
-          saveSession(info, next);
-        }
+        if (info) saveSession(info, next);
 
         if (next <= 0) {
           clearInterval(timerRef.current!);
-          timerRef.current = null;
+          timerRef.current  = null;
+          activeGidRef.current = null;
           setChatActive(false);
           setChatInfo(null);
           clearSession();
@@ -190,23 +170,32 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         timerRef.current = null;
       }
     };
-  }, [chatActive]); // only restarts when chatActive flips true → false → true
+  }, [chatActive]);
 
   // ── Public API ─────────────────────────────────────────────────────────────
 
   const startChatTimer = useCallback(
     (info: ActiveChatInfo, initialSeconds: number) => {
-      // Stop any existing timer
+      // ── KEY FIX: if this exact gid is already running, do NOT reset ────────
+      // This prevents re-mount of ChatScreen from resetting the timer to max.
+      if (activeGidRef.current === info.gid) {
+        // Session already ticking — just make sure info is up-to-date
+        chatInfoRef.current = info;
+        setChatInfo(info);
+        return;
+      }
+
+      // New session — stop any existing timer and start fresh
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
 
-      chatInfoRef.current = info;
+      activeGidRef.current = info.gid;
+      chatInfoRef.current  = info;
       setChatInfo(info);
       setChatTimeLeft(initialSeconds);
       saveSession(info, initialSeconds);
-      // Setting chatActive last so the useEffect above fires with correct state
       setChatActive(true);
     },
     []
@@ -217,7 +206,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-    chatInfoRef.current = null;
+    activeGidRef.current = null;
+    chatInfoRef.current  = null;
     setChatActive(false);
     setChatInfo(null);
     setChatTimeLeft(0);

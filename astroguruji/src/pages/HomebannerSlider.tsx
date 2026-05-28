@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 const API_BASE_URL = "https://admin.astrogurujii.com";
@@ -13,7 +13,15 @@ interface BannerItem {
   banner_img?: string;
   title?: string;
   link?: string;
-  redirect_url?: string;
+  redirectTo?: string;
+  url?: string;
+  banner_url?: string;
+  page_link?: string;
+  redirect?: string;
+  target_url?: string;
+  action_url?: string;
+  deep_link?: string;
+  [key: string]: any; // allow any extra fields
 }
 
 interface Props {
@@ -21,67 +29,69 @@ interface Props {
   isLoading?: boolean;
 }
 
-// ── Helper: resolve image URL ─────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────
 function resolveImg(banner: BannerItem): string {
-  const raw =
-    banner.img ||
-    banner.file ||
-    banner.image ||
-    banner.banner_img ||
-    "";
+  const raw = banner.img || banner.file || banner.image || banner.banner_img || "";
   if (!raw) return "";
   if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
   return `${API_BASE_URL}/${raw.replace(/^\/+/, "")}`;
 }
 
-// ── Skeleton placeholder ──────────────────────────────────────
+// Try every possible link field the API might return
+function resolveLink(banner: BannerItem): string {
+  const candidates = [
+    banner.link,
+    banner.redirectTo || banner.redirect || banner.target_url || banner.action_url || banner.deep_link,
+    banner.url,
+    banner.banner_url,
+    banner.page_link,
+    banner.redirect,
+    banner.target_url,
+    banner.action_url,
+    banner.deep_link,
+  ];
+  for (const c of candidates) {
+    if (c && typeof c === "string" && c.trim() && c.trim() !== "#") {
+      return c.trim();
+    }
+  }
+  return "";
+}
+
+// ── Skeleton ──────────────────────────────────────────────────
 function BannerSkeleton() {
   return (
     <div className="w-full animate-pulse">
-      {/* Mobile skeleton */}
       <div className="block md:hidden w-full h-[180px] rounded-xl bg-gray-200" />
-      {/* Desktop skeleton */}
       <div className="hidden md:block w-full rounded-2xl bg-gray-200" style={{ aspectRatio: "16/5" }} />
     </div>
   );
 }
 
-// ── Banner image — mobile uses fixed height + cover, desktop uses
-//    aspect-ratio container + contain so nothing gets cropped ──
-function BannerImage({
-  src,
-  alt,
-  onClick,
-}: {
-  src: string;
-  alt: string;
-  onClick?: () => void;
-}) {
+// ── Slide image — pointer-events-none so parent div handles all clicks ──
+function SlideImage({ src, alt }: { src: string; alt: string }) {
   return (
-    <div
-      className="w-full cursor-pointer overflow-hidden"
-      onClick={onClick}
-    >
-      {/* Mobile: fixed height, cover (fills nicely on small screens) */}
+    <>
       <img
         src={src}
         alt={alt}
         draggable={false}
+        style={{ pointerEvents: "none", userSelect: "none" }}
         className="block md:hidden w-full object-cover object-center h-[160px] sm:h-[220px]"
         onError={(e) => {
           (e.target as HTMLImageElement).src =
             "https://placehold.co/800x200/FFF5EC/FF6F00?text=AstroGurujii";
         }}
       />
-      {/* Desktop: aspect-ratio box + object-contain — no cropping */}
       <div
         className="hidden md:block w-full bg-[#FFF9F4]"
-        style={{ aspectRatio: "16/5" }}
+        style={{ aspectRatio: "16/5", pointerEvents: "none" }}
       >
         <img
           src={src}
           alt={alt}
           draggable={false}
+          style={{ pointerEvents: "none", userSelect: "none" }}
           className="w-full h-full object-contain object-center"
           onError={(e) => {
             (e.target as HTMLImageElement).src =
@@ -89,207 +99,250 @@ function BannerImage({
           }}
         />
       </div>
-    </div>
+    </>
   );
 }
 
-// ── Fallback placeholder (no src) ────────────────────────────
-function BannerPlaceholder({ onClick }: { onClick?: () => void }) {
-  return (
-    <div className="w-full cursor-pointer" onClick={onClick}>
-      {/* Mobile */}
-      <div className="flex md:hidden w-full h-[160px] sm:h-[220px] items-center justify-center bg-gradient-to-r from-[#FFF5EC] to-[#FFE8D6]">
-        <span className="font-poppins text-[16px] font-semibold text-[#FF6F00] opacity-40">
-          AstroGurujii
-        </span>
-      </div>
-      {/* Desktop */}
-      <div
-        className="hidden md:flex w-full items-center justify-center bg-gradient-to-r from-[#FFF5EC] to-[#FFE8D6]"
-        style={{ aspectRatio: "16/5" }}
-      >
-        <span className="font-poppins text-[20px] font-semibold text-[#FF6F00] opacity-40">
-          AstroGurujii
-        </span>
-      </div>
-    </div>
-  );
-}
-
-export default function HomebannerSlider({ banners, isLoading }: Props) {
+// ── Main slider ───────────────────────────────────────────────
+export default function HomeBannerSlider({ banners, isLoading }: Props) {
   const navigate = useNavigate();
-  const [current, setCurrent] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const total    = banners.length;
 
-  // Touch swipe state
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
+  // Infinite clone-wrap: [last, ...originals, first], start at idx=1
+  const [idx, setIdx]           = useState(1);
+  const [animated, setAnimated] = useState(true);
 
-  const total = banners.length;
+  const autoRef          = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isTransitioning  = useRef(false);
 
-  const goTo = (index: number) => {
-    if (isTransitioning || total === 0) return;
-    setIsTransitioning(true);
-    setCurrent((index + total) % total);
-    setTimeout(() => setIsTransitioning(false), 400);
-  };
+  // Touch tracking
+  const touchStartX  = useRef<number | null>(null);
+  const touchStartY  = useRef<number | null>(null);
+  const touchMoved   = useRef(false); // true if swipe detected
 
-  const next = () => goTo(current + 1);
-  const prev = () => goTo(current - 1);
+  const slides = total > 1
+    ? [banners[total - 1], ...banners, banners[0]]
+    : banners;
 
-  // Auto-play every 3.5s
+  // ── Auto-play ──────────────────────────────────────────────
+  const pause = useCallback(() => {
+    if (autoRef.current) { clearInterval(autoRef.current); autoRef.current = null; }
+  }, []);
+
+  const resume = useCallback(() => {
+    pause();
+    if (total > 1) {
+      autoRef.current = setInterval(() => {
+        setAnimated(true);
+        setIdx((i) => i + 1);
+      }, 4000);
+    }
+  }, [pause, total]);
+
+  useEffect(() => { resume(); return pause; }, [resume, pause]);
+
+  // ── Infinite wrap on transition end ───────────────────────
+  const handleTransitionEnd = useCallback(() => {
+    isTransitioning.current = false;
+    if (idx === 0) {
+      setAnimated(false);
+      setIdx(total);
+    } else if (idx === total + 1) {
+      setAnimated(false);
+      setIdx(1);
+    }
+  }, [idx, total]);
+
   useEffect(() => {
-    if (total <= 1) return;
-    autoPlayRef.current = setInterval(next, 3500);
-    return () => {
-      if (autoPlayRef.current) clearInterval(autoPlayRef.current);
-    };
-  }, [current, total]);
+    if (!animated) {
+      const raf = requestAnimationFrame(() =>
+        requestAnimationFrame(() => setAnimated(true))
+      );
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [animated]);
 
-  const pauseAutoPlay = () => {
-    if (autoPlayRef.current) clearInterval(autoPlayRef.current);
-  };
-  const resumeAutoPlay = () => {
-    if (total <= 1) return;
-    autoPlayRef.current = setInterval(next, 3500);
-  };
+  // ── Navigation ────────────────────────────────────────────
+  const prev = useCallback(() => {
+    if (isTransitioning.current) return;
+    isTransitioning.current = true;
+    setAnimated(true);
+    setIdx((i) => i - 1);
+    pause(); resume();
+  }, [pause, resume]);
 
-  // Touch handlers
+  const next = useCallback(() => {
+    if (isTransitioning.current) return;
+    isTransitioning.current = true;
+    setAnimated(true);
+    setIdx((i) => i + 1);
+    pause(); resume();
+  }, [pause, resume]);
+
+  const goTo = useCallback((realIndex: number) => {
+    if (isTransitioning.current) return;
+    isTransitioning.current = true;
+    setAnimated(true);
+    setIdx(realIndex + 1);
+    pause(); resume();
+  }, [pause, resume]);
+
+  // ── Touch ─────────────────────────────────────────────────
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
-    pauseAutoPlay();
+    touchStartY.current = e.touches[0].clientY;
+    touchMoved.current  = false;
+    pause();
   };
+
   const onTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.touches[0].clientX;
-  };
-  const onTouchEnd = () => {
-    const diff = touchStartX.current - touchEndX.current;
-    if (Math.abs(diff) > 40) {
-      diff > 0 ? next() : prev();
-    }
-    resumeAutoPlay();
+    if (touchStartX.current === null) return;
+    const dx = Math.abs(e.touches[0].clientX - touchStartX.current);
+    const dy = Math.abs(e.touches[0].clientY - (touchStartY.current ?? 0));
+    if (dx > 10 && dx > dy) touchMoved.current = true;
   };
 
-  const handleClick = (banner: BannerItem) => {
-    const url = banner.link || banner.redirect_url;
-    if (url) {
-      if (url.startsWith("http")) {
-        window.open(url, "_blank", "noopener");
-      } else {
-        navigate(url);
-      }
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const wasMoved = touchMoved.current;
+    touchStartX.current = null;
+    touchStartY.current = null;
+    touchMoved.current  = false;
+
+    if (wasMoved && Math.abs(dx) >= 40) {
+      dx < 0 ? next() : prev();
+    } else {
+      resume();
     }
   };
 
-  // ── Loading ───────────────────────────────────────────────
+  // ── Banner click — single source of truth ─────────────────
+  // Called by the slide wrapper div onClick.
+  // On touch: touchMoved was already reset to false in onTouchEnd,
+  // so by the time the synthetic click fires this is always false → safe.
+  const handleBannerClick = (banner: BannerItem) => {
+    // Log the raw banner so we can see what fields the API returned
+    console.log("[Banner click] raw data:", JSON.stringify(banner));
+
+    const url = resolveLink(banner);
+    console.log("[Banner click] resolved url:", url);
+
+    if (!url) return;
+
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      window.open(url, "_blank", "noopener,noreferrer");
+    } else {
+      navigate(url);
+    }
+  };
+
+  // ── Active dot ────────────────────────────────────────────
+  const dotActive =
+    idx === 0         ? total - 1 :
+    idx === total + 1 ? 0 :
+    idx - 1;
+
+  // ── Render ────────────────────────────────────────────────
   if (isLoading) return (
     <div className="w-full px-4 py-3 md:px-6 lg:px-[94px]">
       <BannerSkeleton />
     </div>
   );
 
-  // ── Empty ─────────────────────────────────────────────────
   if (!total) return null;
 
-  // ── Single banner ─────────────────────────────────────────
+  // Single banner
   if (total === 1) {
     const src = resolveImg(banners[0]);
     return (
       <div className="w-full px-4 py-3 md:px-6 lg:px-[94px]">
-        <div className="w-full overflow-hidden rounded-xl md:rounded-2xl">
-          {src ? (
-            <BannerImage
-              src={src}
-              alt={banners[0].title || "Banner"}
-              onClick={() => handleClick(banners[0])}
-            />
-          ) : (
-            <BannerPlaceholder onClick={() => handleClick(banners[0])} />
-          )}
+        <div
+          className="w-full overflow-hidden rounded-xl md:rounded-2xl cursor-pointer"
+          onClick={() => handleBannerClick(banners[0])}
+        >
+          {src
+            ? <SlideImage src={src} alt={banners[0].title || "Banner"} />
+            : <div className="w-full h-[160px] bg-orange-50 flex items-center justify-center" style={{ aspectRatio: "16/5" }}><span className="text-orange-300 text-sm">AstroGurujii</span></div>
+          }
         </div>
       </div>
     );
   }
 
-  // ── Multi-banner slider ───────────────────────────────────
   return (
     <div className="w-full px-4 py-3 md:px-6 lg:px-[94px]">
       <div
         className="relative w-full overflow-hidden rounded-xl md:rounded-2xl select-none"
-        onMouseEnter={pauseAutoPlay}
-        onMouseLeave={resumeAutoPlay}
+        onMouseEnter={pause}
+        onMouseLeave={resume}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {/* Slide track */}
+        {/* Track */}
         <div
-          className="flex transition-transform duration-[400ms] ease-in-out will-change-transform"
-          style={{ transform: `translateX(-${current * 100}%)` }}
+          style={{
+            display: "flex",
+            width: `${slides.length * 100}%`,
+            transform: `translateX(-${(idx / slides.length) * 100}%)`,
+            transition: animated ? "transform 480ms cubic-bezier(0.25,0.46,0.45,0.94)" : "none",
+          }}
+          onTransitionEnd={handleTransitionEnd}
         >
-          {banners.map((banner, i) => {
+          {slides.map((banner, i) => {
             const src = resolveImg(banner);
             return (
               <div
-                key={banner._id || banner.id || i}
-                className="shrink-0 w-full"
-                onClick={() => handleClick(banner)}
+                key={`slide-${i}`}
+                style={{ width: `${100 / slides.length}%`, flexShrink: 0, cursor: "pointer" }}
+                onClick={() => handleBannerClick(banner)}
               >
-                {src ? (
-                  <BannerImage
-                    src={src}
-                    alt={banner.title || `Banner ${i + 1}`}
-                    onClick={() => handleClick(banner)}
-                  />
-                ) : (
-                  <BannerPlaceholder onClick={() => handleClick(banner)} />
-                )}
+                {src
+                  ? <SlideImage src={src} alt={banner.title || `Banner ${i}`} />
+                  : <div className="w-full h-[160px] bg-orange-50 flex items-center justify-center" style={{ aspectRatio: "16/5" }}><span className="text-orange-300 text-sm">AstroGurujii</span></div>
+                }
               </div>
             );
           })}
         </div>
 
-        {/* Prev / Next arrows — desktop only */}
+        {/* Prev */}
         <button
           onClick={(e) => { e.stopPropagation(); prev(); }}
           aria-label="Previous"
           className="absolute left-3 top-1/2 -translate-y-1/2 hidden md:flex
                      w-9 h-9 items-center justify-center rounded-full
                      bg-white/80 hover:bg-white shadow-md text-[#FF6F00]
-                     transition-all duration-200 hover:scale-110 z-10"
-        >
-          ‹
-        </button>
+                     transition-all duration-200 hover:scale-110 z-10 text-xl font-bold"
+        >‹</button>
+
+        {/* Next */}
         <button
           onClick={(e) => { e.stopPropagation(); next(); }}
           aria-label="Next"
           className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:flex
                      w-9 h-9 items-center justify-center rounded-full
                      bg-white/80 hover:bg-white shadow-md text-[#FF6F00]
-                     transition-all duration-200 hover:scale-110 z-10"
-        >
-          ›
-        </button>
+                     transition-all duration-200 hover:scale-110 z-10 text-xl font-bold"
+        >›</button>
 
-        {/* Dot indicators */}
-        {total > 1 && (
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-            {banners.map((_, i) => (
-              <button
-                key={i}
-                aria-label={`Go to slide ${i + 1}`}
-                onClick={(e) => { e.stopPropagation(); goTo(i); }}
-                className="rounded-full transition-all duration-300"
-                style={{
-                  width: i === current ? "20px" : "6px",
-                  height: "6px",
-                  background: i === current ? "#FF6F00" : "rgba(255,255,255,0.7)",
-                }}
-              />
-            ))}
-          </div>
-        )}
+        {/* Dots */}
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+          {banners.map((_, i) => (
+            <button
+              key={i}
+              aria-label={`Go to slide ${i + 1}`}
+              onClick={(e) => { e.stopPropagation(); goTo(i); }}
+              className="rounded-full transition-all duration-300"
+              style={{
+                width:      i === dotActive ? "20px" : "6px",
+                height:     "6px",
+                background: i === dotActive ? "#FF6F00" : "rgba(255,255,255,0.7)",
+              }}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

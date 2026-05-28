@@ -59,9 +59,9 @@ type ApiAstrologerDetail = {
   three_rate: string;
   two_rate: string;
   one_rate: string;
-  perMinChat: number;
-  perMinVoiceCall: number;
-  perMinVideoCall: number;
+  per_min_chat: number;
+  per_min_voice_call: number;
+  per_min_video_call: number;
   per_min_chat_offer: string;
   per_min_voice_call_offer: string;
   per_min_video_call_offer: string;
@@ -237,12 +237,19 @@ export default function ConsultantDetail() {
       languages:
         consultant.language?.map((l) => l.name).join(", ") || "",
 
-      chatPrice: Number(consultant.per_min_chat_offer || consultant.perMinChat || 0),
-      callPrice: Number(consultant.per_min_voice_call_offer || consultant.perMinVoiceCall || 0),
-
-      chatOriginal: consultant.perMinChat || 0,
-      callOriginal: consultant.perMinVoiceCall || 0,
-      videoOriginal: consultant.perMinVideoCall || 0,
+      chatPrice: Number(
+          (consultant.per_min_chat_offer !== "" && consultant.per_min_chat_offer)
+            ? consultant.per_min_chat_offer
+            : consultant.per_min_chat || 0
+        ),
+        callPrice: Number(
+          (consultant.per_min_voice_call_offer !== "" && consultant.per_min_voice_call_offer)
+            ? consultant.per_min_voice_call_offer
+            : consultant.per_min_voice_call || 0
+        ),
+        chatOriginal: Number(consultant.per_min_chat || 0),
+        callOriginal: Number(consultant.per_min_voice_call || 0),
+        videoOriginal: Number(consultant.per_min_video_call || 0),
 
       experience: String(consultant.experience || 0),
       followers: (consultant as any).follow_count || 0,

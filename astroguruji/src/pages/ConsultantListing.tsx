@@ -14,80 +14,69 @@ const API_BASE_URL = "https://admin.astrogurujii.com";
 
 export default function ConsultantListing() {
   const [consultants, setConsultants] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("");
+  const [isLoading, setIsLoading]     = useState(true);
+  const [activeTab, setActiveTab]     = useState("");   // "" = All | category.id
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortValue, setSortValue]     = useState("");
 
   const fetchAstrologers = useCallback(async () => {
     try {
       setIsLoading(true);
       const token = localStorage.getItem("token");
-
-      const response = await axios.post(
+      const res = await axios.post(
         `${API_BASE_URL}/user_api/astrologer_list`,
         {
-          search: searchQuery,
-          page: "",
-          is_chat: "on",
-          followAstro: "",
+          search:        searchQuery,
+          page:          "",
+          is_chat:       "on",
+          followAstro:   "",
           is_voice_call: "",
           is_video_call: "",
-          cat_id: activeTab,
-          language_id: "",
-          gender: "",
-          sort_val: "",
-          is_question: "",
-          skill_id: "",
-          country: "INR",
-          report_id: "",
-          expert_astro: "",
+          cat_id:        activeTab,   // category.id from API (or "" for All)
+          language_id:   "",
+          gender:        "",
+          sort_val:      sortValue,
+          is_question:   "",
+          skill_id:      "",
+          country:       "INR",
+          report_id:     "",
+          expert_astro:  "",
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      if (response.data.status) {
-        // ✅ Pass RAW results — do NOT run through mapAstrologerData
-        // mapAstrologerData strips isChatOnline / isVoiceOnline / is_busy
-        setConsultants(response.data.results ?? []);
-      }
-    } catch (error) {
-      console.error("API Error:", error);
+      setConsultants(res.data?.status ? (res.data.results ?? []) : []);
+    } catch {
+      setConsultants([]);
     } finally {
       setIsLoading(false);
     }
-  }, [activeTab, searchQuery]);
+  }, [activeTab, searchQuery, sortValue]);
 
   useEffect(() => {
-    const delay = setTimeout(() => fetchAstrologers(), 400);
-    return () => clearTimeout(delay);
+    const t = setTimeout(fetchAstrologers, 400);
+    return () => clearTimeout(t);
   }, [fetchAstrologers]);
-
-  const handleFollowToggle = (id: string, followed: boolean) => {
-    setConsultants((prev) =>
-      prev.map((c) => (String(c.id) === id ? { ...c, is_Follow: followed ? "yes" : "no" } : c))
-    );
-  };
 
   return (
     <div className="min-h-screen w-full bg-white font-euclid">
       <Navbar />
       <BreadcrumbHeader
-        title="Consultant"
+        title="Chat with Astrologer"
         highlight="Astrogurujii"
-        description="Life can often feel uncertain—whether you're facing challenges in your career, relationships, health, or family matters. At Astroguruji, we connect you with trusted astrologers."
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Astroguruji Consultant" },
-        ]}
+        description="Connect with expert astrologers over chat for guidance on love, career, health, and more."
+        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Chat with Astrologer" }]}
       />
+
       <FilterBar
         activeTab={activeTab}
         onTabChange={setActiveTab}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        sortValue={sortValue}
+        onSortChange={setSortValue}
       />
 
-      <main className="container mx-auto px-4">
+      <main className="container mx-auto px-4 pb-12 mt-4">
         {isLoading ? (
           <MasterLoader text="Fetching Astrologers..." />
         ) : consultants.length === 0 ? (
@@ -96,18 +85,18 @@ export default function ConsultantListing() {
           <ConsultantGrid
             consultants={consultants}
             callType="chat"
-            onFollowToggle={handleFollowToggle}
+            onFollowToggle={(id, followed) =>
+              setConsultants((prev) =>
+                prev.map((c) => (String(c.id) === id ? { ...c, is_Follow: followed ? "yes" : "no" } : c))
+              )
+            }
           />
         )}
       </main>
 
       <TalkToAstrologerSection />
       <Faq
-        title={
-          <h2 className="font-inter text-[22px] md:text-[30px] font-bold text-black uppercase">
-            Frequently Asked Questions
-          </h2>
-        }
+        title={<h2 className="font-inter text-[22px] md:text-[30px] font-bold text-black uppercase">Frequently Asked Questions</h2>}
         showTabs={false}
       />
       <Footer />

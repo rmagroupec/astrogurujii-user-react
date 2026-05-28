@@ -374,9 +374,10 @@ export default function ChatScreen() {
       place:           place           || "",
     };
 
+    // AFTER ✅
     const w = parseFloat(wallet || "0");
     const r = parseFloat(rate   || "1");
-    const initialSeconds = r > 0 ? Math.floor((w / r) * 60) : 300;
+    const initialSeconds = r > 0 ? Math.floor((w / r) * 60) : 0;
 
     chatCtx.startChatTimer(info, initialSeconds);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -707,6 +708,17 @@ export default function ChatScreen() {
       <div className="flex-shrink-0 bg-white shadow-sm z-10">
         <div className="flex items-center gap-2 px-3 py-2.5">
           {/* Astrologer info */}
+          {/* ── Minimize / Back button ── */}
+<button
+  onClick={() => navigate(-1)}
+  className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors mr-1"
+  aria-label="Minimize chat"
+  title="Minimize — chat stays active"
+>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M15 18l-6-6 6-6" />
+  </svg>
+</button>
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <div className="relative flex-shrink-0">
               <img
@@ -738,10 +750,11 @@ export default function ChatScreen() {
           </div>
 
           {/* CHANGE 2: Wallet balance — larger font */}
-          <div className="flex items-center gap-1 text-gray-500 mr-1">
-            <WalletIcon />
-            <span className="text-base font-bold text-gray-800">₹{wallet}</span>
-          </div>
+          {/* Wallet balance — bordered pill */}
+<div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-orange-400 bg-orange-50 mr-1">
+  <WalletIcon />
+  <span className="text-[17px] font-extrabold text-orange-600 leading-none">₹{wallet}</span>
+</div>
 
           {/* CHANGE 3: END button — dark red */}
           <button
