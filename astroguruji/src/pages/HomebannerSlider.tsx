@@ -41,7 +41,77 @@ function BannerSkeleton() {
       {/* Mobile skeleton */}
       <div className="block md:hidden w-full h-[180px] rounded-xl bg-gray-200" />
       {/* Desktop skeleton */}
-      <div className="hidden md:block w-full h-[320px] rounded-2xl bg-gray-200" />
+      <div className="hidden md:block w-full rounded-2xl bg-gray-200" style={{ aspectRatio: "16/5" }} />
+    </div>
+  );
+}
+
+// ── Banner image — mobile uses fixed height + cover, desktop uses
+//    aspect-ratio container + contain so nothing gets cropped ──
+function BannerImage({
+  src,
+  alt,
+  onClick,
+}: {
+  src: string;
+  alt: string;
+  onClick?: () => void;
+}) {
+  return (
+    <div
+      className="w-full cursor-pointer overflow-hidden"
+      onClick={onClick}
+    >
+      {/* Mobile: fixed height, cover (fills nicely on small screens) */}
+      <img
+        src={src}
+        alt={alt}
+        draggable={false}
+        className="block md:hidden w-full object-cover object-center h-[160px] sm:h-[220px]"
+        onError={(e) => {
+          (e.target as HTMLImageElement).src =
+            "https://placehold.co/800x200/FFF5EC/FF6F00?text=AstroGurujii";
+        }}
+      />
+      {/* Desktop: aspect-ratio box + object-contain — no cropping */}
+      <div
+        className="hidden md:block w-full bg-[#FFF9F4]"
+        style={{ aspectRatio: "16/5" }}
+      >
+        <img
+          src={src}
+          alt={alt}
+          draggable={false}
+          className="w-full h-full object-contain object-center"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src =
+              "https://placehold.co/1200x375/FFF5EC/FF6F00?text=AstroGurujii";
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ── Fallback placeholder (no src) ────────────────────────────
+function BannerPlaceholder({ onClick }: { onClick?: () => void }) {
+  return (
+    <div className="w-full cursor-pointer" onClick={onClick}>
+      {/* Mobile */}
+      <div className="flex md:hidden w-full h-[160px] sm:h-[220px] items-center justify-center bg-gradient-to-r from-[#FFF5EC] to-[#FFE8D6]">
+        <span className="font-poppins text-[16px] font-semibold text-[#FF6F00] opacity-40">
+          AstroGurujii
+        </span>
+      </div>
+      {/* Desktop */}
+      <div
+        className="hidden md:flex w-full items-center justify-center bg-gradient-to-r from-[#FFF5EC] to-[#FFE8D6]"
+        style={{ aspectRatio: "16/5" }}
+      >
+        <span className="font-poppins text-[20px] font-semibold text-[#FF6F00] opacity-40">
+          AstroGurujii
+        </span>
+      </div>
     </div>
   );
 }
@@ -122,25 +192,21 @@ export default function HomebannerSlider({ banners, isLoading }: Props) {
   // ── Empty ─────────────────────────────────────────────────
   if (!total) return null;
 
-  // ── Single banner (no arrows / dots needed) ───────────────
+  // ── Single banner ─────────────────────────────────────────
   if (total === 1) {
     const src = resolveImg(banners[0]);
     return (
       <div className="w-full px-4 py-3 md:px-6 lg:px-[94px]">
-        <div
-          className="w-full overflow-hidden rounded-xl md:rounded-2xl cursor-pointer"
-          onClick={() => handleClick(banners[0])}
-        >
-          <img
-            src={src}
-            alt={banners[0].title || "Banner"}
-            className="w-full object-cover object-center
-                       h-[160px] xs:h-[180px]
-                       sm:h-[220px]
-                       md:h-[280px]
-                       lg:h-[340px]"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-          />
+        <div className="w-full overflow-hidden rounded-xl md:rounded-2xl">
+          {src ? (
+            <BannerImage
+              src={src}
+              alt={banners[0].title || "Banner"}
+              onClick={() => handleClick(banners[0])}
+            />
+          ) : (
+            <BannerPlaceholder onClick={() => handleClick(banners[0])} />
+          )}
         </div>
       </div>
     );
@@ -167,43 +233,24 @@ export default function HomebannerSlider({ banners, isLoading }: Props) {
             return (
               <div
                 key={banner._id || banner.id || i}
-                className="shrink-0 w-full cursor-pointer"
+                className="shrink-0 w-full"
                 onClick={() => handleClick(banner)}
               >
                 {src ? (
-                  <img
+                  <BannerImage
                     src={src}
                     alt={banner.title || `Banner ${i + 1}`}
-                    draggable={false}
-                    className="w-full object-cover object-center
-                               h-[160px] xs:h-[180px]
-                               sm:h-[220px]
-                               md:h-[280px]
-                               lg:h-[340px]"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        "https://placehold.co/1200x340/FFF5EC/FF6F00?text=AstroGurujii";
-                    }}
+                    onClick={() => handleClick(banner)}
                   />
                 ) : (
-                  <div
-                    className="w-full flex items-center justify-center bg-gradient-to-r from-[#FFF5EC] to-[#FFE8D6]
-                               h-[160px] xs:h-[180px]
-                               sm:h-[220px]
-                               md:h-[280px]
-                               lg:h-[340px]"
-                  >
-                    <span className="font-poppins text-[16px] font-semibold text-[#FF6F00] opacity-40">
-                      AstroGurujii
-                    </span>
-                  </div>
+                  <BannerPlaceholder onClick={() => handleClick(banner)} />
                 )}
               </div>
             );
           })}
         </div>
 
-        {/* Prev / Next arrows — hidden on mobile, visible on md+ */}
+        {/* Prev / Next arrows — desktop only */}
         <button
           onClick={(e) => { e.stopPropagation(); prev(); }}
           aria-label="Previous"
@@ -235,7 +282,7 @@ export default function HomebannerSlider({ banners, isLoading }: Props) {
                 onClick={(e) => { e.stopPropagation(); goTo(i); }}
                 className="rounded-full transition-all duration-300"
                 style={{
-                  width:  i === current ? "20px" : "6px",
+                  width: i === current ? "20px" : "6px",
                   height: "6px",
                   background: i === current ? "#FF6F00" : "rgba(255,255,255,0.7)",
                 }}

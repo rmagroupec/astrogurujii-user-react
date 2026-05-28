@@ -2,7 +2,7 @@ import { SERVICE_PILLS } from "@/data/home";
 import BrandLogoMidIcon from "@/assets/icons/BrandLogoMidIcon";
 import ServicePill from "./ServicePill";
 
-// ── Inline icon circles (self-contained, no ServicePill dependency) ──
+// ── Inline icon circles ──────────────────────────────────────
 function IconCircle({ color, icon }: { color: string; icon: string }) {
   const icons: Record<string, React.ReactNode> = {
     chat: (
@@ -86,7 +86,6 @@ function MobilePill({
           {label}
         </span>
       </button>
-      {/* connecting dot */}
       <span style={{
         position: "absolute",
         [dotSide]: -17,
@@ -104,96 +103,105 @@ function MobilePill({
   );
 }
 
+// ── Mobile center logo ───────────────────────────────────────
+function MobileCenterLogo() {
+  return (
+    <div style={{ position: "relative", width: 80, height: 80 }}>
+      <div style={{
+        position: "absolute", inset: -20, borderRadius: "50%",
+        background: "radial-gradient(circle,rgba(255,111,0,0.20) 0%,transparent 70%)",
+      }} />
+      <div style={{
+        position: "absolute", inset: 0, borderRadius: "50%",
+        background: "white", boxShadow: "0 4px 20px rgba(0,0,0,0.13)", padding: 4,
+      }}>
+        <div style={{
+          width: "100%", height: "100%", borderRadius: "50%",
+          background: "linear-gradient(135deg,#FF6F00,#FF9A3C)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <BrandLogoMidIcon width={44} height={30} className="object-contain brightness-0 invert" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Hero() {
   return (
     <section className="relative w-full overflow-hidden bg-white pb-[40px]">
       <div className="relative z-10 mx-auto max-w-[1440px] px-4 md:px-6 lg:px-[94px]">
-
         <div className="mt-6 flex flex-col items-center">
 
           {/* ══════════════════════════════════════════
-              MOBILE mind-map layout
+              MOBILE: mind-map  (< md)
+              The outer div uses only Tailwind — no inline display.
+              The inner div owns the grid layout.
           ══════════════════════════════════════════ */}
-          <div
-            className="md:hidden"
-            style={{
+          <div className="md:hidden w-full flex justify-center">
+            <div style={{
               display: "grid",
               gridTemplateColumns: "1fr 80px 1fr",
               alignItems: "center",
-              gap: "16px 0",
+              rowGap: 16,
               width: "100%",
               maxWidth: 340,
-            }}
-          >
-            {/* LEFT: Chat + Talk */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: "flex-end", paddingRight: 14 }}>
-              <MobilePill
-                label={"CHAT TO\nASTROLOGER"}
-                icon="chat"
-                color={SERVICE_PILLS[0].color}
-                dotSide="right"
-              />
-              <MobilePill
-                label={"TALK TO\nASTROLOGER"}
-                icon="talk"
-                color={SERVICE_PILLS[1].color}
-                dotSide="right"
-              />
-            </div>
-
-            {/* CENTER: logo */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <div style={{ position: "relative", width: 80, height: 80 }}>
-                <div style={{
-                  position: "absolute", inset: -20, borderRadius: "50%",
-                  background: "radial-gradient(circle,rgba(255,111,0,0.20) 0%,transparent 70%)",
-                }} />
-                <div style={{
-                  position: "absolute", inset: 0, borderRadius: "50%",
-                  background: "white", boxShadow: "0 4px 20px rgba(0,0,0,0.13)", padding: 4,
-                }}>
-                  <div style={{
-                    width: "100%", height: "100%", borderRadius: "50%",
-                    background: "linear-gradient(135deg,#FF6F00,#FF9A3C)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    <BrandLogoMidIcon width={44} height={30} className="object-contain brightness-0 invert" />
-                  </div>
-                </div>
+            }}>
+              {/* LEFT col */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: "flex-end", paddingRight: 14 }}>
+                <MobilePill
+                  label={"CHAT TO\nASTROLOGER"}
+                  icon="chat"
+                  color={SERVICE_PILLS[0].color}
+                  dotSide="right"
+                />
+                <MobilePill
+                  label={"TALK TO\nASTROLOGER"}
+                  icon="talk"
+                  color={SERVICE_PILLS[1].color}
+                  dotSide="right"
+                />
               </div>
-            </div>
 
-            {/* RIGHT: Mall + Pooja */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: "flex-start", paddingLeft: 14 }}>
-              <MobilePill
-                label={"ASTRO\nMALL"}
-                icon="mall"
-                color={SERVICE_PILLS[2].color}
-                dotSide="left"
-              />
-              <MobilePill
-                label={"BOOK POOJA"}
-                icon="pooja"
-                color={SERVICE_PILLS[3].color}
-                dotSide="left"
-              />
+              {/* CENTER col */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <MobileCenterLogo />
+              </div>
+
+              {/* RIGHT col */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: "flex-start", paddingLeft: 14 }}>
+                <MobilePill
+                  label={"ASTRO\nMALL"}
+                  icon="mall"
+                  color={SERVICE_PILLS[2].color}
+                  dotSide="left"
+                />
+                <MobilePill
+                  label={"BOOK\nPOOJA"}
+                  icon="pooja"
+                  color={SERVICE_PILLS[3].color}
+                  dotSide="left"
+                />
+              </div>
             </div>
           </div>
 
           {/* ══════════════════════════════════════════
-              DESKTOP: single row (original, unchanged)
+              DESKTOP: single centred row  (≥ md)
           ══════════════════════════════════════════ */}
-          <div className="hidden items-center justify-center gap-[16px] mt-1 md:flex -translate-x-12">
+          <div className="hidden md:flex items-center justify-center gap-4 mt-1 w-full">
             {SERVICE_PILLS.slice(0, 2).map((pill) => (
               <ServicePill key={pill.label} {...pill} />
             ))}
-            <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-brand-orange">
+
+            <div className="flex h-[72px] w-[72px] flex-shrink-0 items-center justify-center rounded-full bg-brand-orange shadow-md">
               <BrandLogoMidIcon
                 width={48}
                 height={32}
-                className="object-contain brightness-0 invert h-[40px] w-[60px]"
+                className="object-contain brightness-0 invert"
               />
             </div>
+
             {SERVICE_PILLS.slice(2).map((pill) => (
               <ServicePill key={pill.label} {...pill} />
             ))}
