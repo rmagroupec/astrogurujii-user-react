@@ -26,37 +26,36 @@
       }
       .animate-scaleIn { animation: scaleIn 0.3s ease; }
 
-      /* ── Completely hide every piece of Google Translate UI ── */
-      .goog-te-banner-frame          { display: none !important; }
-      .goog-te-banner-frame.skiptranslate { display: none !important; }
-      .skiptranslate                 { display: none !important; }
-      #goog-gt-tt                    { display: none !important; }
-      .goog-tooltip                  { display: none !important; }
-      .goog-tooltip:after            { display: none !important; }
-      .goog-tooltip:before           { display: none !important; }
-      .goog-te-ftab-float            { display: none !important; }
-      .goog-te-menu-value:before     { display: none !important; }
-      .goog-logo-link                { display: none !important; }
-      .goog-te-gadget span           { display: none !important; }
-      .goog-te-gadget                { font-size: 0 !important;  }
-      #google_translate_element      { display: none !important; }
+      /* ── Hide every piece of Google Translate UI ── */
+      .goog-te-banner-frame,
+      .goog-te-banner-frame.skiptranslate,
+      .skiptranslate,
+      #goog-gt-tt,
+      .goog-tooltip,
+      .goog-te-ftab-float,
+      .goog-logo-link,
+      iframe.goog-te-banner-frame,
+      #google_translate_element { display: none !important; }
+
+      .goog-tooltip:after,
+      .goog-tooltip:before      { display: none !important; }
+      .goog-te-menu-value:before { display: none !important; }
+      .goog-te-gadget span       { display: none !important; }
+      .goog-te-gadget            { font-size: 0 !important; }
 
       /* Prevent Google Translate from pushing body down */
-      body                           { top: 0 !important; }
-      body.translated-ltr            { margin-top: 0 !important; }
-      body.translated-rtl            { margin-top: 0 !important; }
-
-      /* Hide the floating "Translated by Google" ribbon */
-      iframe.goog-te-banner-frame    { display: none !important; }
+      body,
+      body.translated-ltr,
+      body.translated-rtl { top: 0 !important; margin-top: 0 !important; }
     </style>
   </head>
   <body>
     <div id="root"></div>
 
-    <!-- Hidden Google Translate element (required by the widget) -->
+    <!-- Hidden Google Translate element -->
     <div id="google_translate_element" style="display:none;"></div>
 
-    <!-- Init Google Translate silently — autoDisplay:false prevents the bar -->
+    <!-- Google Translate — silent, no banner -->
     <script>
       function googleTranslateElementInit() {
         new google.translate.TranslateElement(
@@ -70,7 +69,17 @@
       async
     ></script>
 
+    <!-- ✅ Google Maps — loading=async fixes the performance warning -->
+    <script>
+      (function() {
+        var script = document.createElement("script");
+        script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyBaJahlqsM8FAUa6zAZ2RTef67NqQtVZVY&libraries=places&loading=async";
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      })();
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBaJahlqsM8FAUa6zAZ2RTef67NqQtVZVY&libraries=places"></script>
   </body>
 </html>
