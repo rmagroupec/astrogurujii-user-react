@@ -1,6 +1,7 @@
 import { SERVICE_PILLS } from "@/data/home";
 import BrandLogoMidIcon from "@/assets/icons/BrandLogoMidIcon";
 import ServicePill from "./ServicePill";
+import { useNavigate } from "react-router-dom";
 
 // ── Inline icon circles ──────────────────────────────────────
 function IconCircle({ color, icon }: { color: string; icon: string }) {
@@ -128,6 +129,7 @@ function MobileCenterLogo() {
 }
 
 export default function Hero() {
+  const navigate = useNavigate();
   return (
     <section className="relative w-full overflow-hidden bg-white pb-[40px]">
       <div className="relative z-10 mx-auto max-w-[1440px] px-4 md:px-6 lg:px-[94px]">
@@ -154,12 +156,18 @@ export default function Hero() {
                   icon="chat"
                   color={SERVICE_PILLS[0].color}
                   dotSide="right"
+                    onClick={() => {
+                      navigate(SERVICE_PILLS[0].link)
+                    }}
                 />
                 <MobilePill
                   label={"TALK TO\nASTROLOGER"}
                   icon="talk"
                   color={SERVICE_PILLS[1].color}
                   dotSide="right"
+                  onClick={() => {
+                    navigate(SERVICE_PILLS[1].link)
+                  }}
                 />
               </div>
 

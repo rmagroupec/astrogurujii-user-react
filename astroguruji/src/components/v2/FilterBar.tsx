@@ -57,8 +57,7 @@ export default function FilterBar({
     const token = localStorage.getItem("token");
     axios
       .get(`${API_BASE_URL}/user_api/category_list`, { headers: token ? { Authorization: `Bearer ${token}` } : undefined })
-    axios
-      .get(`${API_BASE_URL}/user_api/category_list`)
+   
       .then((res) => {
         if (res.data?.status && Array.isArray(res.data.results)) {
           setCategories(res.data.results);

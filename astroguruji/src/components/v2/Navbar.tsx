@@ -6,25 +6,64 @@ import { useNavigate } from "react-router-dom";
 
 // ── Route map — label → path ──────────────────────────────────
 const NAV_ROUTES: Record<string, string> = {
-  "Home":                "/",
-  "Horoscope":           "/horoscope",
-  "Panchang":            "/panchang",
-  "Live Astrologer":     "/live-astrologer",
+  "Home": "/",
+  "Horoscope": "/horoscope",
+  "Panchang": "/panchang",
+  "Live Astrologer": "/live-astrologer",
   "Chat With Astrolger": "/chat-with-astrolger",
   "Call With Astrolger": "/call-with-astrolger",
-  "Our Blog":            "/our-blog",
+  "Our Blog": "/our-blog",
+};
+
+// ── Icons per nav link ────────────────────────────────────────
+const NAV_ICONS: Record<string, React.ReactNode> = {
+  "Home": (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  ),
+  "Horoscope": (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+    </svg>
+  ),
+  "Panchang": (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  ),
+  "Live Astrologer": (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+    </svg>
+  ),
+  "Chat With Astrolger": (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+  ),
+  "Call With Astrolger": (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13 19.79 19.79 0 0 1 1.61 4.38 2 2 0 0 1 3.58 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+    </svg>
+  ),
+  "Our Blog": (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+    </svg>
+  ),
 };
 
 export default function Navbar() {
-  const [menuOpen, setMenuOpen]         = useState(false);
-  const [showLogin, setShowLogin]       = useState(false);
-  const [showLang, setShowLang]         = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [showLang, setShowLang] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const userMenuRef                     = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   const isLoggedIn = typeof window !== "undefined" && !!localStorage.getItem("token");
-  const userName   = typeof window !== "undefined" ? (localStorage.getItem("name") || "") : "";
-  const navigate   = useNavigate();
+  const userName = typeof window !== "undefined" ? (localStorage.getItem("name") || "") : "";
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     localStorage.clear();
@@ -56,6 +95,12 @@ export default function Navbar() {
     return () => window.removeEventListener("resize", handler);
   }, []);
 
+  // Lock body scroll when drawer open
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [menuOpen]);
+
   const userInitial = userName ? userName.charAt(0).toUpperCase() : "U";
   const allNavLinks = ["Home", ...NAV_LINKS];
 
@@ -64,7 +109,7 @@ export default function Navbar() {
       <nav className="w-full bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
         <div className="mx-auto flex max-w-[1440px] items-center justify-between px-4 py-2 md:px-6 lg:px-[94px] lg:py-3">
 
-          {/* ── Logo ──────────────────────────────────────── */}
+          {/* ── Logo — UNCHANGED ──────────────────────────── */}
           <a href="/" className="flex items-center flex-shrink-0" aria-label="Astrogurujii Home">
             <img
               src="https://admin.astrogurujii.com/logo/logo2.png"
@@ -99,11 +144,11 @@ export default function Navbar() {
             >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g clipPath="url(#clip0_nav_lang)">
-                  <path d="M21.5002 4H12.0002C11.9465 4 11.8932 4.00844 11.8422 4.02498L11.7222 4.06497C11.4602 4.15216 11.3184 4.43523 11.4056 4.69722L16.4332 19.389L13.1232 23.171C12.9415 23.3789 12.9627 23.6948 13.1707 23.8765C13.2619 23.9562 13.379 24.0001 13.5002 24H21.5002C22.8809 24 24.0002 22.8807 24.0002 21.5V6.50003C24.0002 5.11928 22.8809 4 21.5002 4Z" fill="#ECEFF1"/>
-                  <path d="M11.9998 0H2.4998C1.11905 0 -0.00019455 1.11924 -0.00019455 2.5V17.5C-0.00019455 18.8808 1.11905 20 2.4998 20H11.9998C13.3806 20 14.4998 18.8808 14.4998 17.5V2.5C14.4998 1.11924 13.3806 0 11.9998 0Z" fill="#4CAF50"/>
-                  <path d="M21.5 11H14.5C14.2239 11 14 10.7762 14 10.5C14 10.2239 14.2239 10 14.5 10H21.5C21.7761 10 22 10.2239 22 10.5C22 10.7762 21.7762 11 21.5 11Z" fill="#455A64"/>
+                  <path d="M21.5002 4H12.0002C11.9465 4 11.8932 4.00844 11.8422 4.02498L11.7222 4.06497C11.4602 4.15216 11.3184 4.43523 11.4056 4.69722L16.4332 19.389L13.1232 23.171C12.9415 23.3789 12.9627 23.6948 13.1707 23.8765C13.2619 23.9562 13.379 24.0001 13.5002 24H21.5002C22.8809 24 24.0002 22.8807 24.0002 21.5V6.50003C24.0002 5.11928 22.8809 4 21.5002 4Z" fill="#ECEFF1" />
+                  <path d="M11.9998 0H2.4998C1.11905 0 -0.00019455 1.11924 -0.00019455 2.5V17.5C-0.00019455 18.8808 1.11905 20 2.4998 20H11.9998C13.3806 20 14.4998 18.8808 14.4998 17.5V2.5C14.4998 1.11924 13.3806 0 11.9998 0Z" fill="#4CAF50" />
+                  <path d="M21.5 11H14.5C14.2239 11 14 10.7762 14 10.5C14 10.2239 14.2239 10 14.5 10H21.5C21.7761 10 22 10.2239 22 10.5C22 10.7762 21.7762 11 21.5 11Z" fill="#455A64" />
                 </g>
-                <defs><clipPath id="clip0_nav_lang"><rect width="24" height="24" fill="white"/></clipPath></defs>
+                <defs><clipPath id="clip0_nav_lang"><rect width="24" height="24" fill="white" /></clipPath></defs>
               </svg>
             </button>
 
@@ -114,7 +159,7 @@ export default function Navbar() {
               className="hidden sm:flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors"
             >
               <svg width="17" height="20" viewBox="0 0 17 20" fill="none">
-                <path d="M8.5 20c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6.5-6V8.5C15 5.43 13.36 2.86 10.5 2.18V1.5C10.5.67 9.83 0 9 0h-1C7.17 0 6.5.67 6.5 1.5v.68C3.63 2.86 2 5.42 2 8.5V14l-2 2v1h17v-1l-2-2z" fill="#333"/>
+                <path d="M8.5 20c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6.5-6V8.5C15 5.43 13.36 2.86 10.5 2.18V1.5C10.5.67 9.83 0 9 0h-1C7.17 0 6.5.67 6.5 1.5v.68C3.63 2.86 2 5.42 2 8.5V14l-2 2v1h17v-1l-2-2z" fill="#333" />
               </svg>
             </button>
 
@@ -143,9 +188,9 @@ export default function Navbar() {
                     </div>
                     <div className="flex flex-col py-1">
                       {[
-                        { icon: "👤", label: "Edit Profile",     href: "/user_profile" },
-                        { icon: "💰", label: "Wallet",           href: "/my-wallet" },
-                        { icon: "📦", label: "My Orders",        href: "/user-reports" },
+                        { icon: "👤", label: "Edit Profile", href: "/user_profile" },
+                        { icon: "💰", label: "Wallet", href: "/my-wallet" },
+                        { icon: "📦", label: "My Orders", href: "/user-reports" },
                         { icon: "💬", label: "Customer Support", href: "/customer-chat-support" },
                       ].map((item) => (
                         <a
@@ -185,60 +230,135 @@ export default function Navbar() {
               className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gray-100 transition-colors lg:hidden"
               onClick={() => setMenuOpen(!menuOpen)}
             >
-              {menuOpen ? (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2.2" strokeLinecap="round">
-                  <path d="M18 6 6 18M6 6l12 12"/>
-                </svg>
-              ) : (
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2.2" strokeLinecap="round">
-                  <path d="M3 6h18M3 12h18M3 18h18"/>
-                </svg>
-              )}
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2.2" strokeLinecap="round">
+                <path d="M3 6h18M3 12h18M3 18h18" />
+              </svg>
             </button>
           </div>
         </div>
+      </nav>
 
-        {/* ── Mobile menu ─────────────────────────────────── */}
-        <div className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${menuOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"}`}>
-          <div className="border-t border-gray-100 bg-white px-4 py-3">
-            <ul className="flex flex-col">
-              {allNavLinks.map((link) => (
-                <li key={link}>
-                  <a
-                    href={NAV_ROUTES[link] ?? `/${link.toLowerCase().replace(/\s+/g, "-")}`}
-                    className="flex items-center py-3 font-poppins text-[14px] font-medium text-gray-800 hover:text-brand-orange border-b border-gray-50 transition-colors"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    {link}
-                  </a>
-                </li>
-              ))}
-            </ul>
+      {/* ══════════════════════════════════════════════════════
+          MOBILE DRAWER — slides in from left
+          Orange/white colour scheme, Astrotalk-style layout
+      ══════════════════════════════════════════════════════ */}
 
-            {/* Mobile: translate + notifications */}
-            <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100">
-              <button
-                onClick={() => { setShowLang(true); setMenuOpen(false); }}
-                className="flex items-center gap-2 font-poppins text-[13px] text-gray-600 hover:text-brand-orange"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                </svg>
-                Language
-              </button>
-              <button
-                onClick={() => { navigate("/notify_list"); setMenuOpen(false); }}
-                className="flex items-center gap-2 font-poppins text-[13px] text-gray-600 hover:text-brand-orange"
-              >
-                <svg width="16" height="18" viewBox="0 0 17 20" fill="none">
-                  <path d="M8.5 20c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6.5-6V8.5C15 5.43 13.36 2.86 10.5 2.18V1.5C10.5.67 9.83 0 9 0h-1C7.17 0 6.5.67 6.5 1.5v.68C3.63 2.86 2 5.42 2 8.5V14l-2 2v1h17v-1l-2-2z" fill="#555"/>
-                </svg>
-                Notifications
-              </button>
+      {/* Backdrop */}
+      <div
+        className={`fixed inset-0 z-[60] bg-black/40 transition-opacity duration-300 lg:hidden ${menuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
+        onClick={() => setMenuOpen(false)}
+      />
+
+      {/* Drawer panel */}
+      <div
+        className={`fixed top-0 left-0 z-[70] h-full w-[300px] bg-white shadow-2xl
+                    flex flex-col transition-transform duration-300 ease-in-out lg:hidden
+                    ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}
+      >
+        {/* ── Drawer header — orange bg with logo ── */}
+        <div className="flex items-center justify-between px-5 py-4 bg-[#FFFFFF]">
+          <a href="/" className="flex items-center flex-shrink-0" aria-label="Astrogurujii Home">
+            <img
+              src="https://admin.astrogurujii.com/logo/logo2.png"
+              alt="Astrogurujii"
+              className="h-[44px] w-auto object-contain md:h-[52px]"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+          </a>
+          <button
+            onClick={() => setMenuOpen(false)}
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-orange-500 hover:bg-orange-600 transition-colors"          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* ── User info strip (if logged in) ── */}
+        {isLoggedIn && (
+          <div className="flex items-center gap-3 px-5 py-3 bg-[#FFF7F0] border-b border-[#FFE8D6]">
+            <div className="w-9 h-9 rounded-full bg-[#FF6F00] text-white flex items-center justify-center font-bold text-[15px] flex-shrink-0">
+              {userInitial}
+            </div>
+            <div className="min-w-0">
+              <p className="font-poppins text-[13px] font-semibold text-gray-800 truncate">{userName}</p>
+              <p className="font-poppins text-[11px] text-gray-500 truncate">{localStorage.getItem("email") || ""}</p>
             </div>
           </div>
+        )}
+
+        {/* ── Nav links ── */}
+        <nav className="flex-1 overflow-y-auto py-2">
+          <ul className="flex flex-col">
+            {allNavLinks.map((link, i) => (
+              <li key={link}>
+                <a
+                  href={NAV_ROUTES[link] ?? `/${link.toLowerCase().replace(/\s+/g, "-")}`}
+                  className="flex items-center gap-4 px-5 py-3.5 font-poppins text-[14px] font-medium text-gray-800
+                             hover:bg-[#FFF7F0] hover:text-[#FF6F00] transition-colors group"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <span className="text-gray-400 group-hover:text-[#FF6F00] transition-colors flex-shrink-0">
+                    {NAV_ICONS[link]}
+                  </span>
+                  <span className="flex-1">{link}</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-gray-300 group-hover:text-[#FF6F00]">
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                </a>
+                {i < allNavLinks.length - 1 && (
+                  <div className="mx-5 h-px bg-gray-100" />
+                )}
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        {/* ── Bottom actions ── */}
+        <div className="border-t border-gray-100 px-5 py-4 space-y-3">
+          <div className="flex gap-3">
+            <button
+              onClick={() => { setShowLang(true); setMenuOpen(false); }}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 py-2.5
+                         font-poppins text-[12px] font-medium text-gray-600 hover:border-[#FF6F00] hover:text-[#FF6F00] transition-colors"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
+              Language
+            </button>
+            <button
+              onClick={() => { navigate("/notify_list"); setMenuOpen(false); }}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 py-2.5
+                         font-poppins text-[12px] font-medium text-gray-600 hover:border-[#FF6F00] hover:text-[#FF6F00] transition-colors"
+            >
+              <svg width="15" height="17" viewBox="0 0 17 20" fill="none">
+                <path d="M8.5 20c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6.5-6V8.5C15 5.43 13.36 2.86 10.5 2.18V1.5C10.5.67 9.83 0 9 0h-1C7.17 0 6.5.67 6.5 1.5v.68C3.63 2.86 2 5.42 2 8.5V14l-2 2v1h17v-1l-2-2z" fill="currentColor" />
+              </svg>
+              Alerts
+            </button>
+          </div>
+
+          {isLoggedIn ? (
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-red-50 border border-red-100
+                         py-2.5 font-poppins text-[13px] font-semibold text-red-500 hover:bg-red-100 transition-colors"
+            >
+              <span>🚪</span> Logout
+            </button>
+          ) : (
+            <button
+              onClick={() => { setShowLogin(true); setMenuOpen(false); }}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#FF6F00]
+                         py-2.5 font-poppins text-[13px] font-semibold text-white hover:bg-orange-600 transition-colors"
+            >
+              Login / Sign Up
+            </button>
+          )}
         </div>
-      </nav>
+      </div>
 
       <LoginModal
         isOpen={showLogin}

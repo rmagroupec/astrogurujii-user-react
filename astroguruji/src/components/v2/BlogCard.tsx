@@ -58,6 +58,7 @@ export default function BlogCard({
           </span>
         </div>
       </div>
+      
     </div>
   );
 }

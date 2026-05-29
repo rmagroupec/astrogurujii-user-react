@@ -18,7 +18,6 @@ export default function Blog({ data = [] }: { data: any[] }) {
 
   if (!data.length) return null;
 
-  // Touch-drag scroll helpers
   let isDown = false;
   let startX = 0;
   let scrollLeft = 0;
@@ -74,8 +73,8 @@ export default function Blog({ data = [] }: { data: any[] }) {
             ref={sliderRef}
             className="flex gap-3 overflow-x-auto pb-3 scroll-smooth"
             style={{
-              scrollbarWidth: "none",          /* Firefox */
-              msOverflowStyle: "none",         /* IE/Edge */
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
               cursor: "grab",
               WebkitOverflowScrolling: "touch",
             }}
@@ -84,14 +83,9 @@ export default function Blog({ data = [] }: { data: any[] }) {
             onMouseUp={onMouseUp}
             onMouseMove={onMouseMove}
           >
-            {/* Hide scrollbar in webkit */}
             <style>{`.blog-slider::-webkit-scrollbar { display: none; }`}</style>
-
             {data.slice(0, 10).map((post: any) => (
-              <div
-                key={post._id}
-                className="shrink-0 w-[220px]"
-              >
+              <div key={post._id} className="shrink-0 w-[220px]">
                 <BlogCard
                   image={post.img}
                   title={post.title}
@@ -108,7 +102,7 @@ export default function Blog({ data = [] }: { data: any[] }) {
             {data.slice(0, 10).map((_: any, i: number) => (
               <div
                 key={i}
-                className="h-1.5 w-1.5 rounded-full bg-[#FF6F00] opacity-30"
+                className="h-1.5 w-1.5 rounded-full bg-[#FF6F00]"
                 style={{ opacity: i === 0 ? 1 : 0.25 }}
               />
             ))}
@@ -139,6 +133,7 @@ export default function Blog({ data = [] }: { data: any[] }) {
           ))}
         </div>
 
+  
       </div>
     </section>
   );

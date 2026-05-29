@@ -230,6 +230,8 @@ export default function BlogDetailPage() {
                           {formatDate(r.Created_date)}
                         </span>
                       </div>
+
+
                     </div>
                   ))}
                 </div>
@@ -237,6 +239,51 @@ export default function BlogDetailPage() {
             </aside>
           )}
         </div>
+
+        {/* ── CTA Strip — Chat & Call ── */}
+        <div className="mt-8 rounded-2xl overflow-hidden"
+          style={{ background: "linear-gradient(135deg, #FF6F00 0%, #FF9800 100%)" }}
+        >
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-5">
+            {/* Text */}
+            <div className="text-center sm:text-left">
+              <p className="font-poppins text-[16px] font-bold text-white leading-tight">
+                Need Personal Guidance?
+              </p>
+              <p className="font-poppins text-[12px] text-white/80 mt-0.5">
+                Connect with an expert astrologer instantly
+              </p>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex items-center gap-3 flex-shrink-0">
+              {/* Chat */}
+              <button
+                onClick={() => navigate("/chat-with-astrolger")}
+                className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 font-poppins text-[13px] font-bold transition hover:bg-orange-50 active:scale-95"
+                style={{ color: "#FF6F00" }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                Chat Now
+              </button>
+
+              {/* Call */}
+              <button
+                onClick={() => navigate("/call-with-astrolger")}
+                className="flex items-center gap-2 rounded-full px-5 py-2.5 font-poppins text-[13px] font-bold text-white transition active:scale-95"
+                style={{ background: "rgba(255,255,255,0.2)", border: "1.5px solid rgba(255,255,255,0.5)" }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13 19.79 19.79 0 0 1 1.61 4.38 2 2 0 0 1 3.58 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+                Call Now
+              </button>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       {/* Scoped prose styles for rendered HTML blog content */}

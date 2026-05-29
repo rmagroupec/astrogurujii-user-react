@@ -220,7 +220,12 @@ export default function BlogPage() {
             </div>
           </>
         )}
+
+        
       </div>
+      
+      
+
 
       <Footer />
     </div>

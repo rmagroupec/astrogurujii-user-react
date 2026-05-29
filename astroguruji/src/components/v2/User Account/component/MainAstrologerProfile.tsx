@@ -9,6 +9,7 @@ import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import ConnectionModal from "@/components/v2/ConnectionModal";
 import { profile_api } from "@/https_service";
+import { useNavigate } from "react-router-dom";
 
 const API_BASE = "https://admin.astrogurujii.com";
 
@@ -137,13 +138,22 @@ function AstrologerCard({
   a: AstrologerDetail;
   onOpenModal: (a: AstrologerDetail, t: "chat" | "audio") => void;
 }) {
+  const navigate = useNavigate();
   const [imgErr, setImgErr] = useState(false);
   const [liked, setLiked] = useState(false);
   const [hovered, setHovered] = useState(false);
 
-  const chatRate = parseFloat(a.per_min_chat_offer || String(a.per_min_chat)) || 0;
-  const callRate = parseFloat(a.per_min_voice_call_offer || String(a.per_min_voice_call)) || 0;
-  const displayRate = chatRate || callRate;
+  const chatBase = parseFloat(String(a.per_min_chat)) || 0;
+  const chatOffer = a.per_min_chat_offer ? parseFloat(a.per_min_chat_offer) : null;
+  const callBase = parseFloat(String(a.per_min_voice_call)) || 0;
+  const callOffer = a.per_min_voice_call_offer ? parseFloat(a.per_min_voice_call_offer) : null;
+  const baseRate = chatBase || callBase;
+  const offerRate = chatOffer ?? callOffer;
+  const hasDiscount = offerRate !== null && offerRate < baseRate;
+  const displayRate = hasDiscount ? offerRate! : baseRate;
+  const originalRate = hasDiscount ? baseRate : null;
+  const discountPct = hasDiscount ? Math.round(((baseRate - offerRate!) / baseRate) * 100) : 0;
+
 
   const rating = parseFloat(a.avg_rate) || 0;
   const totalReviews = a.rating_total_person ?? a.rating?.length ?? 0;
@@ -165,6 +175,7 @@ function AstrologerCard({
 
   return (
     <div
+
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className="relative flex flex-col bg-white rounded-[20px] overflow-hidden transition-all duration-300"
@@ -183,7 +194,7 @@ function AstrologerCard({
           : "linear-gradient(90deg,#FFD15B,#FF9800,#FF6F00)"
       }} />
 
-      <div className="flex flex-col px-5 pt-4 pb-5 gap-0">
+      <div className="flex flex-col px-5 pt-4 pb-5 gap-0" onClick={() => navigate(`/consultants/${a.id}`)}>
 
         {/* ── Row: status + heart ─────────────────────────────────────────── */}
         <div className="flex items-center justify-between mb-4">
@@ -250,11 +261,18 @@ function AstrologerCard({
 
         {/* ── Price ───────────────────────────────────────────────────────── */}
         {displayRate > 0 && (
-          <p className="text-center font-bold text-[20px] mb-1" style={{ color: "#16a34a", fontFamily: "'Outfit',sans-serif" }}>
-            ₹{displayRate}
-            <span className="text-[13px] font-semibold text-gray-400 ml-1">/min</span>
-          </p>
-        )}
+  <div className="flex flex-col items-center mb-1">
+    {originalRate !== null && (
+      <span className="text-[13px] font-semibold text-[#FF6F00] line-through leading-tight">
+        ₹{originalRate}/Min
+      </span>
+    )}
+    <p className="font-bold text-[20px] m-0 leading-tight" style={{ color: "#16a34a", fontFamily: "'Outfit',sans-serif" }}>
+      ₹{displayRate}
+      <span className="text-[13px] font-semibold text-gray-400 ml-1">/Min</span>
+    </p>
+  </div>
+)}
 
         {/* ── Name ────────────────────────────────────────────────────────── */}
         <h3 className="text-center text-[21px] font-extrabold text-gray-900 leading-tight mb-1" style={{ fontFamily: "'Outfit',sans-serif" }}>
