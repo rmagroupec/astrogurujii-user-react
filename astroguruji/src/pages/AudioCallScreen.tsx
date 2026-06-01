@@ -9,6 +9,7 @@
  *   - accept_astro handled in status poller
  *   - handleEnd stale-closure fixed via ref
  *   - AGORA_APP_ID hardcoded
+ *   - LAYOUT FIX: full 100dvh, no scroll, flex-shrink-0 on header/info
  */
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -144,17 +145,18 @@ function ActionBtn({
   icon: React.ReactNode; label: string; active: boolean; onClick: () => void;
 }) {
   return (
-    <button onClick={onClick} className="flex flex-col items-center gap-2">
+    <button onClick={onClick} className="flex flex-col items-center gap-2 min-w-[64px]">
       <div
-        className="w-14 h-14 rounded-full flex items-center justify-center transition-all"
+        className="w-14 h-14 rounded-full flex items-center justify-center transition-all flex-shrink-0"
         style={{
           background: active ? "rgba(0,0,0,0.08)" : "white",
-          boxShadow: active ? "none" : "0 2px 12px rgba(0,0,0,0.10)",
+          boxShadow: active ? "none" : "0 2px 12px rgba(0,0,0,0.12)",
+          border: active ? "1.5px solid rgba(0,0,0,0.1)" : "1px solid rgba(0,0,0,0.06)",
         }}
       >
         {icon}
       </div>
-      <span className="text-xs font-semibold text-gray-700">{label}</span>
+      <span className="text-xs font-semibold text-gray-600">{label}</span>
     </button>
   );
 }
@@ -162,7 +164,7 @@ function ActionBtn({
 // ─── Spinning avatar ──────────────────────────────────────────────────────────
 function SpinAvatar({ src, name }: { src: string; name: string }) {
   return (
-    <div className="relative flex items-center justify-center" style={{ width: 140, height: 140 }}>
+    <div className="relative flex items-center justify-center" style={{ width: 130, height: 130 }}>
       <div className="absolute inset-0 rounded-full border-4 border-orange-300 opacity-40 animate-ping" />
       <div className="absolute inset-3 rounded-full border-2 border-orange-400 opacity-30 animate-ping" style={{ animationDelay: "0.4s" }} />
       <div
@@ -178,7 +180,7 @@ function SpinAvatar({ src, name }: { src: string; name: string }) {
       <img
         src={src}
         alt={name}
-        className="absolute w-[120px] h-[120px] rounded-full object-cover"
+        className="absolute w-[110px] h-[110px] rounded-full object-cover"
         onError={(e) => {
           (e.target as HTMLImageElement).src =
             `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=FF6F00&color=fff&size=120`;
@@ -277,7 +279,7 @@ export default function AudioCallScreen() {
       setAbortCountdown((s) => {
         if (s <= 1) {
           clearInterval(abortTimerRef.current!);
-          handleEndRef.current("disconnect_user"); // safe via ref
+          handleEndRef.current("disconnect_user");
           return 0;
         }
         return s - 1;
@@ -289,7 +291,6 @@ export default function AudioCallScreen() {
   const initAgora = useCallback(async () => {
     if (!AGORA_APP_ID || !channelId) return;
 
-    // Clean up any previous instance (retry scenario)
     try {
       localTrackRef.current?.stop();
       localTrackRef.current?.close();
@@ -331,43 +332,24 @@ export default function AudioCallScreen() {
     });
 
     try {
-      // ── STEP 1: fetch token from backend ───────────────────────────────
-      // Your Flutter app works because the backend generates Agora tokens.
-      // fetchAgoraToken tries /user_api/agora_token, /user_api/get_agora_token, /user_api/token
       const agoraToken = await fetchAgoraToken(channelId);
-
       if (!agoraToken) {
-        // Backend has no token endpoint yet — show clear error
         showToast("Token not found. Ask backend to add /user_api/agora_token endpoint.");
         return;
       }
-
-      // ── STEP 2: join with token ────────────────────────────────────────
       await client.join(AGORA_APP_ID, channelId, agoraToken, null);
-
       const localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
       localTrackRef.current = localAudioTrack;
       await client.publish([localAudioTrack]);
-
-      setToastVisible(false); // joined successfully
-
+      setToastVisible(false);
     } catch (err: any) {
       console.error("Agora join error:", err);
-
-      // Give a specific, actionable message based on the error code
       let msg = "Could not connect to the call server.";
-      if (err?.message?.includes("CAN_NOT_GET_GATEWAY_SERVER")) {
-        msg = "Token rejected by Agora. Check App ID / App Certificate match.";
-      } else if (err?.message?.includes("INVALID_TOKEN")) {
-        msg = "Invalid Agora token. Backend may be returning a stale token.";
-      } else if (err?.message?.includes("TOKEN_EXPIRED")) {
-        msg = "Agora token expired. Request a new one.";
-      } else if (err?.message?.includes("NOT_AUTHORIZED")) {
-        msg = "Agora: not authorised. Check token privileges.";
-      }
-
+      if (err?.message?.includes("CAN_NOT_GET_GATEWAY_SERVER")) msg = "Token rejected by Agora. Check App ID / App Certificate match.";
+      else if (err?.message?.includes("INVALID_TOKEN")) msg = "Invalid Agora token. Backend may be returning a stale token.";
+      else if (err?.message?.includes("TOKEN_EXPIRED")) msg = "Agora token expired. Request a new one.";
+      else if (err?.message?.includes("NOT_AUTHORIZED")) msg = "Agora: not authorised. Check token privileges.";
       showToast(msg);
-      // ✅ Call is NOT ended — screen stays alive, user can retry
     }
   }, [channelId, stopRingtone, startElapsedTimer, showToast]);
 
@@ -389,20 +371,16 @@ export default function AudioCallScreen() {
     if (isEndingRef.current) return;
     isEndingRef.current = true;
     setIsEnding(true);
-
     clearInterval(pollTimerRef.current!);
     clearInterval(elapsedTimerRef.current!);
     clearInterval(abortTimerRef.current!);
     stopRingtone();
     await leaveAgora();
-
     try { await call_status_update(apiChannelId, status); } catch { /* silent */ }
-
     setShowRating(true);
     ctx.endCall();
   }, [apiChannelId, leaveAgora, stopRingtone, ctx]);
 
-  // Keep ref in sync — fixes stale closure in abort countdown
   useEffect(() => { handleEndRef.current = handleEnd; }, [handleEnd]);
 
   // ─── Status polling ────────────────────────────────────────────────────────
@@ -411,21 +389,15 @@ export default function AudioCallScreen() {
       try {
         const res    = await call_initiate_status(ch);
         const status = res?.results?.status;
-
         if (status === "accept_astro") {
-          // ✅ Astrologer accepted — stop abort timer & ringtone
-          // Agora user-joined event will set callStatus → "connected"
           clearInterval(abortTimerRef.current!);
           stopRingtone();
-
         } else if (status === "reject_astro") {
           clearInterval(pollTimerRef.current!);
           navigate(-1);
-
         } else if (status === "end_astro") {
           clearInterval(pollTimerRef.current!);
           setShowRating(true);
-
         } else if (status === "end_user" || status === "disconnect_user") {
           clearInterval(pollTimerRef.current!);
           navigate("/");
@@ -442,66 +414,48 @@ export default function AudioCallScreen() {
   }, [apiChannelId, navigate]);
 
   // ─── Controls ──────────────────────────────────────────────────────────────
-// ─── Mute ──────────────────────────────────────────────────────────────────
-// FIX: setMuted() not setEnabled() — setEnabled destroys the track permanently
-// ─── Mute ──────────────────────────────────────────────────────────────────
-// FIX: setMuted() not setEnabled() — setEnabled destroys the track permanently
-const toggleMute = useCallback(async () => {
-  if (!localTrackRef.current) return;
-  const next = !isMuted;
-  try {
-    await localTrackRef.current.setMuted(next); // ← was setEnabled(!next)
-    setIsMuted(next);
-  } catch (err) {
-    console.error("Mute error:", err);
-  }
-}, [isMuted]);
+  const toggleMute = useCallback(async () => {
+    if (!localTrackRef.current) return;
+    const next = !isMuted;
+    try {
+      await localTrackRef.current.setMuted(next);
+      setIsMuted(next);
+    } catch (err) { console.error("Mute error:", err); }
+  }, [isMuted]);
 
-// ─── Hold ──────────────────────────────────────────────────────────────────
-// FIX: setMuted() for local + iterate ALL remote users (remoteTrackRef can be null)
-const toggleHold = useCallback(async () => {
-  const next = !isHold;
-  try {
-    // Mute local mic
-    if (localTrackRef.current) {
-      await localTrackRef.current.setMuted(next); // ← was setEnabled(!next)
-    }
-    // Stop/resume ALL remote users (not just remoteTrackRef which can be null)
-    if (clientRef.current) {
-      for (const user of clientRef.current.remoteUsers) {
-        if (user.audioTrack) {
-          if (next) user.audioTrack.stop();
-          else      user.audioTrack.play();
+  const toggleHold = useCallback(async () => {
+    const next = !isHold;
+    try {
+      if (localTrackRef.current) await localTrackRef.current.setMuted(next);
+      if (clientRef.current) {
+        for (const user of clientRef.current.remoteUsers) {
+          if (user.audioTrack) {
+            if (next) user.audioTrack.stop();
+            else      user.audioTrack.play();
+          }
         }
       }
-    }
-    setIsHold(next);
-    setCallStatus(next ? "on_hold" : "connected");
-  } catch (err) {
-    console.error("Hold error:", err);
-  }
-}, [isHold]);
+      setIsHold(next);
+      setCallStatus(next ? "on_hold" : "connected");
+    } catch (err) { console.error("Hold error:", err); }
+  }, [isHold]);
 
-// ─── Speaker ───────────────────────────────────────────────────────────────
-// FIX: actually switch audio output device using setSinkId
-const toggleSpeaker = useCallback(async () => {
-  const next = !isSpeakerOn;
-  try {
-    if (remoteTrackRef.current) {
-      const devices = await AgoraRTC.getPlaybackDevices();
-      if (devices.length > 1) {
-        const target = next
-          ? devices.find(d => d.label.toLowerCase().includes("speaker")) ?? devices[0]
-          : devices.find(d => d.label.toLowerCase().includes("earpiece") || d.label.toLowerCase().includes("receiver")) ?? devices[1];
-        // setPlaybackDevice routes the remote track to the chosen device
-        await remoteTrackRef.current.setPlaybackDevice(target.deviceId);
+  const toggleSpeaker = useCallback(async () => {
+    const next = !isSpeakerOn;
+    try {
+      if (remoteTrackRef.current) {
+        const devices = await AgoraRTC.getPlaybackDevices();
+        if (devices.length > 1) {
+          const target = next
+            ? devices.find(d => d.label.toLowerCase().includes("speaker")) ?? devices[0]
+            : devices.find(d => d.label.toLowerCase().includes("earpiece") || d.label.toLowerCase().includes("receiver")) ?? devices[1];
+          await remoteTrackRef.current.setPlaybackDevice(target.deviceId);
+        }
       }
-    }
-  } catch (err) {
-    console.error("Speaker error:", err);
-  }
-  setIsSpeakerOn(next);
-}, [isSpeakerOn]);
+    } catch (err) { console.error("Speaker error:", err); }
+    setIsSpeakerOn(next);
+  }, [isSpeakerOn]);
+
   const handleMinimize = useCallback(() => {
     ctx.startCall({ channelId: apiChannelId, astrologerId: astrologer_id, astroName, astroImage: astrologerImage, rate, wallet });
     ctx.setElapsedSeconds(elapsedSeconds);
@@ -517,12 +471,10 @@ const toggleSpeaker = useCallback(async () => {
     };
     window.history.pushState(null, "", window.location.href);
     window.addEventListener("popstate", handlePop);
-
     playRingtone();
     startAbortCountdown();
     startStatusPoll(apiChannelId);
     initAgora();
-
     return () => {
       window.removeEventListener("popstate", handlePop);
       clearInterval(pollTimerRef.current!);
@@ -536,9 +488,9 @@ const toggleSpeaker = useCallback(async () => {
 
   // ─── Derived UI ────────────────────────────────────────────────────────────
   const statusLabel =
-    callStatus === "connected" ? "Connected"   :
-    callStatus === "on_hold"   ? "On Hold"      :
-    callStatus === "ended"     ? "Call Ended"   :
+    callStatus === "connected" ? "Connected"  :
+    callStatus === "on_hold"   ? "On Hold"    :
+    callStatus === "ended"     ? "Call Ended" :
     "Connecting...";
 
   const statusColor =
@@ -561,7 +513,6 @@ const toggleSpeaker = useCallback(async () => {
         }
       `}</style>
 
-      {/* ── Error Toast ─────────────────────────────────────────────────── */}
       <AgoraErrorToast
         visible={toastVisible}
         message={toastMessage}
@@ -570,14 +521,17 @@ const toggleSpeaker = useCallback(async () => {
       />
 
       <div
-        className="fixed inset-0 z-[150] flex flex-col overflow-hidden"
+        className="fixed inset-0 z-[150] flex flex-col"
         style={{
           background: "linear-gradient(160deg, #FF6F00 0%, #FF9800 40%, #FFC107 100%)",
           fontFamily: "'DM Sans', sans-serif",
+          height: "100dvh",
+          width: "100vw",
+          overflow: "hidden",
         }}
       >
-        {/* ── Top bar ───────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between px-4 pt-12 pb-4">
+        {/* ── Top bar ── */}
+        <div className="flex-shrink-0 flex items-center justify-between px-4 pt-8 pb-2">
           <button onClick={() => navigate(-1)} className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="m15 18-6-6 6-6" />
@@ -591,37 +545,34 @@ const toggleSpeaker = useCallback(async () => {
           </button>
         </div>
 
-        {/* ── Astrologer info ───────────────────────────────────────────── */}
-        <div className="flex flex-col items-center gap-4 mt-6">
+        {/* ── Astrologer info ── */}
+        <div className="flex-shrink-0 flex flex-col items-center gap-2 mt-2">
           <SpinAvatar src={astrologerImage} name={astroName} />
           <div className="text-center">
             <h2 className="text-white text-xl font-bold">{astroName}</h2>
-            <p className="text-white/70 text-sm mt-1">Astrologer</p>
+            <p className="text-white/70 text-sm mt-0.5">Astrologer</p>
           </div>
 
           {/* Status pill */}
           <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-            <span className="w-2 h-2 rounded-full" style={{ background: statusColor, boxShadow: `0 0 6px ${statusColor}` }} />
+            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: statusColor, boxShadow: `0 0 6px ${statusColor}` }} />
             <span className="text-white text-sm font-semibold">{statusLabel}</span>
           </div>
 
-          {/* Abort countdown while ringing */}
           {callStatus === "ringing" && (
             <p className="text-white/60 text-xs">Auto-cancel in {formatDuration(abortCountdown)}</p>
           )}
-
-          {/* Elapsed timer while connected / on hold */}
           {(callStatus === "connected" || callStatus === "on_hold") && (
             <p className="text-white text-2xl font-bold tracking-widest">{formatDuration(elapsedSeconds)}</p>
           )}
         </div>
 
-        {/* ── White card ────────────────────────────────────────────────── */}
-        <div className="flex-1 flex items-end pb-2">
-          <div className="w-full mx-4 mb-4 bg-white rounded-3xl shadow-2xl py-6">
+        {/* ── White card — fills remaining space ── */}
+        <div className="flex-1 flex items-end min-h-0 mt-3">
+          <div className="w-full mx-4 mb-3 bg-white rounded-3xl shadow-2xl overflow-hidden">
 
             {/* Wallet / rate row */}
-            <div className="flex justify-around text-center border-b border-gray-100 pb-4 px-6">
+            <div className="flex justify-around text-center border-b border-gray-100 py-3 px-6">
               <div>
                 <p className="text-xs text-gray-400 font-medium">Rate</p>
                 <p className="text-sm font-bold text-gray-800">₹{rate}/min</p>
@@ -641,8 +592,7 @@ const toggleSpeaker = useCallback(async () => {
             </div>
 
             {/* Action buttons */}
-            <div className="flex justify-around items-center px-6 py-6">
-              {/* Mute */}
+            <div className="flex justify-around items-center px-6 py-5">
               <ActionBtn
                 active={isMuted}
                 label={isMuted ? "Unmute" : "Mute"}
@@ -670,7 +620,6 @@ const toggleSpeaker = useCallback(async () => {
                 }
               />
 
-              {/* Hold */}
               <ActionBtn
                 active={isHold}
                 label={isHold ? "Resume" : "Hold"}
@@ -685,7 +634,6 @@ const toggleSpeaker = useCallback(async () => {
                 }
               />
 
-              {/* Speaker */}
               <ActionBtn
                 active={isSpeakerOn}
                 label={isSpeakerOn ? "Speaker" : "Earpiece"}
@@ -704,7 +652,7 @@ const toggleSpeaker = useCallback(async () => {
             </div>
 
             {/* End call button */}
-            <div className="flex justify-center pb-2">
+            <div className="flex justify-center py-4">
               <button
                 onClick={() => handleEnd(someoneJoined ? "end_user" : "disconnect_user")}
                 disabled={isEnding}
@@ -726,12 +674,11 @@ const toggleSpeaker = useCallback(async () => {
         </div>
 
         {/* Disclaimer */}
-        <p className="text-center text-white/50 text-[10px] pb-6 px-6">
+        <p className="flex-shrink-0 text-center text-white/50 text-[10px] py-2 px-6">
           Do not share personal payment details. Astrogurujii never asks for direct payment.
         </p>
       </div>
 
-      {/* Rating dialog */}
       {showRating && <RatingDialog onSubmit={handleRatingSubmit} />}
     </>
   );

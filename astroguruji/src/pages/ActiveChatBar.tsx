@@ -180,7 +180,7 @@ export default function ActiveChatBar() {
           <div className="h-[3px] w-full bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500" />
 
           {/* Dismiss button */}
-          <button
+          {/* <button
             onClick={handleDismiss}
             aria-label="Dismiss chat bar"
             className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors z-10"
@@ -197,7 +197,7 @@ export default function ActiveChatBar() {
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
-          </button>
+          </button> */}
 
           <div className="px-4 py-3 flex items-center gap-3">
 

@@ -25,8 +25,7 @@ export type ChatCallingState = {
 
 function PulseRings({ src }: { src: string }) {
   return (
-    <div className="relative flex items-center justify-center" style={{ width: 200, height: 200 }}>
-      <div className="absolute inset-0 rounded-full border-2 border-orange-300 opacity-40 animate-[ping_2s_ease-in-out_infinite]" />
+    <div className="relative flex items-center justify-center" style={{ width: 160, height: 160 }}>  <div className="absolute inset-0 rounded-full border-2 border-orange-300 opacity-40 animate-[ping_2s_ease-in-out_infinite]" />
       <div className="absolute inset-4 rounded-full border-2 border-orange-400 opacity-50 animate-[ping_2s_ease-in-out_0.4s_infinite]" />
       <div className="absolute inset-8 rounded-full border-2 border-orange-500 opacity-60 animate-[ping_2s_ease-in-out_0.8s_infinite]" />
       <div
@@ -37,9 +36,9 @@ function PulseRings({ src }: { src: string }) {
         }}
       >
         <img
-          src={src}
-          alt="astrologer"
-          className="w-36 h-36 rounded-full object-cover"
+  src={src}
+  alt="astrologer"
+  className="w-28 h-28 rounded-full object-cover"
           onError={(e) => {
             const t = e.target as HTMLImageElement;
             t.onerror = null;
@@ -74,17 +73,17 @@ export default function ChatCallingScreen() {
   const channelId = s._channel_id ?? "";
 
   const [secondsLeft, setSecondsLeft] = useState(180);
-  const [status, setStatus]           = useState<"waiting" | "accepted" | "rejected">("waiting");
-  const [isEnding, setIsEnding]       = useState(false);
+  const [status, setStatus] = useState<"waiting" | "accepted" | "rejected">("waiting");
+  const [isEnding, setIsEnding] = useState(false);
 
-  const pollRef      = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const isEndingRef  = useRef(false);
-  const navigateRef  = useRef(navigate);
+  const isEndingRef = useRef(false);
+  const navigateRef = useRef(navigate);
   navigateRef.current = navigate;
 
   const stopAll = () => {
-    if (pollRef.current)      { clearInterval(pollRef.current);      pollRef.current = null; }
+    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
     if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
   };
 
@@ -101,7 +100,7 @@ export default function ChatCallingScreen() {
 
   const maxChatMins = (() => {
     const w = parseFloat(s.wallet ?? "0");
-    const r = parseFloat(s.rate   ?? "1");
+    const r = parseFloat(s.rate ?? "1");
     return r > 0 ? Math.floor(w / r) : 0;
   })();
 
@@ -135,7 +134,7 @@ export default function ChatCallingScreen() {
     pollRef.current = setInterval(async () => {
       try {
         const res = await call_initiate_status(channelId);
-        const st  = res?.results?.status;
+        const st = res?.results?.status;
 
         if (st === "accept_astro") {
           stopAll();
@@ -149,18 +148,18 @@ export default function ChatCallingScreen() {
                 // KEY FIX: gid = channel_id (same value astrologer receives)
                 // Astrologer reads: Group/{channel_id}/{astrologer_id}/{userId}
                 // User writes to:  Group/{channel_id}/{astrologer_id}/{userId}  ✅
-                gid:             channelId,
-                fbchannelID:     channelId,
-                astrologer_id:   st2.astrologer_id,
-                astroName:       st2.astroName,
+                gid: channelId,
+                fbchannelID: channelId,
+                astrologer_id: st2.astrologer_id,
+                astroName: st2.astroName,
                 astrologerImage: st2.astrologerImage,
-                rate:            st2.rate,
-                wallet:          st2.wallet,
-                name:            st2.name,
-                gender:          st2.gender,
-                dob:             st2.dob,
-                tob:             st2.tob,
-                place:           st2.place,
+                rate: st2.rate,
+                wallet: st2.wallet,
+                name: st2.name,
+                gender: st2.gender,
+                dob: st2.dob,
+                tob: st2.tob,
+                place: st2.place,
               },
             });
           }, 600);
@@ -186,18 +185,17 @@ export default function ChatCallingScreen() {
 
   const statusLabel =
     status === "accepted" ? "✅ Connected!" :
-    status === "rejected" ? "❌ Not available right now" :
-    "Connecting......";
+      status === "rejected" ? "❌ Not available right now" :
+        "Connecting......";
 
   const statusColor =
     status === "accepted" ? "#16a34a" :
-    status === "rejected" ? "#dc2626" :
-    "#e91e8c";
+      status === "rejected" ? "#dc2626" :
+        "#e91e8c";
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-between overflow-hidden"
-      style={{ background: "linear-gradient(160deg, #fff8f0 0%, #fff3e6 40%, #ffe0b2 100%)", fontFamily: "'DM Sans', sans-serif" }}>
-
+<div className="fixed inset-0 flex flex-col items-center justify-between"
+  style={{ background: "linear-gradient(160deg, #fff8f0 0%, #fff3e6 40%, #ffe0b2 100%)", fontFamily: "'DM Sans', sans-serif", overflow: "hidden", height: "100dvh", width: "100vw" }}>
       {/* Decorative */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full opacity-20"
@@ -210,16 +208,15 @@ export default function ChatCallingScreen() {
         <div className="absolute bottom-60 left-6 text-4xl opacity-10 -rotate-12">☽</div>
       </div>
 
-      {/* Top bar */}
-      <div className="relative z-10 w-full flex items-center justify-between px-5 pt-12 pb-4">
+      {/* Top bar */}<div className="relative z-10 w-full flex items-center justify-between px-5 pt-6 pb-2">
         <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold"
           style={{
             background: secondsLeft < 60 ? "rgba(239,68,68,0.12)" : "rgba(255,111,0,0.1)",
-            color:      secondsLeft < 60 ? "#dc2626" : "#c2410c",
-            border:    `1.5px solid ${secondsLeft < 60 ? "rgba(239,68,68,0.3)" : "rgba(255,111,0,0.25)"}`,
+            color: secondsLeft < 60 ? "#dc2626" : "#c2410c",
+            border: `1.5px solid ${secondsLeft < 60 ? "rgba(239,68,68,0.3)" : "rgba(255,111,0,0.25)"}`,
           }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
           </svg>
           {formatTime(secondsLeft)}
         </div>
@@ -230,8 +227,7 @@ export default function ChatCallingScreen() {
         </div>
       </div>
 
-      {/* Middle */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center gap-6 px-6 text-center">
+      {/* Middle */}<div className="relative z-10 flex-1 flex flex-col items-center justify-center gap-3 px-6 text-center">
         <PulseRings src={s.astrologerImage ?? ""} />
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{s.astroName ?? "Astrologer"}</h1>
@@ -245,8 +241,7 @@ export default function ChatCallingScreen() {
             {formatTime(secondsLeft)}
           </p>
           {status === "waiting" && <ConnectingDots />}
-        </div>
-        <div className="w-full max-w-xs rounded-2xl px-5 py-4 shadow-sm"
+        </div><div className="w-full max-w-xs rounded-2xl px-4 py-2 shadow-sm"
           style={{ background: "rgba(255,255,255,0.8)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,111,0,0.15)" }}>
           <div className="flex justify-between items-center">
             <div className="text-left">
@@ -260,31 +255,30 @@ export default function ChatCallingScreen() {
             </div>
           </div>
         </div>
-        <p className="text-[11px] text-gray-400 max-w-[260px] leading-relaxed">
-          Please wait while we connect you to your astrologer. Do not close or navigate away.
-        </p>
+        <p className="hidden">
+  Please wait while we connect you to your astrologer. Do not close or navigate away.
+</p>
       </div>
 
       {/* End button */}
-      <div className="relative z-10 w-full flex flex-col items-center gap-4 px-6 pb-14">
-        <button onClick={endCall} disabled={isEnding}
-          className="group flex flex-col items-center gap-2 disabled:opacity-50">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all group-hover:scale-110 group-active:scale-95"
-            style={{ background: "linear-gradient(135deg, #ef4444, #dc2626)", boxShadow: "0 4px 20px rgba(239,68,68,0.4)" }}>
-            {isEnding ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07C9.44 17.29 7.76 15.6 6.06 13" />
-                <path d="M6.06 13A19.79 19.79 0 0 1 3 4.36 2 2 0 0 1 5 2.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L9 9.91" />
-                <line x1="23" y1="1" x2="1" y2="23" />
-              </svg>
-            )}
-          </div>
-          <span className="text-xs font-semibold text-red-500">
-            {isEnding ? "Cancelling..." : "End Call"}
-          </span>
-        </button>
+     <div className="relative z-10 w-full flex flex-col items-center gap-4 px-6" style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}>        <button onClick={endCall} disabled={isEnding}
+        className="group flex flex-col items-center gap-2 disabled:opacity-50">
+        <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all group-hover:scale-110 group-active:scale-95"
+          style={{ background: "linear-gradient(135deg, #ef4444, #dc2626)", boxShadow: "0 4px 20px rgba(239,68,68,0.4)" }}>
+          {isEnding ? (
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07C9.44 17.29 7.76 15.6 6.06 13" />
+              <path d="M6.06 13A19.79 19.79 0 0 1 3 4.36 2 2 0 0 1 5 2.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L9 9.91" />
+              <line x1="23" y1="1" x2="1" y2="23" />
+            </svg>
+          )}
+        </div>
+        <span className="text-xs font-semibold text-red-500">
+          {isEnding ? "Cancelling..." : "End Call"}
+        </span>
+      </button>
       </div>
     </div>
   );

@@ -14,11 +14,21 @@ const API_BASE_URL = "https://admin.astrogurujii.com";
 
 export default function ConsultantListing() {
   const [consultants, setConsultants] = useState<any[]>([]);
-  const [isLoading, setIsLoading]     = useState(true);
-  const [activeTab, setActiveTab]     = useState("");   // "" = All | category.id
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("");   // "" = All | category.id
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortValue, setSortValue]     = useState("");
+  const [sortValue, setSortValue] = useState("");
 
+  const sortedConsultants = [...consultants].sort((a, b) => {
+    switch (sortValue) {
+      case "low_to_high": return (a.per_min_chat ?? 0) - (b.per_min_chat ?? 0);
+      case "high_to_low": return (b.per_min_chat ?? 0) - (a.per_min_chat ?? 0);
+      case "experience": return (b.experience ?? 0) - (a.experience ?? 0);
+      case "rating": return (b.rating ?? 0) - (a.rating ?? 0);
+      case "orders": return (parseInt(b.consult) || 0) - (parseInt(a.consult) || 0);
+      default: return 0;
+    }
+  });
   const fetchAstrologers = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -26,25 +36,28 @@ export default function ConsultantListing() {
       const res = await axios.post(
         `${API_BASE_URL}/user_api/astrologer_list`,
         {
-          search:        searchQuery,
-          page:          "",
-          is_chat:       "on",
-          followAstro:   "",
+          search: searchQuery,
+          page: "",
+          is_chat: "on",
+          followAstro: "",
           is_voice_call: "",
           is_video_call: "",
-          cat_id:        activeTab,   // category.id from API (or "" for All)
-          language_id:   "",
-          gender:        "",
-          sort_val:      sortValue,
-          is_question:   "",
-          skill_id:      "",
-          country:       "INR",
-          report_id:     "",
-          expert_astro:  "",
+          cat_id: activeTab,   // category.id from API (or "" for All)
+          language_id: "",
+          gender: "",
+          sort_val: "",
+          skill_id: "",
+          country: "INR",
+          report_id: "",
+          expert_astro: "",
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setConsultants(res.data?.status ? (res.data.results ?? []) : []);
+
+      console.log("API payload:", { cat_id: activeTab, sort_val: sortValue, search: searchQuery });
+      console.log("API response:", res.data);
+      const results = res.data?.status ? (res.data.results ?? []) : [];
+      setConsultants(results);
     } catch {
       setConsultants([]);
     } finally {
@@ -83,7 +96,7 @@ export default function ConsultantListing() {
           <EmptyState />
         ) : (
           <ConsultantGrid
-            consultants={consultants}
+            consultants={sortedConsultants}
             callType="chat"
             onFollowToggle={(id, followed) =>
               setConsultants((prev) =>

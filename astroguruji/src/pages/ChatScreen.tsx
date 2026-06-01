@@ -215,26 +215,27 @@ function AudioPlayer({ src }: { src: string }) {
 
 // ─── Dialogs ──────────────────────────────────────────────────────────────────
 
-function EndChatDialog({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
+function EndChatDialog({ onConfirm, onExplore }: { onConfirm: () => void; onExplore: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6 space-y-4">
-        <h3 className="text-center text-lg font-semibold text-gray-800">End Chat</h3>
-        <p className="text-center text-sm text-gray-500">Are you sure you want to end this chat?</p>
-        <div className="flex gap-3">
-          <button
-            onClick={onCancel}
-            className="flex-1 py-2.5 rounded-xl border-2 border-orange-500 text-orange-500 font-semibold text-sm hover:bg-orange-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            className="flex-1 py-2.5 rounded-xl bg-[#7f1d1d] text-white font-semibold text-sm hover:bg-[#991b1b] transition-colors"
-          >
-            End Chat
-          </button>
-        </div>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 pb-0">
+      <div className="bg-white rounded-t-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+        <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto" />
+        <h3 className="text-center text-lg font-semibold text-gray-800">Leave Chat?</h3>
+        <p className="text-center text-sm text-gray-500">
+          Your chat session will stay active in the background. You can return anytime.
+        </p>
+        <button
+          onClick={onExplore}
+          className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold text-sm hover:opacity-90 transition-opacity shadow-md"
+        >
+          🔮 Explore Other Things
+        </button>
+        <button
+          onClick={onConfirm}
+          className="w-full py-2.5 rounded-xl border-2 border-red-200 text-red-600 font-semibold text-sm hover:bg-red-50 transition-colors"
+        >
+          End Chat Permanently
+        </button>
       </div>
     </div>
   );
@@ -636,6 +637,17 @@ export default function ChatScreen() {
       setIsLoading(false);
     }
   };
+  // Block browser back button — show end dialog instead
+useEffect(() => {
+  const onPop = (e: PopStateEvent) => {
+    e.preventDefault();
+    window.history.pushState(null, "", window.location.href);
+    setShowEndDialog(true);
+  };
+  window.history.pushState(null, "", window.location.href);
+  window.addEventListener("popstate", onPop);
+  return () => window.removeEventListener("popstate", onPop);
+}, []);
 
   // ── End chat ───────────────────────────────────────────────────────────────
   const handleEndChat = async (confirmed = false) => {
@@ -930,11 +942,11 @@ export default function ChatScreen() {
 
       {/* Dialogs */}
       {showEndDialog && (
-        <EndChatDialog
-          onConfirm={() => { setShowEndDialog(false); handleEndChat(true); }}
-          onCancel={() => setShowEndDialog(false)}
-        />
-      )}
+  <EndChatDialog
+    onConfirm={() => { setShowEndDialog(false); handleEndChat(true); }}
+    onExplore={() => { setShowEndDialog(false); navigate("/", { replace: false }); }}
+  />
+)}
       {showRatingDialog && <RatingDialog onSubmit={handleSubmitRating} />}
       {previewImage && (
         <div

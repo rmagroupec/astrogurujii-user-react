@@ -27,8 +27,8 @@ interface Props {
 
 const SORT_OPTIONS = [
   { label: "Relevance",          value: "" },
-  { label: "Price: Low to High", value: "price_asc" },
-  { label: "Price: High to Low", value: "price_desc" },
+  { label: "Price: Low to High", value: "low_to_high" },
+  { label: "Price: High to Low", value: "high_to_low" },
   { label: "Experience",         value: "experience" },
   { label: "Rating",             value: "rating" },
   { label: "Orders",             value: "orders" },

@@ -1,7 +1,7 @@
 export const TALK_TO_ASTROLOGER_INTRO = {
   title: "TALK TO ",
   paragraphs: [
-    "Feeling confused or stuck in life? Talk to India’s trusted astrologers on Astrogurujii and get the clarity you need. For centuries, astrology has guided people in understanding situations beyond their control. Now, with Astrogurujii, you can access expert guidance anytime, right from your home. Simply choose an astrologer and begin your consultation بسهولة and securely.",
+    "Feeling confused or stuck in life? Talk to India’s trusted astrologers on Astrogurujii and get the clarity you need. For centuries, astrology has guided people in understanding situations beyond their control. Now, with Astrogurujii, you can access expert guidance anytime, right from your home. Simply choose an astrologer and begin your consultation and securely.",
     
     "Astrogurujii connects you with a large network of experienced astrologers who provide genuine advice across all areas of life. Our experts are carefully selected through strict quality checks to ensure you receive accurate and meaningful guidance. Along with Vedic Astrology, we offer services like Tarot Reading, Palmistry, Vastu Shastra, Numerology, and more to support your journey."
   ],

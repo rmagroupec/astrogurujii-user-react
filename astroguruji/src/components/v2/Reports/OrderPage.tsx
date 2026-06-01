@@ -8,7 +8,6 @@ import Empty from "./component/EmptyState";
 import GiftCard from "./component/GiftTransactionCard";
 
 const TABS = ["call", "chat", "video", "wallet", "other", "gift"];
-
 export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState("call");
   const [data, setData] = useState<any[]>([]);
@@ -82,10 +81,9 @@ export default function OrdersPage() {
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`px-5 py-2 rounded-full text-sm font-medium capitalize whitespace-nowrap transition
-                  ${
-                    activeTab === tab
-                      ? "bg-brand-orange text-white shadow-md"
-                      : "bg-white border border-[#E0D5CC] text-gray-700 hover:border-brand-orange"
+                  ${activeTab === tab
+                    ? "bg-brand-orange text-white shadow-md"
+                    : "bg-white border border-[#E0D5CC] text-gray-700 hover:border-brand-orange"
                   }`}
               >
                 {tab}
@@ -116,8 +114,8 @@ export default function OrdersPage() {
           ) : (
             <div className="space-y-3">
               {data.map((item: any, i) => (
-                <TransactionCard key={i} data={item} />
-              ))}
+                <TransactionCard key={i} data={item} type={activeTab} />
+))}
             </div>
           )}
         </div>
