@@ -106,8 +106,10 @@ export default function TransactionCard({ data, type }: { data: any; type?: stri
           {(type === "call" || type === "chat" || type === "video") && (() => {
             const d = parseInt(String(data.call_min ?? data.chat_min ?? data.call_duracation ?? data.call_duration ?? data.duration ?? "0"), 10);
             const amt = parseFloat(data?.amount ?? "0");
-            const rate = parseFloat(data?.per_min_chat ?? data?.call_rate ?? data?.chat_rate ?? data?.rate ?? "0");
-            const mins = d > 0 ? d : (rate > 0 && amt > 0) ? Math.round(amt / rate) : 0;
+            const rate = parseFloat(data?.per_min_chat ?? data?.call_rate ?? data?.chat_rate ?? data?.rate ?? "1");
+            const descMatch = String(data.description ?? "").match(/(\d+)\s*min/i);
+            const descMins = descMatch ? parseInt(descMatch[1], 10) : 0;
+            const mins = d > 0 ? d : descMins > 0 ? descMins : (rate > 0 && amt > 0) ? Math.round(amt / rate) : 0;
             return mins > 0 ? (
               <>
                 <span style={{ color: "#ddd" }}>|</span>
@@ -204,7 +206,7 @@ export default function TransactionCard({ data, type }: { data: any; type?: stri
           </button>
         )}
 
-        {(type === "call" && (data.order_id || data.channel_id)) && (
+        {/* {(type === "call" && (data.order_id || data.channel_id)) && (
           <button
             onClick={() => navigate("/call-history-detail", { state: { orderId: data.order_id ?? data.id, data } })}
             style={{
@@ -227,7 +229,7 @@ export default function TransactionCard({ data, type }: { data: any; type?: stri
               </svg>
             </div>
           </button>
-        )}
+        )} */}
       </div>
     </div>
   );

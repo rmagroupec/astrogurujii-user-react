@@ -33,6 +33,9 @@ import FreeKundliPage from "./pages/Freekundli";
 import TarotReadingPage from "./pages/Tarotreadingpage";
 import ThankYou from "./components/v2/User Account/component/Thankyou";
 import NotFoundPage from "./pages/Notfoundpage"; // ✅ 404 page
+import PaymentScreen from "./components/v2/Reports/Astropaymentscreen";
+import RechargeStatusPage from "./components/v2/User Account/component/Rechargestatuspage";
+import LiveWatchScreen from "./pages/Livewatchscreen";
 
 function App() {
   return (
@@ -68,6 +71,14 @@ function App() {
           <Route path="/free_kundli" element={<FreeKundliPage />} />
           <Route path="/tarot-reading" element={<TarotReadingPage />} />
           <Route path="/thank-you" element={<ThankYou />} />
+          <Route path="/payment" element={<PaymentScreen />} />
+          <Route path="/recharge-success" element={<RechargeStatusPage status="success" />} />
+          <Route path="/recharge-failed" element={<RechargeStatusPage status="failed" />} />
+          <Route path="/recharge-pending" element={<RechargeStatusPage status="pending" />} />
+          <Route path="/live/:liveId"    element={<LiveWatchScreen />} />        // NEW
+
+
+
 
           {/* ✅ 404 catch-all — must be last */}
           <Route path="*" element={<NotFoundPage />} />
