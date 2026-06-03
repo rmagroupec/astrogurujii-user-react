@@ -12,9 +12,9 @@ export const NAV_LINKS = [
 
 // ── Hero stats ────────────────────────────────────────────────
 export const HERO_STATS = [
-  { value: "42,066+",           label: "Best Astrologers",          color: "#ff6f00" },
-  { value: "84.0 Million",      label: "Done Consultant",           color: "#ff6f00" },
-  { value: "300+ Colobs",       label: "Lorem ipsum Here Content",  color: "#d41000" },
+  { value: "42,066+", label: "Best Astrologers", color: "#ff6f00" },
+  { value: "84.0 Million", label: "Done Consultant", color: "#ff6f00" },
+  { value: "300+ Colobs", label: "Lorem ipsum Here Content", color: "#d41000" },
   { value: "1207+ Million Minutes", label: "Lorem ipsum Here Content", color: "#d41000" },
 ];
 
@@ -27,10 +27,10 @@ export interface ServicePill {
 }
 
 export const SERVICE_PILLS: ServicePill[] = [
-  { label: "Chat to Astrologer", icon: "chat",  color: "#ff81ca", link: "/chat-with-astrolger" },
-  { label: "Talk to Astrologer", icon: "talk",  color: "#34cfb6", link: "/call-with-astrolger" },
-  { label: "Astro Mall",         icon: "mall",  color: "#67a9ff", link: "#" },
-  { label: "Book A Pooja",       icon: "pooja", color: "#34a853", link: "#" },
+  { label: "Chat to Astrologer", icon: "chat", color: "#ff81ca", link: "/chat-with-astrologer" },
+  { label: "Talk to Astrologer", icon: "talk", color: "#34cfb6", link: "/call-with-astrologer" },
+  { label: "Astro Mall", icon: "mall", color: "#67a9ff", link: "#" },
+  { label: "Book A Pooja", icon: "pooja", color: "#34a853", link: "#" },
 ];
 
 // ── Service cards (icon grid section) ────────────────────────
@@ -94,16 +94,16 @@ export interface LiveAstrologer {
 }
 
 export const LIVE_ASTROLOGERS: LiveAstrologer[] = [
-  { name: "Astro Deepak Ji",  specialties: "Vedic, Vastu, Pooja, Kundali", image: "/images/v2/live-astrologer-1.png", badge: "live" },
-  { name: "Anto Thomas",      specialties: "Vedic, Vastu, Pooja, Kundali", image: "/images/v2/live-astrologer-2.png", badge: "follow" },
-  { name: "Pulkit Jhakahar",  specialties: "Vedic, Vastu, Pooja, Kundali", image: "/images/v2/live-astrologer-3.png", badge: "live" },
-  { name: "Aditya Roy",       specialties: "Vedic, Vastu, Pooja, Kundali", image: "/images/v2/live-astrologer-4.png", badge: "follow" },
-  { name: "Rahul Sharma",     specialties: "Numerology, Tarot, Palmistry",  image: "/images/v2/live-astrologer-5.png", badge: "live" },
-  { name: "Priya Verma",      specialties: "Vedic, Horoscope, Kundali",     image: "/images/v2/live-astrologer-1.png", badge: "follow" },
-  { name: "Suresh Nair",      specialties: "Vastu, Pooja, Numerology",      image: "/images/v2/live-astrologer-2.png", badge: "live" },
-  { name: "Deepak Joshi",     specialties: "Tarot, Palmistry, Vedic",       image: "/images/v2/live-astrologer-3.png", badge: "follow" },
-  { name: "Meera Iyer",       specialties: "Horoscope, Kundali, Vastu",     image: "/images/v2/live-astrologer-4.png", badge: "live" },
-  { name: "Vikram Singh",     specialties: "Vedic, Numerology, Pooja",      image: "/images/v2/live-astrologer-5.png", badge: "follow" },
+  { name: "Astro Deepak Ji", specialties: "Vedic, Vastu, Pooja, Kundali", image: "/images/v2/live-astrologer-1.png", badge: "live" },
+  { name: "Anto Thomas", specialties: "Vedic, Vastu, Pooja, Kundali", image: "/images/v2/live-astrologer-2.png", badge: "follow" },
+  { name: "Pulkit Jhakahar", specialties: "Vedic, Vastu, Pooja, Kundali", image: "/images/v2/live-astrologer-3.png", badge: "live" },
+  { name: "Aditya Roy", specialties: "Vedic, Vastu, Pooja, Kundali", image: "/images/v2/live-astrologer-4.png", badge: "follow" },
+  { name: "Rahul Sharma", specialties: "Numerology, Tarot, Palmistry", image: "/images/v2/live-astrologer-5.png", badge: "live" },
+  { name: "Priya Verma", specialties: "Vedic, Horoscope, Kundali", image: "/images/v2/live-astrologer-1.png", badge: "follow" },
+  { name: "Suresh Nair", specialties: "Vastu, Pooja, Numerology", image: "/images/v2/live-astrologer-2.png", badge: "live" },
+  { name: "Deepak Joshi", specialties: "Tarot, Palmistry, Vedic", image: "/images/v2/live-astrologer-3.png", badge: "follow" },
+  { name: "Meera Iyer", specialties: "Horoscope, Kundali, Vastu", image: "/images/v2/live-astrologer-4.png", badge: "live" },
+  { name: "Vikram Singh", specialties: "Vedic, Numerology, Pooja", image: "/images/v2/live-astrologer-5.png", badge: "follow" },
 ];
 
 // ── Blog posts (fallback/mock data) ───────────────────────────
@@ -149,9 +149,10 @@ export const BLOG_POSTS: BlogPost[] = [
 
 // ── Stats banner ──────────────────────────────────────────────
 export const STATS = [
-  { value: "50k+",  label: "Session done" },
-  { value: "15k+",  label: "Verified Astrologer" },
-  { value: "5000+", label: "Yr of Experience" },
+  { value: "50000+", label: "Total Customers" },
+  { value: "5000+", label: "Verified Astrologer" },
+  { value: "4.7", label: "Average Rating" },
+  { value: "10+", label: "Yr of Experience" },
 ];
 
 // ── Testimonials (fallback/mock data) ─────────────────────────
@@ -253,12 +254,12 @@ export const CONSULTANT_TABS = [
 
 // ── Consultant sort options (used by FilterBar.tsx) ───────────
 export const CONSULTANT_SORTS = [
-  { label: "Relevance",         value: "relevance" },
-  { label: "Price: Low to High", value: "price_asc" },
-  { label: "Price: High to Low", value: "price_desc" },
-  { label: "Experience",        value: "experience" },
-  { label: "Rating",            value: "rating" },
-  { label: "Orders",            value: "orders" },
+  { label: "Relevance", value: "relevance" },
+  { label: "Price: Low to High", value: "low_to_high" },
+  { label: "Price: High to Low", value: "high_to_low" },
+  { label: "Experience", value: "experience" },
+  { label: "Rating", value: "rating" },
+  { label: "Orders", value: "orders" },
 ];
 
 // ── Language filter options ───────────────────────────────────

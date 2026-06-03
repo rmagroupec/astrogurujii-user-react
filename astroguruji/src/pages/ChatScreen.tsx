@@ -663,7 +663,7 @@ useEffect(() => {
     try {
       await apiPost(
         "user_api/call_status_update",
-        { channel_id: fbchannelID, status: "end_user" },
+        { channel_id: gid, status: "end_user" },
         token
       );
     } catch { /* silent */ }
@@ -678,7 +678,7 @@ useEffect(() => {
     try {
       await apiPost(
         "user_api/add_rating",
-        { channel_id: fbchannelID, rating: String(r.score), review: r.review },
+        { channel_id: gid, rating: String(r.score), review: r.review },
         token
       );
     } catch { /* silent */ }

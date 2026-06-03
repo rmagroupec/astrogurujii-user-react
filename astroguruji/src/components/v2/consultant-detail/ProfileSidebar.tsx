@@ -157,23 +157,33 @@ export default function ProfileSidebar({
           <p className="text-center font-poppins text-[13px] font-semibold text-brand-orange mt-[10px]">
             {consultant.languages}
           </p>
-
           {/* Chat Now */}
           <div className="flex justify-center mt-[14px]">
             <button
-              className="flex items-center w-full max-w-[330px] h-[50px] rounded-[4px] px-4"
+              className="relative overflow-hidden flex items-center w-full max-w-[330px] h-[50px] rounded-[4px] px-4 group transition-all duration-300 hover:shadow-[0_4px_20px_rgba(255,111,0,0.25)] hover:scale-[1.02] active:scale-[0.97]"
               onClick={() => handleOpenConnection("chat")}
               style={{
                 border: "1px solid #FFDDC4",
                 background: "rgba(255, 238, 225, 0.26)",
               }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = "rgba(255, 111, 0, 0.10)";
+                e.currentTarget.style.border = "1px solid #FF6F00";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = "rgba(255, 238, 225, 0.26)";
+                e.currentTarget.style.border = "1px solid #FFDDC4";
+              }}
             >
+              {/* shimmer sweep */}
+              <span className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
+
               <img
                 src="/images/chat-now-icon.svg"
                 alt=""
-                className="w-[30px] h-[30px]"
+                className="w-[30px] h-[30px] transition-transform duration-300 group-hover:scale-110"
               />
-              <span className="font-poppins text-[14px] font-semibold text-black ml-[22px]">
+              <span className="font-poppins text-[14px] font-semibold text-black ml-[22px] transition-colors duration-300 group-hover:text-[#FF6F00]">
                 Chat Now
               </span>
               <div className="ml-auto flex flex-col items-end">
@@ -190,19 +200,30 @@ export default function ProfileSidebar({
           {/* Call Now */}
           <div className="flex justify-center mt-2">
             <button
-              className="flex items-center w-full max-w-[330px] h-[50px] rounded-[4px] px-4"
+              className="relative overflow-hidden flex items-center w-full max-w-[330px] h-[50px] rounded-[4px] px-4 group transition-all duration-300 hover:shadow-[0_4px_20px_rgba(255,111,0,0.25)] hover:scale-[1.02] active:scale-[0.97]"
               onClick={() => handleOpenConnection("audio")}
               style={{
                 border: "1px solid #FFDDC4",
                 background: "rgba(255, 238, 225, 0.26)",
               }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = "rgba(255, 111, 0, 0.10)";
+                e.currentTarget.style.border = "1px solid #FF6F00";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = "rgba(255, 238, 225, 0.26)";
+                e.currentTarget.style.border = "1px solid #FFDDC4";
+              }}
             >
+              {/* shimmer sweep */}
+              <span className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
+
               <img
                 src="/images/call-icon.svg"
                 alt=""
-                className="w-[26px] h-[26px]"
+                className="w-[26px] h-[26px] transition-transform duration-300 group-hover:scale-110"
               />
-              <span className="font-poppins text-[14px] font-semibold text-black ml-[22px]">
+              <span className="font-poppins text-[14px] font-semibold text-black ml-[22px] transition-colors duration-300 group-hover:text-[#FF6F00]">
                 Call Now
               </span>
               <div className="ml-auto flex flex-col items-end">
@@ -219,24 +240,22 @@ export default function ProfileSidebar({
           {/* ✅ FIX: Send Gift Button — was missing entirely */}
           <div className="flex justify-center mt-2 mb-1">
             <button
-              className="flex items-center justify-center gap-2 w-full max-w-[330px] h-[50px] rounded-[4px] px-4 bg-[#FF6F00] hover:bg-[#e06300] transition-colors"
+              className="relative overflow-hidden flex items-center justify-center gap-2 w-full max-w-[330px] h-[50px] rounded-[4px] px-4 bg-[#FF6F00] group transition-all duration-300 hover:bg-[#e06300] hover:shadow-[0_4px_20px_rgba(255,111,0,0.4)] hover:scale-[1.02] active:scale-[0.97]"
               onClick={onSendGiftClick}
             >
-              {/* Gift icon — falls back gracefully if image missing */}
-              <img
-                src="/images/gift-icon.svg"
-                alt=""
-                className="w-[24px] h-[24px]"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
-              />
-              <span className="font-poppins text-[14px] font-semibold text-white">
+              {/* shimmer sweep */}
+              <span className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+
+              {/* Gift emoji with bounce */}
+              <span className="text-[22px] transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-12 group-hover:animate-bounce">
+                🎁
+              </span>
+
+              <span className="font-poppins text-[14px] font-semibold text-white transition-all duration-300 group-hover:tracking-wide">
                 Send Gift
               </span>
             </button>
           </div>
-
           {/* Bottom Stats Bar */}
           <div
             className="flex items-center justify-around mt-[24px]"

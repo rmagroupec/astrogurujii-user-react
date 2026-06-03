@@ -99,7 +99,7 @@ export default function WalletPage() {
         </div>
 
         {/* Transactions */}
-        <div className="rounded-2xl border border-[#F0E8DF] bg-white p-5 shadow-sm">
+        {/* <div className="rounded-2xl border border-[#F0E8DF] bg-white p-5 shadow-sm">
           <h3 className="font-poppins text-[16px] font-bold mb-4">
             Recent Transactions
           </h3>
@@ -117,7 +117,7 @@ export default function WalletPage() {
               ))}
             </div>
           )}
-        </div>
+        </div> */}
       </div>
 
       <Footer />

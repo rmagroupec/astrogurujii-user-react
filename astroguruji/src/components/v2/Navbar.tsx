@@ -10,8 +10,8 @@ const NAV_ROUTES: Record<string, string> = {
   "Horoscope": "/horoscope",
   "Panchang": "/panchang",
   "Live Astrologer": "/live-astrologer",
-  "Chat With Astrolger": "/chat-with-astrolger",
-  "Call With Astrolger": "/call-with-astrolger",
+  "Chat With Astrolger": "/chat-with-astrologer",
+  "Call With Astrolger": "/call-with-astrologer",
   "Our Blog": "/our-blog",
 };
 

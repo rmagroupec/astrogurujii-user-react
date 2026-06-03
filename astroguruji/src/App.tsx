@@ -43,8 +43,8 @@ function App() {
       <ChatProvider>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/chat-with-astrolger" element={<ConsultantListing />} />
-          <Route path="/call-with-astrolger" element={<CallWithAstrologer />} />
+          <Route path="/chat-with-astrologer" element={<ConsultantListing />} />
+          <Route path="/call-with-astrologer" element={<CallWithAstrologer />} />
           <Route path="/live-astrologer" element={<LiveAstrologersPage />} />
           <Route path="/consultants/:id" element={<ConsultantDetail />} />
           <Route path="/our-blog" element={<BlogPage />} />

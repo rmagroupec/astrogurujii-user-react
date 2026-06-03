@@ -21,10 +21,10 @@ export default function ConsultantListing() {
 
   const sortedConsultants = [...consultants].sort((a, b) => {
     switch (sortValue) {
-      case "low_to_high": return (a.per_min_chat ?? 0) - (b.per_min_chat ?? 0);
-      case "high_to_low": return (b.per_min_chat ?? 0) - (a.per_min_chat ?? 0);
-      case "experience": return (b.experience ?? 0) - (a.experience ?? 0);
-      case "rating": return (b.rating ?? 0) - (a.rating ?? 0);
+      case "low_to_high": return (parseFloat(a.per_min_chat) || 0) - (parseFloat(b.per_min_chat) || 0);
+      case "high_to_low": return (parseFloat(b.per_min_chat) || 0) - (parseFloat(a.per_min_chat) || 0);
+      case "experience": return (parseFloat(b.experience) || 0) - (parseFloat(a.experience) || 0);
+      case "rating": return (parseFloat(b.avg_rate) || 0) - (parseFloat(a.avg_rate) || 0);  // ✅ also fix: was b.rating (count) not avg_rate
       case "orders": return (parseInt(b.consult) || 0) - (parseInt(a.consult) || 0);
       default: return 0;
     }
@@ -45,7 +45,7 @@ export default function ConsultantListing() {
           cat_id: activeTab,   // category.id from API (or "" for All)
           language_id: "",
           gender: "",
-          sort_val: "",
+          sort_val: sortValue,
           skill_id: "",
           country: "INR",
           report_id: "",

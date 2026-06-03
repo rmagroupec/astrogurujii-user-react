@@ -297,8 +297,8 @@ export default function ChatViewOnlyScreen() {
 
   const state = (location.state as any) || {};
   const {
-    gid = "9gR2UAtT",
-    astrologer_id = "673f05d77a277b8a9eab665c",
+    gid = "",
+    astrologer_id = "",
     astroName = "Astrologer",
     astrologerImage = "",
     userName = "You",

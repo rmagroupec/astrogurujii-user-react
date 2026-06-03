@@ -259,7 +259,7 @@ export default function BlogDetailPage() {
             <div className="flex items-center gap-3 flex-shrink-0">
               {/* Chat */}
               <button
-                onClick={() => navigate("/chat-with-astrolger")}
+                onClick={() => navigate("/chat-with-astrologer")}
                 className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 font-poppins text-[13px] font-bold transition hover:bg-orange-50 active:scale-95"
                 style={{ color: "#FF6F00" }}
               >
@@ -271,7 +271,7 @@ export default function BlogDetailPage() {
 
               {/* Call */}
               <button
-                onClick={() => navigate("/call-with-astrolger")}
+                onClick={() => navigate("/call-with-astrologer")}
                 className="flex items-center gap-2 rounded-full px-5 py-2.5 font-poppins text-[13px] font-bold text-white transition active:scale-95"
                 style={{ background: "rgba(255,255,255,0.2)", border: "1.5px solid rgba(255,255,255,0.5)" }}
               >

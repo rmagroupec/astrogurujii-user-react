@@ -5,10 +5,10 @@ const PAGE_SIZE = 12;
 
 // Mirror ConsultantCard's status derivation exactly
 function getStatus(consultant: any, callType: "chat" | "audio"): "online" | "busy" | "offline" {
-  const isChatOnline: string  = consultant.is_chat_online ?? "off";
+  const isChatOnline: string = consultant.is_chat_online ?? "off";
   const isVoiceOnline: string = consultant.is_voice_online ?? "off";
-  const isBusy: number        = Number(consultant.is_busy ?? 0);
-  const onlineField           = callType === "chat" ? isChatOnline : isVoiceOnline;
+  const isBusy: number = Number(consultant.is_busy ?? 0);
+  const onlineField = callType === "chat" ? isChatOnline : isVoiceOnline;
 
   if (onlineField === "on" && isBusy === 0) return "online";
   if (isBusy === 1) return "busy";
@@ -29,13 +29,9 @@ export default function ConsultantGrid({
   const [currentPage, setCurrentPage] = useState(1);
 
   // Sort: online → busy → offline (preserves original order within each group)
+  // ✅ AFTER — preserve incoming order, only use status as tiebreaker
   const sorted = useMemo(
-    () =>
-      [...consultants].sort(
-        (a, b) =>
-          STATUS_ORDER[getStatus(a, callType)] -
-          STATUS_ORDER[getStatus(b, callType)]
-      ),
+    () => [...consultants],
     [consultants, callType]
   );
 
@@ -106,11 +102,10 @@ export default function ConsultantGrid({
               <button
                 key={page}
                 onClick={() => goToPage(page)}
-                className={`w-9 h-9 rounded-[6px] font-poppins text-sm font-medium transition-colors ${
-                  currentPage === page
+                className={`w-9 h-9 rounded-[6px] font-poppins text-sm font-medium transition-colors ${currentPage === page
                     ? "bg-brand-orange text-white"
                     : "bg-[#f4f4f4] text-[#313131] hover:bg-[#eeeeee]"
-                }`}
+                  }`}
                 aria-current={currentPage === page ? "page" : undefined}
               >
                 {page}

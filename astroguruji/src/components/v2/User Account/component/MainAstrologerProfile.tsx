@@ -140,8 +140,29 @@ function AstrologerCard({
 }) {
   const navigate = useNavigate();
   const [imgErr, setImgErr] = useState(false);
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState((a as any).is_Follow === "1");
   const [hovered, setHovered] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+
+  const handleFollow = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    const next = !liked;
+    setLiked(next);
+    setFollowLoading(true);
+    try {
+      await axios.post(
+        `${API_BASE}/user_api/follow_astro`,
+        { astro_id: a.id, status: next ? "1" : "0" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch {
+      setLiked(!next);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   const chatBase = parseFloat(String(a.per_min_chat)) || 0;
   const chatOffer = a.per_min_chat_offer ? parseFloat(a.per_min_chat_offer) : null;
@@ -209,7 +230,8 @@ function AstrologerCard({
 
           {/* Heart */}
           <button
-            onClick={() => setLiked(l => !l)}
+            onClick={handleFollow}
+            disabled={followLoading}
             className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
             style={{
               border: "1.5px solid",
@@ -261,18 +283,41 @@ function AstrologerCard({
 
         {/* ── Price ───────────────────────────────────────────────────────── */}
         {displayRate > 0 && (
-  <div className="flex flex-col items-center mb-1">
-    {originalRate !== null && (
-      <span className="text-[13px] font-semibold text-[#FF6F00] line-through leading-tight">
-        ₹{originalRate}/Min
-      </span>
-    )}
-    <p className="font-bold text-[20px] m-0 leading-tight" style={{ color: "#16a34a", fontFamily: "'Outfit',sans-serif" }}>
-      ₹{displayRate}
-      <span className="text-[13px] font-semibold text-gray-400 ml-1">/Min</span>
-    </p>
-  </div>
-)}
+          <div className="flex flex-col items-center mb-1">
+            {originalRate !== null && (
+              <span className="text-[13px] font-semibold text-[#FF6F00] line-through leading-tight">
+                ₹{originalRate}/Min
+              </span>
+            )}
+            <p className="font-bold text-[20px] m-0 leading-tight" style={{ color: "#16a34a", fontFamily: "'Outfit',sans-serif" }}>
+              ₹{displayRate}
+              <span className="text-[13px] font-semibold text-gray-400 ml-1">/Min</span>
+            </p>
+          </div>
+        )}
+
+        {/* ── Follow button ───────────────────────────────────────────────── */}
+        <div className="flex justify-center mb-3">
+          <button
+            onClick={handleFollow}
+            disabled={followLoading}
+            className="flex items-center gap-1.5 px-5 py-1.5 rounded-full text-[12px] font-semibold transition-all duration-200 hover:scale-105 active:scale-95"
+            style={{
+              background: liked
+                ? "linear-gradient(135deg,#ef4444,#dc2626)"
+                : "linear-gradient(135deg,#FF6F00,#FF9800)",
+              color: "#fff",
+              boxShadow: liked
+                ? "0 3px 10px rgba(239,68,68,0.35)"
+                : "0 3px 10px rgba(255,111,0,0.30)",
+              border: "none",
+              opacity: followLoading ? 0.7 : 1,
+            }}
+          >
+            <HeartIcon filled={liked} />
+            {followLoading ? "..." : liked ? "Following" : "+ Follow"}
+          </button>
+        </div>
 
         {/* ── Name ────────────────────────────────────────────────────────── */}
         <h3 className="text-center text-[21px] font-extrabold text-gray-900 leading-tight mb-1" style={{ fontFamily: "'Outfit',sans-serif" }}>
@@ -607,7 +652,7 @@ export default function MainAstrologerProfile() {
           {!isLoading && astrologers.length > 0 && (
             <div className="text-center mt-10">
               <a
-                href="/consultants"
+                href="/chat-with-astrologer"
                 className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-[13.5px] font-semibold text-white transition-all duration-200 hover:opacity-90 active:scale-95"
                 style={{
                   background: "linear-gradient(135deg,#FF6F00,#FF9800)",

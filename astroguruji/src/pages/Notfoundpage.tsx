@@ -81,8 +81,8 @@ export default function NotFoundPage() {
             </p>
             <div className="flex flex-wrap justify-center gap-2">
               {[
-                { label: "Chat with Astrologer", href: "/chat-with-astrolger" },
-                { label: "Call with Astrologer", href: "/call-with-astrolger" },
+                { label: "Chat with Astrologer", href: "/chat-with-astrologer" },
+                { label: "Call with Astrologer", href: "/call-with-astrologer" },
                 { label: "Horoscope", href: "/horoscope" },
                 { label: "Free Kundli", href: "/free_kundli" },
                 { label: "Blog", href: "/our-blog" },
