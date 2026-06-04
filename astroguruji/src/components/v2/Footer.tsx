@@ -24,12 +24,12 @@ export default function Footer() {
             </h4>
             <ul className="space-y-[8px]">
               {FOOTER_COL1.horoscope2026.map((item) => (
-                <li key={item}>
+                <li key={item.label}>
                   <a
-                    href="#"
+                    href={item.link}
                     className="font-euclid text-[13px] text-white/70 transition-colors hover:text-white"
                   >
-                    {item}
+                    {item.label}
                   </a>
                 </li>
               ))}
@@ -40,12 +40,12 @@ export default function Footer() {
             </h4>
             <ul className="space-y-[8px]">
               {FOOTER_COL1.horoscope.map((item) => (
-                <li key={item}>
+                <li key={item.label}>
                   <a
-                    href="#"
+                    href={item.link}
                     className="font-euclid text-[13px] text-white/70 transition-colors hover:text-white"
                   >
-                    {item}
+                    {item.label}
                   </a>
                 </li>
               ))}
@@ -56,12 +56,12 @@ export default function Footer() {
             </h4>
             <ul className="space-y-[8px]">
               {FOOTER_COL1.shubhMuhurat.map((item) => (
-                <li key={item}>
+                <li key={item.label}>
                   <a
-                    href="#"
+                    href={item.link}
                     className="font-euclid text-[13px] text-white/70 transition-colors hover:text-white"
                   >
-                    {item}
+                    {item.label}
                   </a>
                 </li>
               ))}
@@ -77,7 +77,7 @@ export default function Footer() {
               {FOOTER_IMPORTANT_LINKS.map((item) => (
                 <li key={item.label} className="flex items-start gap-[6px]">
                   <a
-                    href="#"
+                    href={item.link}
                     className="font-euclid text-[13px] leading-snug text-white/70 transition-colors hover:text-white"
                   >
                     {item.label}
@@ -101,7 +101,7 @@ export default function Footer() {
               {FOOTER_IMPORTANT_LINKS_2.map((item) => (
                 <li key={item.label} className="flex items-start gap-[6px]">
                   <a
-                    href="#"
+                    href={item.link}
                     className="font-euclid text-[13px] leading-snug text-white/70 transition-colors hover:text-white"
                   >
                     {item.label}
