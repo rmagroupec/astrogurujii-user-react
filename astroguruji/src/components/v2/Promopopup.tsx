@@ -40,7 +40,7 @@ export default function PromoPopup() {
     }, 300);
   };
 
-  const handleCTA = (path) => {
+  const handleCTA = (path: string) => {
     dismiss();
     // Trigger login modal first if not logged in
     const token = localStorage.getItem("token");
@@ -74,8 +74,8 @@ export default function PromoPopup() {
               ? "translate(-50%, -50%) scale(1)"
               : "translateY(0)"
             : window.innerWidth >= 768
-            ? "translate(-50%, -50%) scale(0.92)"
-            : "translateY(100%)",
+              ? "translate(-50%, -50%) scale(0.92)"
+              : "translateY(100%)",
           opacity: animating ? 1 : 0,
           transition: "transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease",
         }}
@@ -96,7 +96,7 @@ export default function PromoPopup() {
               aria-label="Close"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </button>
 

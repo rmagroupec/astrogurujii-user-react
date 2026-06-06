@@ -1,215 +1,417 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import axios from "axios";
+import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+import ConnectionModal from "@/components/v2/ConnectionModal";
 
-/* ─── Types ─────────────────────────────────────────────────── */
+const API = "https://admin.astrogurujii.com";
+const tok = () => localStorage.getItem("token") ?? "";
 
 export interface SendGiftModalProps {
   isOpen: boolean;
   onClose: () => void;
   astrologerName: string;
+  astrologerId: string;
+  astrologerImage?: string;
+  chatRate?: number;
+  callRate?: number;
   className?: string;
 }
 
 interface Gift {
-  name: string;
+  _id: string;
+  title: string;
+  image: string;
   price: number;
-  icon: string;
+  status?: string;
 }
 
-/* ─── Gift Data ─────────────────────────────────────────────── */
-
-const gifts: Gift[] = [
-  { name: "Flowers", price: 11, icon: "/images/gifts/flowers.png" },
-  { name: "Namaste", price: 20, icon: "/images/gifts/namaste.png" },
-  { name: "Dakshina", price: 50, icon: "/images/gifts/dakshina.png" },
-  { name: "Pooja Thali", price: 199, icon: "/images/gifts/pooja-thali.png" },
-  { name: "Kalash", price: 20, icon: "/images/gifts/kalash.png" },
-  { name: "Gemstone", price: 20, icon: "/images/gifts/gemstone.png" },
-  { name: "Sweets", price: 20, icon: "/images/gifts/sweets.png" },
-  { name: "Shivling", price: 20, icon: "/images/gifts/shivling.png" },
+const STATIC_GIFTS: Gift[] = [
+  { _id: "1", title: "Flowers",     price: 11,  image: "/images/gifts/flowers.png" },
+  { _id: "2", title: "Namaste",     price: 20,  image: "/images/gifts/namaste.png" },
+  { _id: "3", title: "Dakshina",    price: 50,  image: "/images/gifts/dakshina.png" },
+  { _id: "4", title: "Pooja Thali", price: 199, image: "/images/gifts/pooja-thali.png" },
+  { _id: "5", title: "Kalash",      price: 20,  image: "/images/gifts/kalash.png" },
+  { _id: "6", title: "Gemstone",    price: 20,  image: "/images/gifts/gemstone.png" },
+  { _id: "7", title: "Sweets",      price: 20,  image: "/images/gifts/sweets.png" },
+  { _id: "8", title: "Shivling",    price: 20,  image: "/images/gifts/shivling.png" },
 ];
 
-/* ─── Component ─────────────────────────────────────────────── */
+// ─── Success Popup ────────────────────────────────────────────────────────────
+function SuccessPopup({
+  gift,
+  astrologerName,
+  astrologerId,
+  astrologerImage,
+  chatRate,
+  callRate,
+  onClose,
+}: {
+  gift: Gift;
+  astrologerName: string;
+  astrologerId: string;
+  astrologerImage?: string;
+  chatRate?: number;
+  callRate?: number;
+  onClose: () => void;
+}) {
+  const [showConnection, setShowConnection] = useState(false);
+  const [callType, setCallType]             = useState<"chat" | "audio">("chat");
+  const [walletBalance, setWalletBalance]   = useState(0);
 
+  useEffect(() => {
+    // Fetch wallet for ConnectionModal
+    axios.get(`${API}/user_api/get_profile`, {
+      headers: { Authorization: `Bearer ${tok()}` },
+    }).then((res) => {
+      const raw = res.data?.results?.wallet ?? res.data?.results?.balance ?? "0";
+      setWalletBalance(parseFloat(String(raw)) || 0);
+    }).catch(() => {});
+  }, []);
+
+  const handleAction = (type: "chat" | "audio") => {
+    setCallType(type);
+    setShowConnection(true);
+  };
+
+  if (showConnection) {
+    return (
+      <ConnectionModal
+        isOpen={true}
+        onClose={() => { setShowConnection(false); onClose(); }}
+        astrologer={{
+          id: astrologerId,
+          name: astrologerName,
+          profileImage: astrologerImage || "",
+          ratePerMinute: callType === "chat" ? (chatRate || 0) : (callRate || 0),
+        }}
+        userWalletBalance={walletBalance}
+        callType={callType}
+      />
+    );
+  }
+
+  return createPortal(
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 10000,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: "rgba(0,0,0,0.55)", padding: 24,
+    }}>
+      <div style={{
+        background: "#fff", borderRadius: 20, padding: "28px 24px",
+        maxWidth: 340, width: "100%", textAlign: "center",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+        animation: "pop-in 0.3s cubic-bezier(0.34,1.56,0.64,1)",
+      }}>
+        {/* Orange checkmark */}
+        <div style={{
+          width: 68, height: 68, borderRadius: "50%",
+          background: "linear-gradient(135deg,#FF6F00,#FF9800)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          margin: "0 auto 14px",
+          boxShadow: "0 8px 24px rgba(255,111,0,0.4)",
+        }}>
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </div>
+
+        {/* Gift image */}
+        {gift.image && (
+          <div style={{
+            width: 54, height: 54, borderRadius: "50%",
+            border: "2px solid #FFDDC4", background: "#FFF5EE",
+            overflow: "hidden", margin: "0 auto 12px",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <img src={gift.image} alt={gift.title}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+          </div>
+        )}
+
+        <p style={{ fontWeight: 800, fontSize: 20, color: "#111", margin: "0 0 6px" }}>
+          Gift Sent! 🎉
+        </p>
+        <p style={{ fontSize: 14, color: "#555", margin: "0 0 4px" }}>
+          You sent <strong style={{ color: "#FF6F00" }}>{gift.title}</strong>
+        </p>
+        <p style={{ fontSize: 13, color: "#888", margin: "0 0 22px" }}>
+          to {astrologerName}
+        </p>
+
+        {/* Chat Now / Call Now */}
+        <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+          <button
+            onClick={() => handleAction("chat")}
+            style={{
+              flex: 1, padding: "11px 0", borderRadius: 10,
+              border: "1.5px solid #FF6F00", background: "#fff",
+              color: "#FF6F00", fontWeight: 700, fontSize: 13,
+              cursor: "pointer", display: "flex", alignItems: "center",
+              justifyContent: "center", gap: 6,
+              transition: "background 0.15s",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = "#FFF3E8")}
+            onMouseLeave={e => (e.currentTarget.style.background = "#fff")}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6F00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            Chat Now
+          </button>
+          <button
+            onClick={() => handleAction("audio")}
+            style={{
+              flex: 1, padding: "11px 0", borderRadius: 10,
+              border: "none", background: "linear-gradient(135deg,#FF6F00,#FF9800)",
+              color: "#fff", fontWeight: 700, fontSize: 13,
+              cursor: "pointer", display: "flex", alignItems: "center",
+              justifyContent: "center", gap: 6,
+              boxShadow: "0 4px 12px rgba(255,111,0,0.35)",
+              transition: "opacity 0.15s",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = "0.88")}
+            onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.35 2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6.08 6.08l1.9-1.9a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+            </svg>
+            Call Now
+          </button>
+        </div>
+
+        {/* Close */}
+        <button
+          onClick={onClose}
+          style={{
+            background: "none", border: "none", color: "#9ca3af",
+            fontSize: 13, cursor: "pointer", padding: "4px 0",
+          }}
+        >
+          Maybe later
+        </button>
+      </div>
+
+      <style>{`
+        @keyframes pop-in {
+          from { transform: scale(0.7); opacity: 0; }
+          to   { transform: scale(1);   opacity: 1; }
+        }
+      `}</style>
+    </div>,
+    document.body
+  );
+}
+
+// ─── Main Modal ───────────────────────────────────────────────────────────────
 export function SendGiftModal({
   isOpen,
   onClose,
   astrologerName,
-  className,
+  astrologerId,
+  astrologerImage,
+  chatRate,
+  callRate,
 }: SendGiftModalProps) {
-  const [selectedGift, setSelectedGift] = useState<number | null>(null);
-  const [visible, setVisible] = useState(false);
-  const modalRef = useRef<HTMLDialogElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
-
-  // Animate in
-  useEffect(() => {
-    if (isOpen) {
-      previousFocusRef.current = document.activeElement as HTMLElement;
-      // Trigger animation on next frame
-      requestAnimationFrame(() => setVisible(true));
-    } else {
-      setVisible(false);
-      setSelectedGift(null);
-    }
-  }, [isOpen]);
-
-  // Focus trap & escape key
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-        return;
-      }
-
-      if (e.key === "Tab" && modalRef.current) {
-        const focusable = modalRef.current.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-        );
-        if (focusable.length === 0) return;
-
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    },
-    [onClose],
-  );
+  const [sel, setSel]           = useState<number | null>(null);
+  const [gifts, setGifts]       = useState<Gift[]>(STATIC_GIFTS);
+  const [sending, setSending]   = useState(false);
+  const [sentGift, setSentGift] = useState<Gift | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
-    document.addEventListener("keydown", handleKeyDown);
-    // Focus the modal
-    modalRef.current?.focus();
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      previousFocusRef.current?.focus();
-    };
-  }, [isOpen, handleKeyDown]);
+    setSel(null);
+    setSending(false);
+    setSentGift(null);
 
-  // Prevent body scroll when open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
+    axios.get(`${API}/user_api/get_gifts`, {
+      headers: { Authorization: `Bearer ${tok()}` },
+    })
+      .then((res) => {
+        console.log("[GetGifts] raw:", JSON.stringify(res.data));
+        const raw: Gift[] = res.data?.data || [];
+        if (Array.isArray(raw) && raw.length > 0) setGifts(raw);
+      })
+      .catch((err) => console.warn("[GetGifts] failed, static fallback:", err.message));
   }, [isOpen]);
+
+  const onKey = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape") onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isOpen, onKey]);
+
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [isOpen]);
+
+  const handleSend = async () => {
+    if (sel === null || sending) return;
+    const gift = gifts[sel];
+    setSending(true);
+    try {
+      const res = await axios.post(
+        `${API}/user_api/gift_transaction`,
+        { astro_id: astrologerId, gift_id: gift._id, amount: gift.price },
+        { headers: { Authorization: `Bearer ${tok()}` } }
+      );
+      console.log("[SendGift] response:", res.data);
+    } catch (err: any) {
+      console.error("[SendGift] error:", err?.response?.data || err.message);
+    } finally {
+      setSending(false);
+      setSentGift(gift); // show success popup
+    }
+  };
+
+  if (sentGift) {
+    return (
+      <SuccessPopup
+        gift={sentGift}
+        astrologerName={astrologerName}
+        astrologerId={astrologerId}
+        astrologerImage={astrologerImage}
+        chatRate={chatRate}
+        callRate={callRate}
+        onClose={() => { setSentGift(null); onClose(); }}
+      />
+    );
+  }
 
   if (!isOpen) return null;
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center ${className ?? ""}`}
-      aria-label={`Send gift to ${astrologerName}`}
-      data-testid="send-gift-modal"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      style={{
+        position: "fixed", inset: 0, zIndex: 9999,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: "rgba(0,0,0,0.55)", padding: 16,
+      }}
     >
-      {/* Backdrop */}
-      <div
-        className={`absolute inset-0 bg-black transition-opacity duration-300 ${
-          visible ? "opacity-70" : "opacity-0"
-        }`}
-        onClick={onClose}
-        aria-hidden="true"
-        data-testid="send-gift-modal-backdrop"
-      />
+      <div style={{
+        background: "#fff", borderRadius: 16,
+        width: "100%", maxWidth: 480,
+        boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+        overflow: "hidden",
+      }}>
 
-      {/* Modal Container */}
-      <dialog
-        open
-        ref={modalRef}
-        aria-modal="true"
-        tabIndex={-1}
-        className={`relative w-[437px] max-w-[95vw] rounded-[10px] bg-white shadow-xl transition-all duration-300 ${
-          visible ? "scale-100 opacity-100" : "scale-95 opacity-0"
-        }`}
-        data-testid="send-gift-modal-container"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-3">
-          <h2
-            className="font-['Outfit'] text-lg font-semibold uppercase tracking-wide text-black"
-            data-testid="send-gift-modal-title"
-          >
+        {/* Header — matches screenshot exactly */}
+        <div style={{
+          display: "flex", alignItems: "center",
+          justifyContent: "space-between",
+          padding: "20px 24px 16px",
+          borderBottom: "1px solid #f3f4f6",
+        }}>
+          <h2 style={{
+            fontWeight: 700, fontSize: 16, color: "#111",
+            textTransform: "uppercase", letterSpacing: "0.04em", margin: 0,
+          }}>
             Send Gift to {astrologerName}
           </h2>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-black"
-            aria-label="Close modal"
-            data-testid="send-gift-modal-close"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
+            style={{
+              background: "none", border: "none", cursor: "pointer",
+              color: "#9ca3af", fontSize: 20, lineHeight: 1, padding: 4,
+            }}
+          >×</button>
         </div>
 
-        {/* Gift Grid */}
-        <div
-          className="grid grid-cols-4 gap-4 px-6 py-4"
-          data-testid="send-gift-grid"
-        >
-          {gifts.map((gift, index) => (
+        {/* Gift Grid — 4 cols, big circles like screenshot */}
+        <div style={{
+          display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
+          gap: 16, padding: "20px 24px",
+        }}>
+          {gifts.map((g, i) => (
             <button
-              key={gift.name}
-              onClick={() => setSelectedGift(index)}
-              className={`flex flex-col items-center gap-1.5 rounded-lg p-2 transition-colors ${
-                selectedGift === index
-                  ? "border-2 border-[#ff6f00] bg-orange-50"
-                  : "border-2 border-transparent hover:bg-gray-50"
-              }`}
-              aria-pressed={selectedGift === index}
-              data-testid={`gift-item-${gift.name.toLowerCase().split(/\s+/).join("-")}`}
+              key={g._id}
+              onClick={() => setSel(i)}
+              style={{
+                display: "flex", flexDirection: "column", alignItems: "center",
+                gap: 8, padding: "12px 6px", borderRadius: 12, cursor: "pointer",
+                border: `2px solid ${sel === i ? "#FF6F00" : "transparent"}`,
+                background: sel === i ? "#FFF5EE" : "transparent",
+                transition: "all 0.15s",
+              }}
             >
-              <div className="flex h-[66px] w-[66px] items-center justify-center rounded-full border-2 border-[#ff6f00] overflow-hidden bg-gray-100">
-                <img
-                  src={gift.icon}
-                  alt={gift.name}
-                  className="h-full w-full object-cover"
-                />
+              {/* Big circle image — matches screenshot */}
+              <div style={{
+                width: 76, height: 76, borderRadius: "50%",
+                border: `2px solid ${sel === i ? "#FF6F00" : "#e5e7eb"}`,
+                overflow: "hidden", background: "#f9fafb",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0,
+              }}>
+                {g.image
+                  ? <img
+                      src={g.image} alt={g.title}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  : <span style={{ fontSize: 28 }}>🎁</span>
+                }
               </div>
-              <span className="font-['Outfit'] text-xs font-semibold uppercase text-black">
-                {gift.name}
+              <span style={{
+                fontSize: 11, fontWeight: 700, color: "#111",
+                textAlign: "center", textTransform: "uppercase", letterSpacing: "0.03em",
+                lineHeight: 1.2,
+              }}>
+                {g.title}
               </span>
-              <span className="font-['Outfit'] text-xs font-semibold text-[#34a853]">
-                ₹ {gift.price}
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#34a853" }}>
+                ₹ {g.price}
               </span>
             </button>
           ))}
         </div>
 
-        {/* Send Gift Button */}
-        <div className="px-6 pb-5 pt-2">
+        {/* Send Button — full width orange, matches screenshot */}
+        <div style={{ padding: "4px 24px 24px" }}>
           <button
-            disabled={selectedGift === null}
-            className="h-[41px] w-full rounded-[4px] bg-[#ff6f00] font-['Outfit'] text-[19px] font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-            data-testid="send-gift-button"
+            onClick={handleSend}
+            disabled={sel === null || sending}
+            style={{
+              width: "100%", padding: "15px 0",
+              borderRadius: 8, border: "none",
+              background: sel !== null
+                ? "linear-gradient(135deg, #FF6F00, #FF9800)"
+                : "#f3f4f6",
+              color: sel !== null ? "#fff" : "#9ca3af",
+              fontWeight: 700, fontSize: 17,
+              cursor: sel !== null ? "pointer" : "not-allowed",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              boxShadow: sel !== null ? "0 4px 14px rgba(255,111,0,0.4)" : "none",
+              transition: "all 0.2s",
+            }}
           >
-            Send Gift
+            {sending && (
+              <span style={{
+                width: 18, height: 18, borderRadius: "50%",
+                border: "2.5px solid rgba(255,255,255,0.35)",
+                borderTopColor: "#fff", display: "inline-block",
+                animation: "gift-spin 0.7s linear infinite",
+              }} />
+            )}
+            {sel !== null
+              ? `Send ${gifts[sel].title} · ₹${gifts[sel].price}`
+              : "Send Gift"
+            }
           </button>
         </div>
-      </dialog>
+      </div>
+
+      <style>{`@keyframes gift-spin { to { transform: rotate(360deg); } }`}</style>
     </div>,
-    document.body,
+    document.body
   );
 }
 

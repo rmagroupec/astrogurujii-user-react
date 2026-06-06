@@ -8,6 +8,8 @@ import {
   profile_api,
 } from "@/https_service";
 
+const API_BASE = "https://admin.astrogurujii.com";
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type AstrologerShortProfile = {
@@ -31,7 +33,6 @@ type ConnectionModalProps = {
   astrologer: AstrologerShortProfile;
   userWalletBalance: number;
   callType: "chat" | "audio" | "video" | null;
-  // legacy prop — kept so existing callers don't break, but no longer used internally
   onSubmit?: (data: IntakeFormData, callType: "chat" | "audio" | "video") => void;
   isLoading?: boolean;
 };
@@ -59,11 +60,8 @@ const LocationPinIcon = () => (
   </svg>
 );
 
-// ─── Stable libraries array (must not be re-created on every render) ─────────
-// We use the backend geocode API instead of Google Places to avoid script-load
-// complexity. The backend `/user_api/geocode` mirrors Flutter's PlaceSearchScreen.
+// ─── PlaceField ───────────────────────────────────────────────────────────────
 
-// ─── Place search using backend geocode (mirrors Flutter PlaceSearchScreen) ──
 function PlaceField({
   value,
   onChange,
@@ -84,19 +82,14 @@ function PlaceField({
     if (query.trim().length < 2) { setSuggestions([]); return; }
     setLoading(true);
     try {
-      // Use Google Places Autocomplete via backend geocode for each typed query
-      // Mirrors Flutter's PlaceSearchScreen which calls geocode on selection
       const token = localStorage.getItem("token") ?? "";
-      const res = await fetch("https://admin.astrogurujii.com/user_api/geocode", {
+      const res = await fetch(`${API_BASE}/user_api/geocode`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ place: query }),
       });
-      // geocode returns a single result — just confirm the place and get coords
       const data = await res.json();
-      if (data?.status === true) {
-        setSuggestions([]); // no list needed, auto-confirm on blur
-      }
+      if (data?.status === true) setSuggestions([]);
     } catch { /* silent */ }
     setLoading(false);
   }, []);
@@ -108,7 +101,6 @@ function PlaceField({
     debounceRef.current = setTimeout(() => fetchSuggestions(val), 600);
   };
 
-  // On blur: call geocode to get lat/lng for whatever the user typed
   const handleBlur = async () => {
     setSuggestions([]);
     if (!inputVal.trim()) return;
@@ -117,7 +109,6 @@ function PlaceField({
     setLoading(false);
     const lat = result?.lat ?? "0";
     const lng = result?.lng ?? "0";
-    // Truncate to 40 chars like Flutter: value.substring(0, 40) + ".."
     const display = inputVal.length > 40 ? inputVal.substring(0, 40) + ".." : inputVal;
     onChange(display, lat, lng);
   };
@@ -164,40 +155,58 @@ export default function ConnectionModal({
   callType,
 }: ConnectionModalProps) {
   const navigate = useNavigate();
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep]               = useState<1 | 2>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [formData, setFormData]       = useState<IntakeFormData>({ name: "", gender: "Male", dob: "", timeOfBirth: "", placeOfBirth: "" });
+  const [latLng, setLatLng]           = useState({ lat: "0", lng: "0" });
+  const [errors, setErrors]           = useState<Partial<Record<keyof IntakeFormData, string>>>({});
 
-  const [formData, setFormData] = useState<IntakeFormData>({
-    name: "", gender: "Male", dob: "", timeOfBirth: "", placeOfBirth: "",
-  });
-  const [latLng, setLatLng] = useState({ lat: "0", lng: "0" });
-  const [errors, setErrors] = useState<Partial<Record<keyof IntakeFormData, string>>>({});
+  // ✅ Live rate state — used when ratePerMinute is 0 (e.g. opened from transaction history)
+  const [liveRate, setLiveRate] = useState<number>(0);
 
   // Reset on open
   useEffect(() => {
-    if (isOpen) { setStep(1); setErrors({}); setIsSubmitting(false); }
+    if (isOpen) { setStep(1); setErrors({}); setIsSubmitting(false); setLiveRate(0); }
   }, [isOpen]);
 
-  // Pre-fill from profile API (mirrors Flutter getProfile in ChatIntakeForm)
+  // ✅ Fetch live astrologer rate when ratePerMinute is 0
+  useEffect(() => {
+    if (!isOpen || !astrologer.id || astrologer.ratePerMinute > 0) return;
+    const token = localStorage.getItem("token") ?? "";
+    fetch(`${API_BASE}/user_api/astrologer_profile`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ id: astrologer.id }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.status && Array.isArray(data.results) && data.results[0]) {
+          const d = data.results[0];
+          const r = callType === "audio"
+            ? parseFloat(d.per_min_voice_call_offer || d.per_min_voice_call || "0")
+            : parseFloat(d.per_min_chat_offer || d.per_min_chat || "0");
+          if (r > 0) setLiveRate(r);
+        }
+      })
+      .catch(() => {});
+  }, [isOpen, astrologer.id, astrologer.ratePerMinute, callType]);
+
+  // Pre-fill from profile API
   useEffect(() => {
     if (!isOpen || profileLoaded) return;
     profile_api().then((res) => {
       if (res?.status === true && res.results) {
         const r = res.results;
-
-        // Convert dob: might be "dd-MM-yyyy" or "yyyy-MM-dd"
         let savedDob = "";
         if (r.dob) {
           const parts = (r.dob as string).split(/[-\/]/);
           if (parts.length === 3) {
             savedDob = parts[0].length === 4
-              ? r.dob  // already YYYY-MM-DD
+              ? r.dob
               : `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
           }
         }
-
-        // Convert tob: might be "HH:mm a" or "HH:mm"
         let savedTob = "";
         if (r.tob) {
           const t = (r.tob as string).trim();
@@ -212,15 +221,7 @@ export default function ConnectionModal({
             savedTob = t.substring(0, 5);
           }
         }
-
-        setFormData({
-          name: r.name ?? "",
-          gender: r.gender ?? "Male",
-          dob: savedDob,
-          timeOfBirth: savedTob,
-          placeOfBirth: r.pob ?? "",
-        });
-
+        setFormData({ name: r.name ?? "", gender: r.gender ?? "Male", dob: savedDob, timeOfBirth: savedTob, placeOfBirth: r.pob ?? "" });
         if (r.pob) {
           geocode(r.pob).then((geo) => {
             if (geo) setLatLng({ lat: geo.lat, lng: geo.lng });
@@ -233,23 +234,16 @@ export default function ConnectionModal({
 
   if (!isOpen || !callType) return null;
 
-  // ─── Balance check ────────────────────────────────────────────────────────
-  // Fix: if ratePerMinute is 0 or missing, don't block. Only block if wallet
-  // genuinely cannot cover even 1 minute at the given rate.
-  const rate = Number(astrologer.ratePerMinute) || 0;
+  // ✅ Use liveRate as fallback when ratePerMinute is 0
+  const rate   = Number(astrologer.ratePerMinute) || liveRate || 0;
   const wallet = Number(userWalletBalance) || 0;
 
-  // Max duration in minutes
-  const maxDurationMins = rate > 0 ? Math.floor(wallet / rate) : 999;
-
-  // Sufficient = wallet covers at least 5 minutes (mirrors Flutter getcheck >= 5.0)
-  // BUT if rate is 0 (free), always sufficient.
+  const maxDurationMins     = rate > 0 ? Math.floor(wallet / rate) : Infinity;
   const hasSufficientBalance = rate === 0 || maxDurationMins >= 5;
+  const minRequiredBalance   = rate * 5;
+  const typeLabel            = callType === "chat" ? "Chat" : callType === "audio" ? "Call" : "Video";
 
-  const minRequiredBalance = rate * 5;
-  const typeLabel = callType === "chat" ? "Chat" : callType === "audio" ? "Call" : "Video";
-
-  // ─── Validation ───────────────────────────────────────────────────────────
+  // ─── Validation ──────────────────────────────────────────────────────────
   const validate = (): boolean => {
     const e: typeof errors = {};
     const today = new Date().toISOString().split("T")[0];
@@ -259,8 +253,7 @@ export default function ConnectionModal({
       e.dob = "Date of Birth is required";
     else if (formData.dob > today)
       e.dob = "Date of Birth cannot be in the future";
-    if (!formData.timeOfBirth)
-      e.timeOfBirth = "Time of Birth is required";
+    if (!formData.timeOfBirth) e.timeOfBirth = "Time of Birth is required";
     if (!formData.placeOfBirth.trim() || formData.placeOfBirth.trim().length < 2)
       e.placeOfBirth = "Enter a valid city name";
     setErrors(e);
@@ -272,61 +265,41 @@ export default function ConnectionModal({
     if (errors[field]) setErrors((p) => ({ ...p, [field]: undefined }));
   };
 
-  const handlePlaceChange = useCallback((place: string, lat: string, lng: string) => {
+  const handlePlaceChange = (place: string, lat: string, lng: string) => {
     setFormData((p) => ({ ...p, placeOfBirth: place }));
     setLatLng({ lat, lng });
     if (errors.placeOfBirth) setErrors((p) => ({ ...p, placeOfBirth: undefined }));
-  }, [errors.placeOfBirth]);
-
-  // ─── Proceed click (Step 1 → 2 or recharge) ──────────────────────────────
-  const handleProceedClick = () => {
-    if (hasSufficientBalance) {
-      setStep(2);
-    } else {
-      onClose();
-      navigate("/recharge-now");
-    }
   };
 
-  // ─── Submit (Step 2) → call_initiate → ChatCallingScreen ─────────────────
+  const handleProceedClick = () => {
+    if (hasSufficientBalance) setStep(2);
+    else { onClose(); navigate("/recharge-now"); }
+  };
+
+  // ─── Submit ──────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate() || isSubmitting) return;
     setIsSubmitting(true);
-
     try {
       const userId = localStorage.getItem("id") ?? "";
-
-      // Parse DOB "YYYY-MM-DD"
       const [yearStr, monthStr, dayStr] = formData.dob.split("-");
+      const [hhStr, mmStr]              = formData.timeOfBirth.split(":");
+      const dobDisplay  = `${dayStr}-${monthStr}-${yearStr}`;
+      const hhNum       = parseInt(hhStr, 10);
+      const amPm        = hhNum >= 12 ? "PM" : "AM";
+      const hh12        = hhNum % 12 === 0 ? 12 : hhNum % 12;
+      const tobDisplay  = `${String(hh12).padStart(2, "0")}:${mmStr} ${amPm}`;
 
-      // Parse TOB "HH:mm"
-      const [hhStr, mmStr] = formData.timeOfBirth.split(":");
-
-      // Display formats (for ChatScreen header)
-      const dobDisplay = `${dayStr}-${monthStr}-${yearStr}`;
-      const hhNum = parseInt(hhStr, 10);
-      const amPm = hhNum >= 12 ? "PM" : "AM";
-      const hh12 = hhNum % 12 === 0 ? 12 : hhNum % 12;
-      const tobDisplay = `${String(hh12).padStart(2, "0")}:${mmStr} ${amPm}`;
-
-      // Build kundli JSON string — mirrors Flutter Kundli.toString()
       const kundliString = buildKundliString({
-        name: formData.name,
-        gender: formData.gender,
-        yy: yearStr,
-        mm: monthStr,
-        dd: dayStr,
-        hh_time: hhStr,
-        mm_time: mmStr,
-        latitude: latLng.lat,
-        longitude: latLng.lng,
+        name: formData.name, gender: formData.gender,
+        yy: yearStr, mm: monthStr, dd: dayStr,
+        hh_time: hhStr, mm_time: mmStr,
+        latitude: latLng.lat, longitude: latLng.lng,
         place: formData.placeOfBirth,
       });
 
-      // Generate channel ID: userId_astrologerId_timestamp
       const preChannelId = generateChannelId(userId, astrologer.id);
-
       const res = await call_initiate({
         astrologer_id: astrologer.id,
         call_type: callType as "chat" | "audio" | "video",
@@ -337,47 +310,23 @@ export default function ConnectionModal({
       if (res?.status === true) {
         localStorage.setItem("name", formData.name);
         onClose();
-
-        // Common session state shared by all call screens
         const sessionState = {
           astrologer_id: astrologer.id,
           astroName: astrologer.name,
           astrologerImage: astrologer.profileImage,
           rate: String(rate),
           wallet: String(wallet),
-          name: formData.name,
-          gender: formData.gender,
-          dob: dobDisplay,
-          tob: tobDisplay,
+          name: formData.name, gender: formData.gender,
+          dob: dobDisplay, tob: tobDisplay,
           place: formData.placeOfBirth,
-          latitude: latLng.lat,
-          longitude: latLng.lng,
-          day: dayStr,
-          month: monthStr,
-          year: yearStr,
-          hh: hhStr,
-          mm: mmStr,
+          latitude: latLng.lat, longitude: latLng.lng,
+          day: dayStr, month: monthStr, year: yearStr,
+          hh: hhStr, mm: mmStr,
         };
-
         if (callType === "audio" || callType === "video") {
-          // Audio/Video → go straight to AudioCallScreen with Agora channel
-          navigate("/audio-call", {
-            state: {
-              ...sessionState,
-              // Agora channel name = channel_id returned from call_initiate
-              channelId: res.channel_id,
-              apiChannelId: res.channel_id,
-            },
-          });
+          navigate("/audio-call", { state: { ...sessionState, channelId: res.channel_id, apiChannelId: res.channel_id } });
         } else {
-          // Chat → ChatCallingScreen (status polling → ChatScreen)
-          navigate("/chat-calling", {
-            state: {
-              ...sessionState,
-              _channel_id: res.channel_id,
-              // _fb_channel_id: res.fb_channel_id || preChannelId,
-            },
-          });
+          navigate("/chat-calling", { state: { ...sessionState, _channel_id: res.channel_id } });
         }
       } else {
         alert(res?.message ?? "Failed to initiate. Please try again.");
@@ -389,17 +338,15 @@ export default function ConnectionModal({
     }
   };
 
-  // ─── Render ───────────────────────────────────────────────────────────────
+  // ─── Render ──────────────────────────────────────────────────────────────
   return (
     <div
       className="fixed inset-0 z-[100] flex items-end justify-center"
       style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(2px)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div
-        className="w-full max-w-lg rounded-t-3xl bg-white shadow-2xl"
-        style={{ maxHeight: "92vh", overflowY: "auto" }}
-      >
+      <div className="w-full max-w-lg rounded-t-3xl bg-white shadow-2xl" style={{ maxHeight: "92vh", overflowY: "auto" }}>
+
         {/* Handle */}
         <div className="flex justify-center pt-3 pb-1">
           <div className="w-10 h-1 bg-gray-200 rounded-full" />
@@ -417,7 +364,7 @@ export default function ConnectionModal({
 
         <div className="px-5 py-4">
 
-          {/* ── STEP 1: Wallet Check ──────────────────────────────────────── */}
+          {/* ── STEP 1 ── */}
           {step === 1 && (
             <div className="space-y-5">
 
@@ -437,6 +384,10 @@ export default function ConnectionModal({
                 </h3>
                 <p className="text-sm text-[#FF6F00] font-semibold">
                   {typeLabel} Rate: ₹{rate}/min
+                  {/* Show loading indicator while fetching live rate */}
+                  {astrologer.ratePerMinute === 0 && liveRate === 0 && (
+                    <span className="ml-2 inline-block w-3 h-3 border-2 border-orange-400 border-t-transparent rounded-full animate-spin align-middle" />
+                  )}
                 </p>
               </div>
 
@@ -455,12 +406,18 @@ export default function ConnectionModal({
                     <span className="text-sm font-semibold text-gray-600">Max Duration</span>
                   </div>
                   <span className="text-2xl font-bold text-gray-900">
-                    {rate > 0 ? maxDurationMins : "∞"} min
+                    {/* ✅ Show actual minutes when rate > 0, ∞ only when truly free */}
+                    {rate > 0
+                      ? `${maxDurationMins} min`
+                      : astrologer.ratePerMinute === 0 && liveRate === 0
+                        ? <span className="flex items-center gap-1 text-base text-gray-400">Fetching... <span className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" /></span>
+                        : "∞ min"
+                    }
                   </span>
                 </div>
               </div>
 
-              {/* Low balance warning — only shown when truly insufficient */}
+              {/* Low balance warning */}
               {!hasSufficientBalance && (
                 <div className="w-full bg-red-50 border border-red-200 text-red-600 text-sm font-medium p-3 rounded-lg text-center">
                   Minimum balance of 5 minutes (₹{minRequiredBalance.toFixed(0)}) is required to start a {typeLabel.toLowerCase()} with {astrologer.name}.
@@ -477,7 +434,7 @@ export default function ConnectionModal({
             </div>
           )}
 
-          {/* ── STEP 2: Intake Form ───────────────────────────────────────── */}
+          {/* ── STEP 2 ── */}
           {step === 2 && (
             <div>
               <button
@@ -494,35 +451,26 @@ export default function ConnectionModal({
 
                 {/* Name */}
                 <div>
-                  <label className="mb-1 block text-sm font-semibold text-gray-700">
-                    Full Name <span className="text-red-400">*</span>
-                  </label>
+                  <label className="mb-1 block text-sm font-semibold text-gray-700">Full Name <span className="text-red-400">*</span></label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => handleChange("name", e.target.value)}
                     placeholder="e.g. Rahul Sharma"
-                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm outline-none transition-colors focus:bg-white ${
-                      errors.name ? "border-red-400 bg-red-50" : "border-gray-200 bg-gray-50 focus:border-[#FF6F00]"
-                    }`}
+                    className={`w-full rounded-xl border-2 px-4 py-3 text-sm outline-none transition-colors focus:bg-white ${errors.name ? "border-red-400 bg-red-50" : "border-gray-200 bg-gray-50 focus:border-[#FF6F00]"}`}
                   />
                   {errors.name && <p className="mt-1 text-xs text-red-500 font-medium">{errors.name}</p>}
                 </div>
 
                 {/* Gender */}
                 <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-gray-700">Gender</label>
-                  <div className="flex gap-2">
+                  <label className="mb-1 block text-sm font-semibold text-gray-700">Gender</label>
+                  <div className="flex gap-3">
                     {["Male", "Female", "Other"].map((g) => (
                       <button
-                        key={g}
-                        type="button"
+                        key={g} type="button"
                         onClick={() => handleChange("gender", g)}
-                        className={`flex-1 rounded-xl border-2 py-2.5 text-sm font-bold transition-all ${
-                          formData.gender === g
-                            ? "border-[#FF6F00] bg-[#FFF5EC] text-[#FF6F00]"
-                            : "border-gray-200 bg-gray-50 text-gray-500 hover:border-orange-200"
-                        }`}
+                        className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-semibold transition-colors ${formData.gender === g ? "border-[#FF6F00] bg-orange-50 text-[#FF6F00]" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}
                       >
                         {g}
                       </button>
@@ -533,42 +481,30 @@ export default function ConnectionModal({
                 {/* DOB + TOB */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="mb-1 block text-sm font-semibold text-gray-700">
-                      Date of Birth <span className="text-red-400">*</span>
-                    </label>
+                    <label className="mb-1 block text-sm font-semibold text-gray-700">Date of Birth <span className="text-red-400">*</span></label>
                     <input
                       type="date"
                       value={formData.dob}
-                      max={new Date().toISOString().split("T")[0]}
                       onChange={(e) => handleChange("dob", e.target.value)}
-                      className={`w-full rounded-xl border-2 px-3 py-3 text-sm outline-none transition-colors focus:bg-white ${
-                        errors.dob ? "border-red-400 bg-red-50" : "border-gray-200 bg-gray-50 focus:border-[#FF6F00]"
-                      }`}
+                      max={new Date().toISOString().split("T")[0]}
+                      className={`w-full rounded-xl border-2 px-4 py-3 text-sm outline-none transition-colors focus:bg-white ${errors.dob ? "border-red-400 bg-red-50" : "border-gray-200 bg-gray-50 focus:border-[#FF6F00]"}`}
                     />
                     {errors.dob && <p className="mt-1 text-xs text-red-500 font-medium">{errors.dob}</p>}
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-semibold text-gray-700">
-                      Time of Birth <span className="text-red-400">*</span>
-                    </label>
+                    <label className="mb-1 block text-sm font-semibold text-gray-700">Time of Birth <span className="text-red-400">*</span></label>
                     <input
                       type="time"
                       value={formData.timeOfBirth}
                       onChange={(e) => handleChange("timeOfBirth", e.target.value)}
-                      className={`w-full rounded-xl border-2 px-3 py-3 text-sm outline-none transition-colors focus:bg-white ${
-                        errors.timeOfBirth ? "border-red-400 bg-red-50" : "border-gray-200 bg-gray-50 focus:border-[#FF6F00]"
-                      }`}
+                      className={`w-full rounded-xl border-2 px-4 py-3 text-sm outline-none transition-colors focus:bg-white ${errors.timeOfBirth ? "border-red-400 bg-red-50" : "border-gray-200 bg-gray-50 focus:border-[#FF6F00]"}`}
                     />
                     {errors.timeOfBirth && <p className="mt-1 text-xs text-red-500 font-medium">{errors.timeOfBirth}</p>}
                   </div>
                 </div>
 
                 {/* Place of Birth */}
-                <PlaceField
-                  value={formData.placeOfBirth}
-                  onChange={handlePlaceChange}
-                  error={errors.placeOfBirth}
-                />
+                <PlaceField value={formData.placeOfBirth} onChange={handlePlaceChange} error={errors.placeOfBirth} />
 
                 {/* Submit */}
                 <div className="pt-1 pb-4">
@@ -578,10 +514,7 @@ export default function ConnectionModal({
                     className="w-full rounded-full bg-[#FF6F00] py-4 text-[16px] font-bold text-white shadow-[0_4px_14px_0_rgba(255,111,0,0.39)] transition-all hover:bg-[#E66400] hover:shadow-lg disabled:opacity-70 flex items-center justify-center gap-2"
                   >
                     {isSubmitting ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Connecting...
-                      </>
+                      <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Connecting...</>
                     ) : (
                       `Start ${typeLabel} with ${astrologer.name}`
                     )}

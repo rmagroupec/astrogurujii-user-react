@@ -18,19 +18,7 @@ const API_BASE_URL = "https://admin.astrogurujii.com";
 const SCROLL_OFFSET = 24;
 
 // ── API shape ────────────────────────────────────────────────────────────────
-type ApiRating = {
-  name: string;
-  profileImg: string;
-  rating: string;
-  review: string;
-  createdDate: string;
-};
-
-type ApiGallery = {
-  file: string;
-  _id: string;
-};
-
+type ApiGallery = { file: string; _id: string };
 type ApiCategory = { name: string };
 type ApiLanguage = { name: string };
 type ApiSkill = { name: string };
@@ -39,7 +27,6 @@ type ApiAstrologerDetail = {
   _id: string;
   id: string;
   name: string;
-  // The detail API may return either profileImg or profile_img depending on version
   profileImg?: string;
   profile_img?: string;
   experience: number;
@@ -74,32 +61,19 @@ type ApiAstrologerDetail = {
   language: ApiLanguage[];
   skill: ApiSkill[];
   galary: ApiGallery[];
-  rating: ApiRating[];
+  rating: any[];
 };
 
-// ── Helper: pick whichever image field the API returned ──────────────────────
 function getImageField(obj: any): string {
-  // Try every possible field name the API might use
-  return (
-    obj?.profileImg ||
-    obj?.profile_img ||
-    obj?.image ||
-    obj?.img ||
-    obj?.avatar ||
-    ""
-  );
+  return obj?.profileImg || obj?.profile_img || obj?.image || obj?.img || obj?.avatar || "";
 }
 
-// ── Helper: resolve relative or absolute image URL ───────────────────────────
 function resolveImageUrl(path: string, fallbackName: string): string {
   const clean = (path || "").trim();
   if (!clean) {
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(fallbackName)}&background=FF6F00&color=fff&size=160`;
   }
-  if (clean.startsWith("http://") || clean.startsWith("https://")) {
-    return clean;
-  }
-  // Relative path — prepend base URL, avoid double slashes
+  if (clean.startsWith("http://") || clean.startsWith("https://")) return clean;
   return `${API_BASE_URL}/${clean.replace(/^\/+/, "")}`;
 }
 
@@ -112,35 +86,20 @@ export default function ConsultantDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ── fetch astrologer details ───────────────────────────────────────────────
   const fetchDetail = useCallback(async () => {
     if (!id) return;
-
     try {
       setIsLoading(true);
-
       const token = localStorage.getItem("token");
-
       const res = await axios.post(
         `${API_BASE_URL}/user_api/astrologer_profile`,
         { id },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
       if (res.data?.status && res.data?.results?.length > 0) {
         const data = res.data.results[0];
-
-        // 🔍 DEBUG: log the raw object so we can see the exact field name
         console.log("=== ASTROLOGER DETAIL RAW ===", JSON.stringify(data, null, 2));
-        console.log("profileImg:", data.profileImg);
-        console.log("profile_img:", data.profile_img);
-        console.log("image:", data.image);
-        console.log("img:", data.img);
-
+        console.log("=== FIRST RATING RAW ===", JSON.stringify(data.rating?.[0]));
         setConsultant(data);
       } else {
         setError("Astrologer not found.");
@@ -155,34 +114,24 @@ export default function ConsultantDetail() {
 
   useEffect(() => { fetchDetail(); }, [fetchDetail]);
 
-  // ── sticky sidebar height ─────────────────────────────────────────────────
   useEffect(() => {
     if (!sidebarRef.current) return;
-
     const updateSidebarTop = () => {
-      const sidebarHeight =
-        sidebarRef.current?.getBoundingClientRect().height || 0;
+      const sidebarHeight = sidebarRef.current?.getBoundingClientRect().height || 0;
       const viewportHeight = window.innerHeight;
-
       setSidebarTop(
         sidebarHeight > viewportHeight - SCROLL_OFFSET * 2
           ? -(sidebarHeight - viewportHeight + SCROLL_OFFSET)
           : SCROLL_OFFSET
       );
     };
-
     updateSidebarTop();
     const observer = new ResizeObserver(updateSidebarTop);
     observer.observe(sidebarRef.current);
     window.addEventListener("resize", updateSidebarTop);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", updateSidebarTop);
-    };
+    return () => { observer.disconnect(); window.removeEventListener("resize", updateSidebarTop); };
   }, [consultant]);
 
-  // ── derived props ─────────────────────────────────────────────────────────
   const specialties =
     consultant?.category?.map((cat: ApiCategory, i: number) => ({
       label: cat.name,
@@ -201,67 +150,67 @@ export default function ConsultantDetail() {
 
   const ratingBars = consultant
     ? [
-      { stars: 5, percent: Number(consultant.five_rate || 0) },
-      { stars: 4, percent: Number(consultant.four_rate || 0) },
-      { stars: 3, percent: Number(consultant.three_rate || 0) },
-      { stars: 2, percent: Number(consultant.two_rate || 0) },
-      { stars: 1, percent: Number(consultant.one_rate || 0) },
-    ]
+        { stars: 5, percent: Number(consultant.five_rate || 0) },
+        { stars: 4, percent: Number(consultant.four_rate || 0) },
+        { stars: 3, percent: Number(consultant.three_rate || 0) },
+        { stars: 2, percent: Number(consultant.two_rate || 0) },
+        { stars: 1, percent: Number(consultant.one_rate || 0) },
+      ]
     : [];
 
+  // ✅ Use `any` type + try every possible date field name
   const reviews =
-    consultant?.rating?.map((r: ApiRating, i: number) => ({
+    consultant?.rating?.map((r: any, i: number) => ({
       id: i,
       name: r.name || "User",
       avatar: resolveImageUrl(getImageField(r) || r.profileImg, r.name || "User"),
       rating: Number(r.rating || 0),
       text: r.review || "No review",
-      date: r.createdDate || "",
+      date:
+        r.createdDate ||
+        r.created_date ||
+        r.createdAt ||
+        r.created_at ||
+        r.date ||
+        r.reviewDate ||
+        r.review_date ||
+        "",
     })) || [];
 
   const consultantForSidebar = consultant
     ? {
-      id: consultant.id ?? consultant._id,
-      name: consultant.name,
-
-      // ✅ FIX: try every possible image field the API might use
-      avatar: resolveImageUrl(getImageField(consultant), consultant.name),
-
-      rating: Number(consultant.avg_rate || 0),
-      orders: String(consultant.consult || 0),
-
-      location: [consultant.city, consultant.state]
-        .filter(Boolean)
-        .join(", ") || consultant.country || "",
-
-      languages:
-        consultant.language?.map((l) => l.name).join(", ") || "",
-
-      chatPrice: Number(
-          (consultant.per_min_chat_offer !== "" && consultant.per_min_chat_offer)
+        id: consultant.id ?? consultant._id,
+        name: consultant.name,
+        avatar: resolveImageUrl(getImageField(consultant), consultant.name),
+        rating: Number(consultant.avg_rate || 0),
+        orders: String(consultant.consult || 0),
+        location:
+          [consultant.city, consultant.state].filter(Boolean).join(", ") ||
+          consultant.country ||
+          "",
+        languages: consultant.language?.map((l) => l.name).join(", ") || "",
+        chatPrice: Number(
+          consultant.per_min_chat_offer !== "" && consultant.per_min_chat_offer
             ? consultant.per_min_chat_offer
             : consultant.per_min_chat || 0
         ),
         callPrice: Number(
-          (consultant.per_min_voice_call_offer !== "" && consultant.per_min_voice_call_offer)
+          consultant.per_min_voice_call_offer !== "" && consultant.per_min_voice_call_offer
             ? consultant.per_min_voice_call_offer
             : consultant.per_min_voice_call || 0
         ),
         chatOriginal: Number(consultant.per_min_chat || 0),
         callOriginal: Number(consultant.per_min_voice_call || 0),
         videoOriginal: Number(consultant.per_min_video_call || 0),
-
-      experience: String(consultant.experience || 0),
-      followers: (consultant as any).follow_count || 0,
-      avgTime: "5-10 min",
-      totalConsultations: String(consultant.consult || 0),
-      verified: true,
-
-      aboutParagraphs: consultant.about ? [consultant.about] : [],
-    }
+        experience: String(consultant.experience || 0),
+        followers: (consultant as any).follow_count || 0,
+        avgTime: "5-10 min",
+        totalConsultations: String(consultant.consult || 0),
+        verified: true,
+        aboutParagraphs: consultant.about ? [consultant.about] : [],
+      }
     : null;
 
-  // ── render ────────────────────────────────────────────────────────────────
   if (isLoading) return <MasterLoader text="Loading Astrologer..." />;
 
   if (error || !consultantForSidebar) {
@@ -334,10 +283,12 @@ export default function ConsultantDetail() {
 
       <Footer />
 
+      {/* ✅ astrologerId passed correctly */}
       <SendGiftModal
         isOpen={showGiftModal}
         onClose={() => setShowGiftModal(false)}
         astrologerName={consultantForSidebar.name}
+        astrologerId={String(consultant?.id ?? consultant?._id ?? "")}
       />
     </div>
   );

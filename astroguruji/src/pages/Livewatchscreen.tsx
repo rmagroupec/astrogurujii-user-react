@@ -137,7 +137,7 @@ function GiftModal({ gifts, astroName, astroId, onClose }: {
     const gift = gifts[sel];
     setSending(true);
     try {
-      await axios.post(`${API}/user_api/send_gift`,
+      await axios.post(`${API}/user_api/gift_transaction`,
         { astro_id: astroId, gift_id: gift._id, amount: gift.price },
         { headers: { Authorization: `Bearer ${tok()}` } });
     } catch { /* send optimistically */ }

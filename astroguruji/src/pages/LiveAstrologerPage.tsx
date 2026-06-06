@@ -1,7 +1,7 @@
 /**
  * LiveAstrologerPage.tsx
  * Route: /live-astrologer
- * Design updated to match home section card style — content unchanged.
+ * White background version.
  */
 
 import { useEffect, useState, useCallback } from "react";
@@ -13,8 +13,6 @@ import BreadcrumbHeader from "@/components/v2/BreadcrumbHeader";
 
 const API = "https://admin.astrogurujii.com";
 const authToken = () => localStorage.getItem("token") ?? "";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Astrologer {
   _id: string;
@@ -37,8 +35,6 @@ interface LiveItem {
   astrologer_id: Astrologer;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 const isLive       = (item: LiveItem) => item.is_live === "1";
 const viewerCount  = (item: LiveItem) => item.users?.length ?? 0;
 const astroName    = (item: LiveItem) => item.astrologer_id?.displayname || item.astrologer_id?.name || "Astrologer";
@@ -50,8 +46,6 @@ const cleanTitle   = (title: string)  => {
   return t.length > 60 ? t.slice(0, 57) + "…" : t;
 };
 
-// ─── Pulsing dot ──────────────────────────────────────────────────────────────
-
 function LiveDot({ size = "sm" }: { size?: "sm" | "md" }) {
   const sz = size === "md" ? "h-2.5 w-2.5" : "h-2 w-2";
   return (
@@ -62,30 +56,27 @@ function LiveDot({ size = "sm" }: { size?: "sm" | "md" }) {
   );
 }
 
-// ─── Skeleton — dark glass style ──────────────────────────────────────────────
-
+// Skeleton — light style for white bg
 function CardSkeleton() {
   return (
-    <div className="rounded-2xl overflow-hidden animate-pulse"
-      style={{ background: "linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%)", border: "1.5px solid rgba(255,255,255,0.08)" }}>
-      <div className="h-[200px] bg-white/5" />
+    <div className="rounded-2xl overflow-hidden animate-pulse bg-gray-100 border border-gray-200">
+      <div className="h-[200px] bg-gray-200" />
       <div className="px-4 pt-3 pb-4 space-y-2">
-        <div className="h-3 bg-white/10 rounded-full w-3/4" />
-        <div className="h-2.5 bg-white/5 rounded-full w-1/2" />
-        <div className="h-8 bg-white/5 rounded-xl mt-3" />
+        <div className="h-3 bg-gray-300 rounded-full w-3/4" />
+        <div className="h-2.5 bg-gray-200 rounded-full w-1/2" />
+        <div className="h-8 bg-gray-200 rounded-xl mt-3" />
       </div>
     </div>
   );
 }
 
-// ─── Empty state ──────────────────────────────────────────────────────────────
-
+// Empty state — dark text for white bg
 function EmptyState({ onRefresh }: { onRefresh: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center">
       <div className="text-5xl mb-4">🌙</div>
-      <p className="text-white font-semibold text-lg mb-1">No sessions right now</p>
-      <p className="text-white/40 text-sm mb-6">Check back soon or refresh the page.</p>
+      <p className="text-gray-800 font-semibold text-lg mb-1">No sessions right now</p>
+      <p className="text-gray-400 text-sm mb-6">Check back soon or refresh the page.</p>
       <button
         onClick={onRefresh}
         className="flex items-center gap-2 px-6 py-2.5 rounded-full text-white text-sm font-semibold transition"
@@ -99,8 +90,6 @@ function EmptyState({ onRefresh }: { onRefresh: () => void }) {
     </div>
   );
 }
-
-// ─── Card — same dark glass design as homepage ────────────────────────────────
 
 const ACCENTS = [
   { from: "#FF6F00", to: "#FFB347", glow: "rgba(255,111,0,0.5)" },
@@ -117,7 +106,6 @@ function LiveCard({ item, onJoin, index }: { item: LiveItem; onJoin: (item: Live
   const title   = cleanTitle(item.title);
   const [imgErr, setImgErr]   = useState(false);
   const [hovered, setHovered] = useState(false);
-
   const accent = ACCENTS[index % ACCENTS.length];
 
   return (
@@ -132,20 +120,18 @@ function LiveCard({ item, onJoin, index }: { item: LiveItem; onJoin: (item: Live
         className="relative overflow-hidden rounded-2xl transition-all duration-300"
         style={{
           background: "linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%)",
-          border: hovered && live
-            ? `1.5px solid ${accent.from}`
-            : "1.5px solid rgba(255,255,255,0.08)",
+          border: hovered && live ? `1.5px solid ${accent.from}` : "1.5px solid rgba(255,255,255,0.08)",
           boxShadow: hovered && live
             ? `0 20px 40px ${accent.glow}, 0 0 0 1px ${accent.from}22`
-            : "0 8px 24px rgba(0,0,0,0.35)",
+            : "0 4px 16px rgba(0,0,0,0.15)",
           transform: hovered && live ? "translateY(-6px) scale(1.02)" : "translateY(0) scale(1)",
-          opacity: !live ? 0.65 : 1,
+          opacity: !live ? 0.88 : 1,
         }}
       >
         {/* Photo */}
         <div className="relative h-[200px] overflow-hidden">
           <div className="absolute inset-0 z-10"
-            style={{ background: "linear-gradient(to top, #1a1a2e 0%, transparent 55%)" }} />
+            style={{ background: "linear-gradient(to top, rgba(15,20,50,0.95) 0%, rgba(15,20,50,0.2) 40%, transparent 65%)" }} />
 
           {img && !imgErr ? (
             <img
@@ -179,7 +165,7 @@ function LiveCard({ item, onJoin, index }: { item: LiveItem; onJoin: (item: Live
             <div className="absolute top-3 right-3 z-20 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold text-white"
               style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}>
               <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
               </svg>
               {viewers}
             </div>
@@ -201,7 +187,6 @@ function LiveCard({ item, onJoin, index }: { item: LiveItem; onJoin: (item: Live
             </p>
           )}
 
-          {/* CTA button */}
           <button
             className="mt-3 w-full flex items-center justify-center gap-2 py-2 rounded-xl text-[12px] font-bold text-white transition-all duration-200"
             style={{
@@ -212,11 +197,10 @@ function LiveCard({ item, onJoin, index }: { item: LiveItem; onJoin: (item: Live
               boxShadow: live && hovered ? `0 4px 14px ${accent.glow}` : "none",
             }}
           >
-            {live ? (
-              <><svg width="10" height="10" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>Watch Now</>
-            ) : (
-              <><span>🔔</span>Set Reminder</>
-            )}
+            {live
+              ? <><svg width="10" height="10" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3" /></svg>Watch Now</>
+              : <><span>🔔</span>Set Reminder</>
+            }
           </button>
         </div>
       </div>
@@ -224,14 +208,12 @@ function LiveCard({ item, onJoin, index }: { item: LiveItem; onJoin: (item: Live
   );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
-
 export default function LiveAstrologersPage() {
   const navigate = useNavigate();
-  const [all, setAll]       = useState<LiveItem[]>([]);
+  const [all, setAll]         = useState<LiveItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError]   = useState("");
-  const [filter, setFilter] = useState<"all" | "live" | "upcoming">("all");
+  const [error, setError]     = useState("");
+  const [filter, setFilter]   = useState<"all" | "live" | "upcoming">("all");
 
   const fetchLive = useCallback(async () => {
     setLoading(true);
@@ -289,7 +271,7 @@ export default function LiveAstrologersPage() {
   const displayed     = filter === "live" ? liveItems : filter === "upcoming" ? upcomingItems : all;
 
   return (
-    <div className="min-h-screen" style={{ background: "#ffffff" }}>
+    <div className="min-h-screen bg-white">
       <Navbar />
 
       <BreadcrumbHeader
@@ -313,8 +295,8 @@ export default function LiveAstrologersPage() {
         </div>
       </div>
 
-      {/* Main content area — dark bg */}
-      <div style={{ background: "linear-gradient(180deg,#0d0d1a 0%,#111827 100%)", minHeight: "60vh" }}>
+      {/* ✅ White background content area */}
+      <div className="bg-white" style={{ minHeight: "60vh" }}>
         <div className="max-w-6xl mx-auto px-4 py-8">
 
           {/* Filter tabs + refresh */}
@@ -325,11 +307,9 @@ export default function LiveAstrologersPage() {
                 onClick={() => setFilter(f)}
                 className="px-4 py-2 rounded-full text-sm font-semibold transition-all whitespace-nowrap"
                 style={{
-                  background: filter === f
-                    ? "linear-gradient(135deg,#FF6F00,#FF9800)"
-                    : "rgba(255,255,255,0.07)",
-                  color: filter === f ? "#fff" : "rgba(255,255,255,0.55)",
-                  border: filter === f ? "none" : "1px solid rgba(255,255,255,0.12)",
+                  background: filter === f ? "linear-gradient(135deg,#FF6F00,#FF9800)" : "#f5f5f5",
+                  color: filter === f ? "#fff" : "#555",
+                  border: filter === f ? "none" : "1px solid #e0e0e0",
                   boxShadow: filter === f ? "0 4px 14px rgba(255,111,0,0.35)" : "none",
                 }}
               >
@@ -339,16 +319,13 @@ export default function LiveAstrologersPage() {
               </button>
             ))}
 
+            {/* Refresh button */}
             <button
               onClick={fetchLive}
               disabled={loading}
               title="Refresh"
               className="ml-auto p-2.5 rounded-full transition disabled:opacity-40"
-              style={{
-                background: "rgba(255,255,255,0.07)",
-                border: "1px solid rgba(255,255,255,0.12)",
-                color: "rgba(255,255,255,0.55)",
-              }}
+              style={{ background: "#f5f5f5", color: "#555", border: "1px solid #e0e0e0" }}
             >
               <svg className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
                 fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -359,10 +336,10 @@ export default function LiveAstrologersPage() {
 
           {/* Error */}
           {error && (
-            <div className="mb-6 flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-red-300"
-              style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)" }}>
+            <div className="mb-6 flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-red-600"
+              style={{ background: "#fef2f2", border: "1px solid #fca5a5" }}>
               ⚠️ {error}
-              <button onClick={fetchLive} className="ml-auto text-red-300 hover:text-red-200 font-semibold text-xs underline">
+              <button onClick={fetchLive} className="ml-auto text-red-500 hover:text-red-700 font-semibold text-xs underline">
                 Retry
               </button>
             </div>
