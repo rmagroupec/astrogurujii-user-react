@@ -36,6 +36,10 @@ import NotFoundPage from "./pages/Notfoundpage"; // ✅ 404 page
 import PaymentScreen from "./components/v2/Reports/Astropaymentscreen";
 import RechargeStatusPage from "./components/v2/User Account/component/Rechargestatuspage";
 import LiveWatchScreen from "./pages/Livewatchscreen";
+import WhatsAppButton from "./components/v2/WhatsAppButton";
+import PromoPopup from "@/components/v2/PromoPopup";
+
+
 
 function App() {
   return (
@@ -75,7 +79,7 @@ function App() {
           <Route path="/recharge-success" element={<RechargeStatusPage status="success" />} />
           <Route path="/recharge-failed" element={<RechargeStatusPage status="failed" />} />
           <Route path="/recharge-pending" element={<RechargeStatusPage status="pending" />} />
-          <Route path="/live/:liveId"    element={<LiveWatchScreen />} />        // NEW
+          <Route path="/live/:liveId" element={<LiveWatchScreen />} />        // NEW
 
 
 
@@ -86,8 +90,11 @@ function App() {
 
         <ActiveCallBar />
         <ActiveChatBar />
+        <PromoPopup />
       </ChatProvider>
+      <WhatsAppButton />
     </AudioCallProvider>
+
   );
 }
 

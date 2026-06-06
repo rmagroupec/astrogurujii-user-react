@@ -1,12 +1,7 @@
 /**
- * LiveAstrologerPage.tsx  — fixed for actual API response
+ * LiveAstrologerPage.tsx
  * Route: /live-astrologer
- *
- * API: GET /user_api/listing_of_live_astrlogers  (bearer token)
- * Response fields (confirmed from real data):
- *   _id, title, is_live ("0"/"1"), channel_id, start_time, end_time,
- *   users (array), live_date, recurringDay, status
- *   astrologer_id: { _id, displayname, profile_img, name, number, email }
+ * Design updated to match home section card style — content unchanged.
  */
 
 import { useEffect, useState, useCallback } from "react";
@@ -19,7 +14,7 @@ import BreadcrumbHeader from "@/components/v2/BreadcrumbHeader";
 const API = "https://admin.astrogurujii.com";
 const authToken = () => localStorage.getItem("token") ?? "";
 
-// ─── Types (matching real API) ────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Astrologer {
   _id: string;
@@ -44,196 +39,57 @@ interface LiveItem {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const isLive = (item: LiveItem) => item.is_live === "1";
-const viewerCount = (item: LiveItem) => item.users?.length ?? 0;
-
-const astroName = (item: LiveItem) =>
-  item.astrologer_id?.displayname || item.astrologer_id?.name || "Astrologer";
-
-const astroImg = (item: LiveItem) => item.astrologer_id?.profile_img || "";
-
-const initials = (name: string) =>
-  name.split(" ").map((w) => w[0] ?? "").join("").slice(0, 2).toUpperCase();
-
-// Clean up messy/garbage titles (very long, repeated chars, etc.)
-const cleanTitle = (title: string) => {
+const isLive       = (item: LiveItem) => item.is_live === "1";
+const viewerCount  = (item: LiveItem) => item.users?.length ?? 0;
+const astroName    = (item: LiveItem) => item.astrologer_id?.displayname || item.astrologer_id?.name || "Astrologer";
+const astroImg     = (item: LiveItem) => item.astrologer_id?.profile_img || "";
+const initials     = (name: string)   => name.split(" ").map((w) => w[0] ?? "").join("").slice(0, 2).toUpperCase();
+const cleanTitle   = (title: string)  => {
   if (!title) return "Live Session";
-  const trimmed = title.trim();
-  // If title is longer than 60 chars, truncate cleanly
-  return trimmed.length > 60 ? trimmed.slice(0, 57) + "…" : trimmed;
+  const t = title.trim();
+  return t.length > 60 ? t.slice(0, 57) + "…" : t;
 };
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
-
-function CardSkeleton() {
-  return (
-    <div className="rounded-2xl overflow-hidden bg-white border border-gray-100 animate-pulse shadow-sm">
-      <div className="h-48 bg-gradient-to-br from-gray-200 to-gray-100" />
-      <div className="p-3 space-y-2">
-        <div className="h-3 bg-gray-200 rounded-full w-3/4" />
-        <div className="h-3 bg-gray-100 rounded-full w-1/2" />
-        <div className="h-8 bg-orange-50 rounded-xl mt-3" />
-      </div>
-    </div>
-  );
-}
-
-// ─── Live pulsing dot ─────────────────────────────────────────────────────────
+// ─── Pulsing dot ──────────────────────────────────────────────────────────────
 
 function LiveDot({ size = "sm" }: { size?: "sm" | "md" }) {
   const sz = size === "md" ? "h-2.5 w-2.5" : "h-2 w-2";
-  const inner = size === "md" ? "h-2.5 w-2.5" : "h-2 w-2";
   return (
     <span className="relative flex shrink-0" style={{ width: size === "md" ? 10 : 8, height: size === "md" ? 10 : 8 }}>
       <span className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75`} />
-      <span className={`relative inline-flex rounded-full ${inner} bg-red-500`} />
+      <span className={`relative inline-flex rounded-full ${sz} bg-red-500`} />
     </span>
   );
 }
 
-// ─── Single Card ──────────────────────────────────────────────────────────────
+// ─── Skeleton — dark glass style ──────────────────────────────────────────────
 
-function LiveCard({ item, onJoin }: { item: LiveItem; onJoin: (item: LiveItem) => void }) {
-  const live = isLive(item);
-  const name = astroName(item);
-  const img = astroImg(item);
-  const viewers = viewerCount(item);
-  const title = cleanTitle(item.title);
-  const [imgErr, setImgErr] = useState(false);
-
+function CardSkeleton() {
   return (
-    <div
-      onClick={() => live && onJoin(item)}
-      className={`group relative rounded-2xl overflow-hidden bg-white shadow-md border-2 transition-all duration-300
-        ${live
-          ? "border-[#C8960C] cursor-pointer hover:shadow-xl hover:-translate-y-1"
-          : "border-gray-100 cursor-default"}`}
-    >
-      {/* ── Image ── */}
-      <div className="relative h-[240px] overflow-hidden bg-gradient-to-br from-orange-50 to-amber-100">
-        {img && !imgErr ? (
-          <img
-            src={img} alt={name}
-            onError={() => setImgErr(true)}
-            className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white text-2xl font-bold shadow-lg select-none">
-              {initials(name)}
-            </div>
-          </div>
-        )}
-
-        {/* gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-
-        {/* LIVE / SCHEDULED badge */}
-        <div className={`absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold text-white shadow
-          ${live ? "bg-red-500" : "bg-amber-400"}`}>
-          {live ? <LiveDot /> : <span className="text-[10px]">🔔</span>}
-          {live ? "LIVE" : "SCHEDULED"}
-        </div>
-
-        {/* Viewer count */}
-        {live && viewers > 0 && (
-          <div className="absolute top-2.5 right-2.5 flex items-center gap-1 bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full">
-            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-              <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-            </svg>
-            <span className="text-white text-[11px] font-semibold">{viewers}</span>
-          </div>
-        )}
-
-        {/* Verified badge top-right (when no viewer count) */}
-        {!live && (
-          <div className="absolute top-2.5 right-2.5 bg-white/90 rounded-lg p-1 shadow-sm">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#FF6F00" stroke="#FF6F00" strokeWidth="1" />
-              <polyline points="9 12 11 14 15 10" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-            </svg>
-          </div>
-        )}
-
-        {/* Icon circle at bottom center */}
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-[#8B5E0A] flex items-center justify-center shadow-md border-2 border-white z-10">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" /><path d="M12 8v4l3 3" />
-          </svg>
-        </div>
-      </div>
-
-      {/* ── Info ── */}
-      <div className="pt-7 px-3 pb-3 text-center">
-        <h3 className="font-poppins text-[14px] font-bold text-gray-900 truncate">{name}</h3>
-        <p className="text-[12px] text-[#C8960C] font-semibold mt-0.5 truncate">{title}</p>
-
-        {/* Time row */}
-        {(item.start_time || item.live_date) && (
-          <div className="flex items-center justify-center gap-1 mt-1 text-gray-400 text-[11px]">
-            <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-            </svg>
-            <span>{item.start_time}{item.end_time ? ` – ${item.end_time}` : ""}</span>
-          </div>
-        )}
-
-        {/* Stars row */}
-        <div className="flex items-center justify-center gap-1 mt-2">
-          {[1, 2, 3, 4, 5].map(s => (
-            <svg key={s} width="11" height="11" viewBox="0 0 24 24" fill="#f59e0b">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-            </svg>
-          ))}
-          <span className="text-[11px] text-gray-500 ml-1">4.8</span>
-          <span className="text-gray-200 mx-1">|</span>
-          <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-          </svg>
-          <span className="text-[11px] text-gray-500">5 Yrs Exp.</span>
-        </div>
-
-        {/* CTA */}
-        <button
-          onClick={(e) => { e.stopPropagation(); live && onJoin(item); }}
-          disabled={!live}
-          className={`mt-3 w-full py-2 rounded-xl text-[13px] font-bold flex items-center justify-center gap-2 transition-all
-            ${live
-              ? "bg-red-600 hover:bg-red-700 text-white shadow-sm active:scale-[0.98]"
-              : "border-2 border-red-500 text-red-600 hover:bg-red-50 cursor-not-allowed"}`}
-        >
-          {live ? (
-            <>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-              Chat Now
-            </>
-          ) : (
-            <>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
-              Book Session
-            </>
-          )}
-        </button>
+    <div className="rounded-2xl overflow-hidden animate-pulse"
+      style={{ background: "linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%)", border: "1.5px solid rgba(255,255,255,0.08)" }}>
+      <div className="h-[200px] bg-white/5" />
+      <div className="px-4 pt-3 pb-4 space-y-2">
+        <div className="h-3 bg-white/10 rounded-full w-3/4" />
+        <div className="h-2.5 bg-white/5 rounded-full w-1/2" />
+        <div className="h-8 bg-white/5 rounded-xl mt-3" />
       </div>
     </div>
   );
 }
+
 // ─── Empty state ──────────────────────────────────────────────────────────────
 
 function EmptyState({ onRefresh }: { onRefresh: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center py-24 gap-5 text-center">
-      <div className="w-24 h-24 rounded-full bg-orange-50 flex items-center justify-center text-5xl select-none">📡</div>
-      <div>
-        <p className="text-xl font-bold text-gray-800">No Live Sessions Right Now</p>
-        <p className="text-gray-400 text-sm mt-1 max-w-xs mx-auto">
-          Astrologers go live regularly. Check back soon or refresh the page.
-        </p>
-      </div>
+    <div className="flex flex-col items-center justify-center py-24 text-center">
+      <div className="text-5xl mb-4">🌙</div>
+      <p className="text-white font-semibold text-lg mb-1">No sessions right now</p>
+      <p className="text-white/40 text-sm mb-6">Check back soon or refresh the page.</p>
       <button
         onClick={onRefresh}
-        className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-brand-orange text-white text-sm font-semibold hover:bg-orange-600 transition shadow-md shadow-orange-200"
+        className="flex items-center gap-2 px-6 py-2.5 rounded-full text-white text-sm font-semibold transition"
+        style={{ background: "linear-gradient(135deg,#FF6F00,#FF9800)", boxShadow: "0 4px 14px rgba(255,111,0,0.35)" }}
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
           <polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 .49-3.36" />
@@ -244,16 +100,139 @@ function EmptyState({ onRefresh }: { onRefresh: () => void }) {
   );
 }
 
+// ─── Card — same dark glass design as homepage ────────────────────────────────
+
+const ACCENTS = [
+  { from: "#FF6F00", to: "#FFB347", glow: "rgba(255,111,0,0.5)" },
+  { from: "#E91E8C", to: "#FF6B6B", glow: "rgba(233,30,140,0.4)" },
+  { from: "#7B2FF7", to: "#E040FB", glow: "rgba(123,47,247,0.4)" },
+  { from: "#00B4D8", to: "#0077B6", glow: "rgba(0,180,216,0.4)" },
+];
+
+function LiveCard({ item, onJoin, index }: { item: LiveItem; onJoin: (item: LiveItem) => void; index: number }) {
+  const live    = isLive(item);
+  const name    = astroName(item);
+  const img     = astroImg(item);
+  const viewers = viewerCount(item);
+  const title   = cleanTitle(item.title);
+  const [imgErr, setImgErr]   = useState(false);
+  const [hovered, setHovered] = useState(false);
+
+  const accent = ACCENTS[index % ACCENTS.length];
+
+  return (
+    <div
+      onClick={() => live && onJoin(item)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="relative"
+      style={{ cursor: live ? "pointer" : "default" }}
+    >
+      <div
+        className="relative overflow-hidden rounded-2xl transition-all duration-300"
+        style={{
+          background: "linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%)",
+          border: hovered && live
+            ? `1.5px solid ${accent.from}`
+            : "1.5px solid rgba(255,255,255,0.08)",
+          boxShadow: hovered && live
+            ? `0 20px 40px ${accent.glow}, 0 0 0 1px ${accent.from}22`
+            : "0 8px 24px rgba(0,0,0,0.35)",
+          transform: hovered && live ? "translateY(-6px) scale(1.02)" : "translateY(0) scale(1)",
+          opacity: !live ? 0.65 : 1,
+        }}
+      >
+        {/* Photo */}
+        <div className="relative h-[200px] overflow-hidden">
+          <div className="absolute inset-0 z-10"
+            style={{ background: "linear-gradient(to top, #1a1a2e 0%, transparent 55%)" }} />
+
+          {img && !imgErr ? (
+            <img
+              src={img} alt={name}
+              onError={() => setImgErr(true)}
+              className="w-full h-full object-cover transition-transform duration-500"
+              style={{ objectPosition: "center 10%", transform: hovered && live ? "scale(1.08)" : "scale(1)" }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-white text-3xl font-extrabold"
+              style={{ background: `linear-gradient(135deg,${accent.from},${accent.to})` }}>
+              {initials(name)}
+            </div>
+          )}
+
+          {/* LIVE / UPCOMING badge */}
+          <div
+            className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold text-white"
+            style={{
+              background: live ? "rgba(239,68,68,0.92)" : "rgba(245,158,11,0.92)",
+              backdropFilter: "blur(6px)",
+              boxShadow: live ? "0 2px 8px rgba(239,68,68,0.5)" : "0 2px 8px rgba(245,158,11,0.4)",
+              letterSpacing: "0.08em",
+            }}
+          >
+            {live ? <><LiveDot />LIVE</> : <><span>🔔</span>UPCOMING</>}
+          </div>
+
+          {/* Viewer count */}
+          {live && viewers > 0 && (
+            <div className="absolute top-3 right-3 z-20 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold text-white"
+              style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+              </svg>
+              {viewers}
+            </div>
+          )}
+
+          {/* Accent top stripe */}
+          <div className="absolute top-0 left-0 right-0 h-[3px] z-20"
+            style={{ background: `linear-gradient(90deg,${accent.from},${accent.to})` }} />
+        </div>
+
+        {/* Info */}
+        <div className="px-4 pt-3 pb-4">
+          <p className="font-poppins text-[14px] font-bold text-white leading-snug truncate">{name}</p>
+          <p className="font-poppins text-[11px] text-white/40 mt-0.5 truncate">{title}</p>
+
+          {!live && (
+            <p className="text-[11px] text-white/30 mt-1">
+              🕐 {item.start_time} – {item.end_time}
+            </p>
+          )}
+
+          {/* CTA button */}
+          <button
+            className="mt-3 w-full flex items-center justify-center gap-2 py-2 rounded-xl text-[12px] font-bold text-white transition-all duration-200"
+            style={{
+              background: live && hovered
+                ? `linear-gradient(135deg,${accent.from},${accent.to})`
+                : "rgba(255,255,255,0.08)",
+              border: live && hovered ? "none" : "1px solid rgba(255,255,255,0.12)",
+              boxShadow: live && hovered ? `0 4px 14px ${accent.glow}` : "none",
+            }}
+          >
+            {live ? (
+              <><svg width="10" height="10" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>Watch Now</>
+            ) : (
+              <><span>🔔</span>Set Reminder</>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function LiveAstrologersPage() {
   const navigate = useNavigate();
-  const [all, setAll] = useState<LiveItem[]>([]);
+  const [all, setAll]       = useState<LiveItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError]   = useState("");
   const [filter, setFilter] = useState<"all" | "live" | "upcoming">("all");
 
-  // ── Fetch ──────────────────────────────────────────────────────────────────
   const fetchLive = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -263,7 +242,6 @@ export default function LiveAstrologersPage() {
         { headers: { Authorization: `Bearer ${authToken()}` } }
       );
       if (res.data?.status && Array.isArray(res.data.data)) {
-        // Sort: live first, then by start_time
         const sorted = [...res.data.data].sort((a: LiveItem, b: LiveItem) => {
           if (isLive(a) && !isLive(b)) return -1;
           if (!isLive(a) && isLive(b)) return 1;
@@ -273,7 +251,7 @@ export default function LiveAstrologersPage() {
       } else {
         setAll([]);
       }
-    } catch (e) {
+    } catch {
       setError("Could not load live sessions. Please try again.");
     } finally {
       setLoading(false);
@@ -286,20 +264,14 @@ export default function LiveAstrologersPage() {
     return () => clearInterval(interval);
   }, [fetchLive]);
 
-  // ── Navigate to watch screen ───────────────────────────────────────────────
   const handleJoin = (item: LiveItem) => {
-    // Call join_live API (fire & forget — same as Flutter)
-    axios.post(
-      `${API}/user_api/join_live`,
-      { live_id: item._id },
-      { headers: { Authorization: `Bearer ${authToken()}` } }
-    ).catch(() => { });
-
+    axios.post(`${API}/user_api/join_live`, { live_id: item._id },
+      { headers: { Authorization: `Bearer ${authToken()}` } }).catch(() => {});
     navigate(`/live/${item._id}`, {
       state: {
         live_id: item._id,
         channel_id: item.channel_id,
-        channel_name: item.channel_id, // channel_id IS the Agora channel name
+        channel_name: item.channel_id,
         astro_id: item.astrologer_id?._id,
         astro_name: astroName(item),
         astro_image: astroImg(item),
@@ -312,17 +284,12 @@ export default function LiveAstrologersPage() {
     });
   };
 
-  // ── Derived lists ──────────────────────────────────────────────────────────
-  const liveItems = all.filter(isLive);
+  const liveItems     = all.filter(isLive);
   const upcomingItems = all.filter((i) => !isLive(i));
+  const displayed     = filter === "live" ? liveItems : filter === "upcoming" ? upcomingItems : all;
 
-  const displayed =
-    filter === "live" ? liveItems :
-      filter === "upcoming" ? upcomingItems : all;
-
-  // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#FFFDF9]">
+    <div className="min-h-screen" style={{ background: "#ffffff" }}>
       <Navbar />
 
       <BreadcrumbHeader
@@ -333,89 +300,92 @@ export default function LiveAstrologersPage() {
       />
 
       {/* Stats strip */}
-      <div className="bg-gradient-to-r from-orange-900 to-brand-orange">
+      <div style={{ background: "linear-gradient(160deg,#1a1a2e 0%,#0f3460 100%)" }}>
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-5 flex-wrap">
           <div className="flex items-center gap-2">
             <LiveDot size="md" />
-            <span className="text-white text-sm font-semibold">
-              {liveItems.length} Live Now
-            </span>
+            <span className="text-white text-sm font-semibold">{liveItems.length} Live Now</span>
           </div>
           {upcomingItems.length > 0 && (
-            <span className="text-white/70 text-sm">
-              {upcomingItems.length} Upcoming
-            </span>
+            <span className="text-white/50 text-sm">{upcomingItems.length} Upcoming</span>
           )}
-          <span className="text-white/40 text-xs ml-auto hidden sm:inline">
-            Auto-refreshes every 60s
-          </span>
+          <span className="text-white/30 text-xs ml-auto hidden sm:inline">Auto-refreshes every 60s</span>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      {/* Main content area — dark bg */}
+      <div style={{ background: "linear-gradient(180deg,#0d0d1a 0%,#111827 100%)", minHeight: "60vh" }}>
+        <div className="max-w-6xl mx-auto px-4 py-8">
 
-        {/* Filter tabs + refresh */}
-        <div className="flex items-center gap-2 mb-6 flex-wrap">
-          {(["all", "live", "upcoming"] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold transition-all whitespace-nowrap
-                ${filter === f
-                  ? "bg-brand-orange text-white shadow-md shadow-orange-200"
-                  : "bg-white border border-gray-200 text-gray-600 hover:border-orange-300"}`}
-            >
-              {f === "all" && `All (${all.length})`}
-              {f === "live" && `🔴 Live (${liveItems.length})`}
-              {f === "upcoming" && `🕐 Upcoming (${upcomingItems.length})`}
-            </button>
-          ))}
-
-          <button
-            onClick={fetchLive}
-            disabled={loading}
-            title="Refresh"
-            className="ml-auto p-2.5 rounded-full bg-white border border-gray-200 text-gray-500 hover:border-orange-300 hover:text-brand-orange transition disabled:opacity-40"
-          >
-            <svg className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 .49-3.36" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Error */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-red-700 text-sm flex items-center gap-3">
-            <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-            {error}
-            <button onClick={fetchLive} className="ml-auto underline text-red-600 font-semibold whitespace-nowrap">Retry</button>
-          </div>
-        )}
-
-        {/* Grid */}
-        {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {Array.from({ length: 8 }).map((_, i) => <CardSkeleton key={i} />)}
-          </div>
-        ) : displayed.length === 0 ? (
-          <EmptyState onRefresh={fetchLive} />
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {displayed.map((item) => (
-              <LiveCard key={item._id} item={item} onJoin={handleJoin} />
+          {/* Filter tabs + refresh */}
+          <div className="flex items-center gap-2 mb-6 flex-wrap">
+            {(["all", "live", "upcoming"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className="px-4 py-2 rounded-full text-sm font-semibold transition-all whitespace-nowrap"
+                style={{
+                  background: filter === f
+                    ? "linear-gradient(135deg,#FF6F00,#FF9800)"
+                    : "rgba(255,255,255,0.07)",
+                  color: filter === f ? "#fff" : "rgba(255,255,255,0.55)",
+                  border: filter === f ? "none" : "1px solid rgba(255,255,255,0.12)",
+                  boxShadow: filter === f ? "0 4px 14px rgba(255,111,0,0.35)" : "none",
+                }}
+              >
+                {f === "all"      && `All (${all.length})`}
+                {f === "live"     && `🔴 Live (${liveItems.length})`}
+                {f === "upcoming" && `🕐 Upcoming (${upcomingItems.length})`}
+              </button>
             ))}
-          </div>
-        )}
 
+            <button
+              onClick={fetchLive}
+              disabled={loading}
+              title="Refresh"
+              className="ml-auto p-2.5 rounded-full transition disabled:opacity-40"
+              style={{
+                background: "rgba(255,255,255,0.07)",
+                border: "1px solid rgba(255,255,255,0.12)",
+                color: "rgba(255,255,255,0.55)",
+              }}
+            >
+              <svg className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+                fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 .49-3.36" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="mb-6 flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-red-300"
+              style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)" }}>
+              ⚠️ {error}
+              <button onClick={fetchLive} className="ml-auto text-red-300 hover:text-red-200 font-semibold text-xs underline">
+                Retry
+              </button>
+            </div>
+          )}
+
+          {/* Grid */}
+          {loading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {[...Array(10)].map((_, i) => <CardSkeleton key={i} />)}
+            </div>
+          ) : displayed.length === 0 ? (
+            <EmptyState onRefresh={fetchLive} />
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {displayed.map((item, i) => (
+                <LiveCard key={item._id} item={item} onJoin={handleJoin} index={i} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <Footer />
-
-      <style>{`
-        @keyframes ping { 75%,100%{ transform:scale(2.2); opacity:0; } }
-      `}</style>
     </div>
   );
 }

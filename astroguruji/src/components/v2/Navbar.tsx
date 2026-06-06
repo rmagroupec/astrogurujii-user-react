@@ -4,7 +4,7 @@ import LoginModal from "./UserLoginModal";
 import LanguageModal from "./LanguageModal";
 import { useNavigate } from "react-router-dom";
 
-// ── Route map — label → path ──────────────────────────────────
+// ── Route map ─────────────────────────────────────────────────
 const NAV_ROUTES: Record<string, string> = {
   "Home": "/",
   "Horoscope": "/horoscope",
@@ -15,7 +15,7 @@ const NAV_ROUTES: Record<string, string> = {
   "Our Blog": "/our-blog",
 };
 
-// ── Icons per nav link ────────────────────────────────────────
+// ── Icons ─────────────────────────────────────────────────────
 const NAV_ICONS: Record<string, React.ReactNode> = {
   "Home": (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -54,21 +54,66 @@ const NAV_ICONS: Record<string, React.ReactNode> = {
   ),
 };
 
+// ── Reusable avatar component ─────────────────────────────────
+function UserAvatar({
+  profileImg,
+  initial,
+  size = "sm",
+}: {
+  profileImg: string;
+  initial: string;
+  size?: "sm" | "md";
+}) {
+  const dim = size === "md" ? "w-9 h-9 text-[15px]" : "h-8 w-8 text-sm";
+  if (profileImg) {
+    return (
+      <img
+        src={profileImg}
+        alt="Profile"
+        className={`${dim} rounded-full object-cover flex-shrink-0 border-2 border-white shadow-sm`}
+        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+      />
+    );
+  }
+  return (
+    <div className={`${dim} rounded-full bg-brand-orange text-white flex items-center justify-center font-bold flex-shrink-0`}>
+      {initial}
+    </div>
+  );
+}
+
 export default function Navbar() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
-  const [showLang, setShowLang] = useState(false);
+  const [menuOpen, setMenuOpen]       = useState(false);
+  const [showLogin, setShowLogin]     = useState(false);
+  const [showLang, setShowLang]       = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  const isLoggedIn = typeof window !== "undefined" && !!localStorage.getItem("token");
-  const userName = typeof window !== "undefined" ? (localStorage.getItem("name") || "") : "";
-  const navigate = useNavigate();
+  // ── Reactive user state (updates on profile-updated event) ───
+  const [userName, setUserName]     = useState(() => localStorage.getItem("name") || "");
+  const [profileImg, setProfileImg] = useState(() => localStorage.getItem("profile_img") || "");
+
+  const isLoggedIn = !!localStorage.getItem("token");
+  const navigate   = useNavigate();
 
   const handleLogout = () => {
     localStorage.clear();
     window.location.reload();
   };
+
+  // Listen for profile updates from EditProfilePage
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail || {};
+      if (detail.profile_img !== undefined) setProfileImg(detail.profile_img);
+      if (detail.name !== undefined) setUserName(detail.name);
+      // Fallback: re-read localStorage
+      setProfileImg(localStorage.getItem("profile_img") || "");
+      setUserName(localStorage.getItem("name") || "");
+    };
+    window.addEventListener("profile-updated", handler as EventListener);
+    return () => window.removeEventListener("profile-updated", handler as EventListener);
+  }, []);
 
   // Open login from anywhere
   useEffect(() => {
@@ -101,15 +146,15 @@ export default function Navbar() {
     return () => { document.body.style.overflow = ""; };
   }, [menuOpen]);
 
-  const userInitial = userName ? userName.charAt(0).toUpperCase() : "U";
-  const allNavLinks = ["Home", ...NAV_LINKS];
+  const userInitial  = userName ? userName.charAt(0).toUpperCase() : "U";
+  const allNavLinks  = ["Home", ...NAV_LINKS];
 
   return (
     <>
       <nav className="w-full bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
         <div className="mx-auto flex max-w-[1440px] items-center justify-between px-4 py-2 md:px-6 lg:px-[94px] lg:py-3">
 
-          {/* ── Logo — UNCHANGED ──────────────────────────── */}
+          {/* Logo */}
           <a href="/" className="flex items-center flex-shrink-0" aria-label="Astrogurujii Home">
             <img
               src="https://admin.astrogurujii.com/logo/logo2.png"
@@ -119,7 +164,7 @@ export default function Navbar() {
             />
           </a>
 
-          {/* ── Desktop nav links ──────────────────────────── */}
+          {/* Desktop nav links */}
           <ul className="hidden lg:flex items-center gap-5 xl:gap-7 flex-1 justify-center">
             {allNavLinks.map((link) => (
               <li key={link}>
@@ -133,7 +178,7 @@ export default function Navbar() {
             ))}
           </ul>
 
-          {/* ── Right actions ──────────────────────────────── */}
+          {/* Right actions */}
           <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
 
             {/* Translate */}
@@ -142,16 +187,11 @@ export default function Navbar() {
               aria-label="Change language"
               className="hidden sm:flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors"
             >
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="#4285F4"
-              >
+              <svg width="22" height="22" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#4285F4">
                 <path d="M22.401 4.818h-9.927L10.927 0H1.599C.72 0 .002.719.002 1.599v16.275c0 .878.72 1.597 1.597 1.597h10L13.072 24H22.4c.878 0 1.597-.707 1.597-1.572V6.39c0-.865-.72-1.572-1.597-1.572zM6.741 13.498c-2.07 0-3.75-1.68-3.75-3.75 0-2.07 1.68-3.75 3.75-3.75 1.012 0 1.86.375 2.512.976l-.99.952a2.194 2.194 0 0 0-1.522-.584c-1.305 0-2.363 1.08-2.363 2.409s1.058 2.409 2.363 2.409c1.507 0 2.13-1.08 2.19-1.808l-2.188-.002V9.066h3.51c.05.23.09.457.09.764 0 2.147-1.434 3.669-3.602 3.669zm15.417 7.93c0 .59-.492 1.072-1.097 1.072h-8.875l3.649-4.03-.74-2.302s.568-.488 1.277-1.24c.712.771 1.63 1.699 2.818 2.805l.771-.772c-1.272-1.154-2.204-2.07-2.89-2.805.919-1.087 1.852-2.455 2.049-3.707h2.034v-.94h-4.532v-1.52h-1.471v1.52H14.3l-1.672-5.21h9.433c.605 0 1.097.48 1.097 1.072v16.057z" />
               </svg>
             </button>
+
             {/* Notification bell */}
             <button
               aria-label="Notifications"
@@ -163,7 +203,7 @@ export default function Navbar() {
               </svg>
             </button>
 
-            {/* User */}
+            {/* User button */}
             {isLoggedIn ? (
               <div className="relative" ref={userMenuRef}>
                 <button
@@ -172,9 +212,8 @@ export default function Navbar() {
                   aria-label="User menu"
                   aria-expanded={userMenuOpen}
                 >
-                  <div className="h-8 w-8 rounded-full bg-brand-orange text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
-                    {userInitial}
-                  </div>
+                  {/* ✅ Shows profile photo if available, else initial */}
+                  <UserAvatar profileImg={profileImg} initial={userInitial} size="sm" />
                   <span className="hidden md:block font-poppins text-[12px] font-medium text-gray-800 max-w-[80px] truncate pr-1">
                     {userName || "User"}
                   </span>
@@ -182,9 +221,13 @@ export default function Navbar() {
 
                 {userMenuOpen && (
                   <div className="absolute right-0 mt-2 w-[210px] rounded-2xl border border-[#F0E8DF] bg-white shadow-xl overflow-hidden z-50">
-                    <div className="px-4 py-3 bg-[#FFF7F0] border-b border-[#F0E8DF]">
-                      <p className="font-poppins text-[13px] font-semibold text-gray-800 truncate">{userName || "User"}</p>
-                      <p className="font-poppins text-[11px] text-gray-500 truncate">{localStorage.getItem("email") || ""}</p>
+                    {/* Dropdown header with photo */}
+                    <div className="px-4 py-3 bg-[#FFF7F0] border-b border-[#F0E8DF] flex items-center gap-3">
+                      <UserAvatar profileImg={profileImg} initial={userInitial} size="md" />
+                      <div className="min-w-0">
+                        <p className="font-poppins text-[13px] font-semibold text-gray-800 truncate">{userName || "User"}</p>
+                        <p className="font-poppins text-[11px] text-gray-500 truncate">{localStorage.getItem("email") || ""}</p>
+                      </div>
                     </div>
                     <div className="flex flex-col py-1">
                       {[
@@ -238,25 +281,17 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* ══════════════════════════════════════════════════════
-          MOBILE DRAWER — slides in from left
-          Orange/white colour scheme, Astrotalk-style layout
-      ══════════════════════════════════════════════════════ */}
-
-      {/* Backdrop */}
+      {/* Mobile backdrop */}
       <div
-        className={`fixed inset-0 z-[60] bg-black/40 transition-opacity duration-300 lg:hidden ${menuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-          }`}
+        className={`fixed inset-0 z-[60] bg-black/40 transition-opacity duration-300 lg:hidden ${menuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
         onClick={() => setMenuOpen(false)}
       />
 
-      {/* Drawer panel */}
+      {/* Mobile drawer */}
       <div
-        className={`fixed top-0 left-0 z-[70] h-full w-[300px] bg-white shadow-2xl
-                    flex flex-col transition-transform duration-300 ease-in-out lg:hidden
-                    ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed top-0 left-0 z-[70] h-full w-[300px] bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out lg:hidden ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
-        {/* ── Drawer header — orange bg with logo ── */}
+        {/* Drawer header */}
         <div className="flex items-center justify-between px-5 py-4 bg-[#FFFFFF]">
           <a href="/" className="flex items-center flex-shrink-0" aria-label="Astrogurujii Home">
             <img
@@ -268,19 +303,18 @@ export default function Navbar() {
           </a>
           <button
             onClick={() => setMenuOpen(false)}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-orange-500 hover:bg-orange-600 transition-colors"          >
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-orange-500 hover:bg-orange-600 transition-colors"
+          >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        {/* ── User info strip (if logged in) ── */}
+        {/* ✅ Drawer user strip — shows profile photo */}
         {isLoggedIn && (
           <div className="flex items-center gap-3 px-5 py-3 bg-[#FFF7F0] border-b border-[#FFE8D6]">
-            <div className="w-9 h-9 rounded-full bg-[#FF6F00] text-white flex items-center justify-center font-bold text-[15px] flex-shrink-0">
-              {userInitial}
-            </div>
+            <UserAvatar profileImg={profileImg} initial={userInitial} size="md" />
             <div className="min-w-0">
               <p className="font-poppins text-[13px] font-semibold text-gray-800 truncate">{userName}</p>
               <p className="font-poppins text-[11px] text-gray-500 truncate">{localStorage.getItem("email") || ""}</p>
@@ -288,15 +322,14 @@ export default function Navbar() {
           </div>
         )}
 
-        {/* ── Nav links ── */}
+        {/* Nav links */}
         <nav className="flex-1 overflow-y-auto py-2">
           <ul className="flex flex-col">
             {allNavLinks.map((link, i) => (
               <li key={link}>
                 <a
                   href={NAV_ROUTES[link] ?? `/${link.toLowerCase().replace(/\s+/g, "-")}`}
-                  className="flex items-center gap-4 px-5 py-3.5 font-poppins text-[14px] font-medium text-gray-800
-                             hover:bg-[#FFF7F0] hover:text-[#FF6F00] transition-colors group"
+                  className="flex items-center gap-4 px-5 py-3.5 font-poppins text-[14px] font-medium text-gray-800 hover:bg-[#FFF7F0] hover:text-[#FF6F00] transition-colors group"
                   onClick={() => setMenuOpen(false)}
                 >
                   <span className="text-gray-400 group-hover:text-[#FF6F00] transition-colors flex-shrink-0">
@@ -307,21 +340,18 @@ export default function Navbar() {
                     <path d="M9 18l6-6-6-6" />
                   </svg>
                 </a>
-                {i < allNavLinks.length - 1 && (
-                  <div className="mx-5 h-px bg-gray-100" />
-                )}
+                {i < allNavLinks.length - 1 && <div className="mx-5 h-px bg-gray-100" />}
               </li>
             ))}
           </ul>
         </nav>
 
-        {/* ── Bottom actions ── */}
+        {/* Bottom actions */}
         <div className="border-t border-gray-100 px-5 py-4 space-y-3">
           <div className="flex gap-3">
             <button
               onClick={() => { setShowLang(true); setMenuOpen(false); }}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 py-2.5
-                         font-poppins text-[12px] font-medium text-gray-600 hover:border-[#FF6F00] hover:text-[#FF6F00] transition-colors"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 py-2.5 font-poppins text-[12px] font-medium text-gray-600 hover:border-[#FF6F00] hover:text-[#FF6F00] transition-colors"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
@@ -330,8 +360,7 @@ export default function Navbar() {
             </button>
             <button
               onClick={() => { navigate("/notify_list"); setMenuOpen(false); }}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 py-2.5
-                         font-poppins text-[12px] font-medium text-gray-600 hover:border-[#FF6F00] hover:text-[#FF6F00] transition-colors"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 py-2.5 font-poppins text-[12px] font-medium text-gray-600 hover:border-[#FF6F00] hover:text-[#FF6F00] transition-colors"
             >
               <svg width="15" height="17" viewBox="0 0 17 20" fill="none">
                 <path d="M8.5 20c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6.5-6V8.5C15 5.43 13.36 2.86 10.5 2.18V1.5C10.5.67 9.83 0 9 0h-1C7.17 0 6.5.67 6.5 1.5v.68C3.63 2.86 2 5.42 2 8.5V14l-2 2v1h17v-1l-2-2z" fill="currentColor" />
@@ -343,16 +372,14 @@ export default function Navbar() {
           {isLoggedIn ? (
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-red-50 border border-red-100
-                         py-2.5 font-poppins text-[13px] font-semibold text-red-500 hover:bg-red-100 transition-colors"
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-red-50 border border-red-100 py-2.5 font-poppins text-[13px] font-semibold text-red-500 hover:bg-red-100 transition-colors"
             >
               <span>🚪</span> Logout
             </button>
           ) : (
             <button
               onClick={() => { setShowLogin(true); setMenuOpen(false); }}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#FF6F00]
-                         py-2.5 font-poppins text-[13px] font-semibold text-white hover:bg-orange-600 transition-colors"
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#FF6F00] py-2.5 font-poppins text-[13px] font-semibold text-white hover:bg-orange-600 transition-colors"
             >
               Login / Sign Up
             </button>

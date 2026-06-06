@@ -64,6 +64,11 @@ export default function ConsultantCardNew({
           <div className="absolute left-[9px] top-[9px] z-10 rounded-[5px] bg-brand-red px-3 py-1 font-poppins text-[10px] font-semibold uppercase text-white">Offline</div>
         ))}
 
+      {/* Discount badge */}
+      {hasDiscount && (
+        <div className="absolute right-[9px] top-[9px] z-10 rounded-[5px] bg-[#FF6F00] px-2 py-1 font-poppins text-[9px] font-bold text-white">{discountPct}% OFF</div>
+      )}
+
       {/* Avatar */}
       <div className="absolute -top-[45px] sm:-top-[63px] left-1/2 -translate-x-1/2">
         <div className="relative">
@@ -72,7 +77,7 @@ export default function ConsultantCardNew({
             alt={consultant.name}
             className="h-[90px] w-[90px] sm:h-[126px] sm:w-[126px] rounded-full border border-[#DADADA] bg-gray-300 object-cover shadow-[0_4px_4px_0_rgba(0,0,0,0.05)] transition-colors group-hover:border-brand-amber"
           />
-          {/* ✅ Follow badge with state */}
+          {/* Follow badge */}
           <button
             onClick={handleFollow}
             disabled={followLoading}
@@ -87,28 +92,22 @@ export default function ConsultantCardNew({
 
       {/* Info */}
       <div className="px-[10px] sm:px-[14px] pb-2 pt-[55px] sm:pt-[80px] text-center">
-        <div className="flex items-center justify-center gap-2">
-          <span className="font-poppins text-[12px] font-semibold text-brand-green">₹{displayPrice}/Min</span>
-          {originalPrice !== null && (
-            <span className="font-poppins text-[10px] font-semibold text-text-disabled line-through">₹{originalPrice}/Min</span>
-          )}
-          {hasDiscount && (
-            <div className="absolute right-[9px] top-[9px] z-10 rounded-[5px] bg-[#FF6F00] px-2 py-1 font-poppins text-[9px] font-bold text-white">{discountPct}% OFF</div>
-          )}
+
+        {/* Experience only (replaces INR price) */}
+        <div className="flex items-center justify-center gap-1">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+            <g clipPath="url(#starExp)">
+              <path d="M11.3554 4.30853C11.2808 4.08105 11.0764 3.91948 10.8344 3.89797L7.54841 3.60355L6.24902 0.602537C6.15321 0.382601 5.93501 0.240234 5.69257 0.240234C5.45014 0.240234 5.23194 0.382601 5.13613 0.603051L3.83674 3.60355L0.55019 3.89797C0.30871 3.92 0.104756 4.08105 0.0297926 4.30853C-0.0451703 4.536 0.0240596 4.78551 0.206733 4.94279L2.69058 7.09226L1.95815 10.2758C1.90456 10.5099 1.99663 10.7519 2.19347 10.8923C2.29927 10.9677 2.42305 11.0061 2.54787 11.0061C2.65549 11.0061 2.76225 10.9775 2.85806 10.9209L5.69257 9.24928L8.52605 10.9209C8.73339 11.044 8.99476 11.0328 9.19116 10.8923C9.38808 10.7515 9.48007 10.5094 9.42647 10.2758L8.69404 7.09226L11.1779 4.94322C11.3606 4.78551 11.4303 4.53643 11.3554 4.30853Z" fill="#FF6F00"/>
+            </g>
+            <defs><clipPath id="starExp"><rect width="11.385" height="11.2341" fill="white"/></clipPath></defs>
+          </svg>
+          <span className="font-poppins text-[12px] font-semibold text-brand-green">{experienceLabel} Experience</span>
         </div>
 
         <h3 className="mt-2 font-euclid text-[16px] sm:text-[20px] font-bold text-black">{consultant.name}</h3>
         <p className="mt-1 font-euclid text-[10px] text-text-subtle">{specialty}</p>
 
-        <div className="mx-auto mt-2 flex items-center justify-center gap-1 border-y border-gray-200 py-[6px]">
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-            <g clipPath="url(#loc)">
-              <path d="M4.6572 0C2.73132 0 1.16406 1.5572 1.16406 3.47171C1.16406 6.19202 4.32884 9.0008 4.46352 9.11875C4.51903 9.16739 4.58811 9.19152 4.6572 9.19152C4.72628 9.19152 4.79537 9.16739 4.85087 9.11914C4.98555 9.0008 8.15033 6.19202 8.15033 3.47171C8.15033 1.5572 6.58308 0 4.6572 0ZM4.6572 5.36172C3.58713 5.36172 2.71657 4.5027 2.71657 3.44682C2.71657 2.39094 3.58713 1.53192 4.6572 1.53192C5.72726 1.53192 6.59783 2.39094 6.59783 3.44682C6.59783 4.5027 5.72726 5.36172 4.6572 5.36172Z" fill="black"/>
-            </g>
-            <defs><clipPath id="loc"><rect width="9.31503" height="9.19152" fill="white"/></clipPath></defs>
-          </svg>
-          <span className="font-euclid text-[11px] text-black">{location}</span>
-        </div>
+        <div className="border-y border-gray-200 my-2" />
       </div>
 
       {/* Action buttons */}

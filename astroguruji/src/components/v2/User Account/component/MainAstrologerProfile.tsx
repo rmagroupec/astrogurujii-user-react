@@ -44,7 +44,7 @@ const StarIcon = ({ size = 14, color = "#F59E0B" }: { size?: number; color?: str
 
 const HeartIcon = ({ filled }: { filled: boolean }) => (
   <svg width="16" height="16" viewBox="0 0 24 24"
-    fill={filled ? "#ef4444" : "none"}
+    fill={filled ? "#e0c920" : "none"}
     stroke={filled ? "#ef4444" : "#94a3b8"}
     strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -282,17 +282,10 @@ function AstrologerCard({
         </div>
 
         {/* ── Price ───────────────────────────────────────────────────────── */}
-        {displayRate > 0 && (
-          <div className="flex flex-col items-center mb-1">
-            {originalRate !== null && (
-              <span className="text-[13px] font-semibold text-[#FF6F00] line-through leading-tight">
-                ₹{originalRate}/Min
-              </span>
-            )}
-            <p className="font-bold text-[20px] m-0 leading-tight" style={{ color: "#16a34a", fontFamily: "'Outfit',sans-serif" }}>
-              ₹{displayRate}
-              <span className="text-[13px] font-semibold text-gray-400 ml-1">/Min</span>
-            </p>
+        {experience && (
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <StarIcon size={12} color="#FF6F00" />
+            <span className="text-[13px] font-semibold text-[#16a34a]">{experience} Experience</span>
           </div>
         )}
 
@@ -320,7 +313,7 @@ function AstrologerCard({
         </div>
 
         {/* ── Name ────────────────────────────────────────────────────────── */}
-        <h3 className="text-center text-[21px] font-extrabold text-gray-900 leading-tight mb-1" style={{ fontFamily: "'Outfit',sans-serif" }}>
+        <h3 className="text-center text-[17px] font-extrabold text-gray-900 leading-tight mb-1" style={{ fontFamily: "'Outfit',sans-serif" }}>
           {a.name}
         </h3>
 
@@ -342,12 +335,12 @@ function AstrologerCard({
         <div className="h-px w-full mb-3" style={{ background: "linear-gradient(90deg,transparent,#f0e6d3,transparent)" }} />
 
         {/* ── Location ────────────────────────────────────────────────────── */}
-        {location && (
+        {/* {location && (
           <div className="flex items-center justify-center gap-1.5 text-gray-400 text-[12px] mb-3">
             <LocationIcon />
             <span className="font-medium">{location}</span>
           </div>
-        )}
+        )} */}
 
         {/* ── About ───────────────────────────────────────────────────────── */}
         {a.about && (
