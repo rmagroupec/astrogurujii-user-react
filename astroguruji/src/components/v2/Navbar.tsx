@@ -2,7 +2,7 @@ import { NAV_LINKS } from "@/data/home";
 import { useState, useEffect, useRef } from "react";
 import LoginModal from "./UserLoginModal";
 import LanguageModal from "./LanguageModal";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 // ── Route map ─────────────────────────────────────────────────
 const NAV_ROUTES: Record<string, string> = {
@@ -83,18 +83,19 @@ function UserAvatar({
 }
 
 export default function Navbar() {
-  const [menuOpen, setMenuOpen]       = useState(false);
-  const [showLogin, setShowLogin]     = useState(false);
-  const [showLang, setShowLang]       = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [showLang, setShowLang] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   // ── Reactive user state (updates on profile-updated event) ───
-  const [userName, setUserName]     = useState(() => localStorage.getItem("name") || "");
+  const [userName, setUserName] = useState(() => localStorage.getItem("name") || "");
   const [profileImg, setProfileImg] = useState(() => localStorage.getItem("profile_img") || "");
 
   const isLoggedIn = !!localStorage.getItem("token");
-  const navigate   = useNavigate();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     localStorage.clear();
@@ -146,8 +147,8 @@ export default function Navbar() {
     return () => { document.body.style.overflow = ""; };
   }, [menuOpen]);
 
-  const userInitial  = userName ? userName.charAt(0).toUpperCase() : "U";
-  const allNavLinks  = ["Home", ...NAV_LINKS];
+  const userInitial = userName ? userName.charAt(0).toUpperCase() : "U";
+  const allNavLinks = ["Home", ...NAV_LINKS];
 
   return (
     <>
@@ -170,7 +171,11 @@ export default function Navbar() {
               <li key={link}>
                 <a
                   href={NAV_ROUTES[link] ?? `/${link.toLowerCase().replace(/\s+/g, "-")}`}
-                  className="font-poppins text-[13px] xl:text-[14px] font-medium text-gray-800 transition-colors hover:text-brand-orange whitespace-nowrap"
+                  className={`font-poppins text-[13px] xl:text-[14px] font-medium transition-colors whitespace-nowrap relative
+    ${location.pathname === (NAV_ROUTES[link] ?? `/${link.toLowerCase().replace(/\s+/g, "-")}`)
+                      ? "text-brand-orange after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-[2px] after:bg-brand-orange after:rounded-full"
+                      : "text-gray-800 hover:text-brand-orange"
+                    }`}
                 >
                   {link}
                 </a>
@@ -329,14 +334,22 @@ export default function Navbar() {
               <li key={link}>
                 <a
                   href={NAV_ROUTES[link] ?? `/${link.toLowerCase().replace(/\s+/g, "-")}`}
-                  className="flex items-center gap-4 px-5 py-3.5 font-poppins text-[14px] font-medium text-gray-800 hover:bg-[#FFF7F0] hover:text-[#FF6F00] transition-colors group"
+                  className={`flex items-center gap-4 px-5 py-3.5 font-poppins text-[14px] font-medium transition-colors group
+    ${location.pathname === (NAV_ROUTES[link] ?? `/${link.toLowerCase().replace(/\s+/g, "-")}`)
+                      ? "bg-[#FFF7F0] text-[#FF6F00] border-l-4 border-[#FF6F00]"
+                      : "text-gray-800 hover:bg-[#FFF7F0] hover:text-[#FF6F00]"
+                    }`}
                   onClick={() => setMenuOpen(false)}
                 >
-                  <span className="text-gray-400 group-hover:text-[#FF6F00] transition-colors flex-shrink-0">
+                  <span className={`transition-colors flex-shrink-0 ${location.pathname === (NAV_ROUTES[link] ?? `/${link.toLowerCase().replace(/\s+/g, "-")}`)
+                      ? "text-[#FF6F00]" : "text-gray-400 group-hover:text-[#FF6F00]"
+                    }`}>
                     {NAV_ICONS[link]}
                   </span>
                   <span className="flex-1">{link}</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-gray-300 group-hover:text-[#FF6F00]">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
+                    className={location.pathname === (NAV_ROUTES[link] ?? `/${link.toLowerCase().replace(/\s+/g, "-")}`)
+                      ? "text-[#FF6F00]" : "text-gray-300 group-hover:text-[#FF6F00]"}>
                     <path d="M9 18l6-6-6-6" />
                   </svg>
                 </a>

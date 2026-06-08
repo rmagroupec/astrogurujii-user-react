@@ -12,23 +12,31 @@ import EmptyState from "@/components/v2/common/EmptyState";
 
 const API_BASE_URL = "https://admin.astrogurujii.com";
 
-export default function ConsultantListing() {
-  const [consultants, setConsultants] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("");   // "" = All | category.id
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortValue, setSortValue] = useState("");
-
-  const sortedConsultants = [...consultants].sort((a, b) => {
+// ── Client-side sort helper ───────────────────────────────────────────────────
+function clientSort(data: any[], sortValue: string): any[] {
+  if (!sortValue) return data;
+  return [...data].sort((a, b) => {
     switch (sortValue) {
-      case "low_to_high": return (parseFloat(a.per_min_chat) || 0) - (parseFloat(b.per_min_chat) || 0);
-      case "high_to_low": return (parseFloat(b.per_min_chat) || 0) - (parseFloat(a.per_min_chat) || 0);
-      case "experience": return (parseFloat(b.experience) || 0) - (parseFloat(a.experience) || 0);
-      case "rating": return (parseFloat(b.avg_rate) || 0) - (parseFloat(a.avg_rate) || 0);  // ✅ also fix: was b.rating (count) not avg_rate
-      case "orders": return (parseInt(b.consult) || 0) - (parseInt(a.consult) || 0);
+      case "low_to_high": return (parseFloat(a.per_min_chat)  || 0) - (parseFloat(b.per_min_chat)  || 0);
+      case "high_to_low": return (parseFloat(b.per_min_chat)  || 0) - (parseFloat(a.per_min_chat)  || 0);
+      case "experience":  return (parseFloat(b.experience)    || 0) - (parseFloat(a.experience)    || 0);
+      case "rating":      return (parseFloat(b.avg_rate)      || 0) - (parseFloat(a.avg_rate)      || 0);
+      case "orders":      return (parseInt(b.consult)         || 0) - (parseInt(a.consult)         || 0);
       default: return 0;
     }
   });
+}
+
+export default function ConsultantListing() {
+  const [consultants,  setConsultants]  = useState<any[]>([]);
+  const [isLoading,    setIsLoading]    = useState(true);
+  const [activeTab,    setActiveTab]    = useState("");
+  const [searchQuery,  setSearchQuery]  = useState("");
+  const [sortValue,    setSortValue]    = useState("");
+
+  // ── Client-side sort applied on top of API results ────────────────────────
+  const sortedConsultants = clientSort(consultants, sortValue);
+
   const fetchAstrologers = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -36,26 +44,24 @@ export default function ConsultantListing() {
       const res = await axios.post(
         `${API_BASE_URL}/user_api/astrologer_list`,
         {
-          search: searchQuery,
-          page: "",
-          is_chat: "on",
-          followAstro: "",
+          search:        searchQuery,
+          page:          "",
+          is_chat:       "on",
+          followAstro:   "",
           is_voice_call: "",
           is_video_call: "",
-          cat_id: activeTab,   // category.id from API (or "" for All)
-          language_id: "",
-          gender: "",
-          sort_val: sortValue,
-          skill_id: "",
-          country: "INR",
-          report_id: "",
-          expert_astro: "",
+          cat_id:        activeTab,
+          language_id:   "",
+          gender:        "",
+          sort_val:      sortValue,
+          skill_id:      "",
+          country:       "INR",
+          report_id:     "",
+          expert_astro:  "",
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("API payload:", { cat_id: activeTab, sort_val: sortValue, search: searchQuery });
-      console.log("API response:", res.data);
       const results = res.data?.status ? (res.data.results ?? []) : [];
       setConsultants(results);
     } catch {
@@ -100,7 +106,9 @@ export default function ConsultantListing() {
             callType="chat"
             onFollowToggle={(id, followed) =>
               setConsultants((prev) =>
-                prev.map((c) => (String(c.id) === id ? { ...c, is_Follow: followed ? "yes" : "no" } : c))
+                prev.map((c) =>
+                  String(c.id) === id ? { ...c, is_Follow: followed ? "yes" : "no" } : c
+                )
               )
             }
           />
@@ -109,7 +117,11 @@ export default function ConsultantListing() {
 
       <TalkToAstrologerSection />
       <Faq
-        title={<h2 className="font-inter text-[22px] md:text-[30px] font-bold text-black uppercase">Frequently Asked Questions</h2>}
+        title={
+          <h2 className="font-inter text-[22px] md:text-[30px] font-bold text-black uppercase">
+            Frequently Asked Questions
+          </h2>
+        }
         showTabs={false}
       />
       <Footer />

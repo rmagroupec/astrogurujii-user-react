@@ -155,13 +155,61 @@ const StarIcon = ({ filled }: { filled: boolean }) => (
 
 // ─── Audio player ─────────────────────────────────────────────────────────────
 
+// Update the fmt function and add a loaded state:
+
 function AudioPlayer({ src }: { src: string }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
 
-  const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+  const fmt = (s: number) =>
+    isNaN(s) || !isFinite(s) || s <= 0
+      ? "0:00"
+      : `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+
+  // ← THE REAL FIX: seek to end to force browser to calculate duration
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const tryGetDuration = () => {
+      if (isFinite(audio.duration) && audio.duration > 0) {
+        setDuration(audio.duration);
+        return;
+      }
+      // Seek to a huge number — browser will clamp to actual end
+      // and fire "durationchange" with real value
+      audio.currentTime = 1e101;
+    };
+
+    const onDurationChange = () => {
+      if (isFinite(audio.duration) && audio.duration > 0) {
+        setDuration(audio.duration);
+        audio.currentTime = 0; // reset back to start
+      }
+    };
+
+    const onSeeked = () => {
+      if (isFinite(audio.duration) && audio.duration > 0) {
+        setDuration(audio.duration);
+        audio.currentTime = 0; // reset back to start
+      }
+    };
+
+    audio.addEventListener("durationchange", onDurationChange);
+    audio.addEventListener("seeked", onSeeked);
+    audio.addEventListener("loadedmetadata", tryGetDuration);
+
+    if (audio.readyState >= 1) tryGetDuration();
+
+    return () => {
+      audio.removeEventListener("durationchange", onDurationChange);
+      audio.removeEventListener("seeked", onSeeked);
+      audio.removeEventListener("loadedmetadata", tryGetDuration);
+    };
+  }, [src]);
 
   const toggle = () => {
     if (!audioRef.current) return;
@@ -174,12 +222,21 @@ function AudioPlayer({ src }: { src: string }) {
       <audio
         ref={audioRef}
         src={src}
-        onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
+        preload="metadata"
         onTimeUpdate={() => {
           const a = audioRef.current;
-          if (a) setProgress((a.currentTime / (a.duration || 1)) * 100);
+          if (!a) return;
+          setCurrentTime(a.currentTime);
+          if (isFinite(a.duration) && a.duration > 0) {
+            if (duration === 0) setDuration(a.duration);
+            setProgress((a.currentTime / a.duration) * 100);
+          }
         }}
-        onEnded={() => { setIsPlaying(false); setProgress(0); }}
+        onEnded={() => {
+          setIsPlaying(false);
+          setProgress(0);
+          setCurrentTime(0);
+        }}
       />
       <button
         onClick={toggle}
@@ -207,12 +264,13 @@ function AudioPlayer({ src }: { src: string }) {
         >
           <div className="h-full bg-white rounded-full transition-all" style={{ width: `${progress}%` }} />
         </div>
-        <span className="text-[10px] text-white/70 mt-0.5 block">{fmt(duration)}</span>
+        <span className="text-[11px] font-bold mt-0.5 block" style={{ color: "#7B3000" }}>
+          {fmt(currentTime)} / {duration > 0 ? fmt(duration) : "--:--"}
+        </span>
       </div>
     </div>
   );
 }
-
 // ─── Dialogs ──────────────────────────────────────────────────────────────────
 
 function EndChatDialog({ onConfirm, onExplore }: { onConfirm: () => void; onExplore: () => void }) {
@@ -304,56 +362,56 @@ export default function ChatScreen() {
   // ── Resolve session data ───────────────────────────────────────────────────
   const stateRaw = (location.state || {}) as Partial<ActiveChatInfo & { gender: string }>;
 
-  const gid             = stateRaw.gid             || chatCtx.chatInfo?.gid             || "";
-  const fbchannelID     = stateRaw.fbchannelID     || chatCtx.chatInfo?.fbchannelID     || "";
-  const astrologer_id   = stateRaw.astrologer_id   || chatCtx.chatInfo?.astrologer_id   || "";
-  const astroName       = stateRaw.astroName       || chatCtx.chatInfo?.astroName       || "";
+  const gid = stateRaw.gid || chatCtx.chatInfo?.gid || "";
+  const fbchannelID = stateRaw.fbchannelID || chatCtx.chatInfo?.fbchannelID || "";
+  const astrologer_id = stateRaw.astrologer_id || chatCtx.chatInfo?.astrologer_id || "";
+  const astroName = stateRaw.astroName || chatCtx.chatInfo?.astroName || "";
   const astrologerImage = stateRaw.astrologerImage || chatCtx.chatInfo?.astrologerImage || "";
-  const wallet          = stateRaw.wallet          || chatCtx.chatInfo?.wallet          || "0";
-  const rate            = stateRaw.rate            || chatCtx.chatInfo?.rate            || "0";
-  const dob             = stateRaw.dob             || chatCtx.chatInfo?.dob             || "";
-  const tob             = stateRaw.tob             || chatCtx.chatInfo?.tob             || "";
-  const place           = stateRaw.place           || chatCtx.chatInfo?.place           || "";
-  const gender          = stateRaw.gender          || chatCtx.chatInfo?.gender          || "";
-  const userName        = stateRaw.name            || chatCtx.chatInfo?.name            || "";
+  const wallet = stateRaw.wallet || chatCtx.chatInfo?.wallet || "0";
+  const rate = stateRaw.rate || chatCtx.chatInfo?.rate || "0";
+  const dob = stateRaw.dob || chatCtx.chatInfo?.dob || "";
+  const tob = stateRaw.tob || chatCtx.chatInfo?.tob || "";
+  const place = stateRaw.place || chatCtx.chatInfo?.place || "";
+  const gender = stateRaw.gender || chatCtx.chatInfo?.gender || "";
+  const userName = stateRaw.name || chatCtx.chatInfo?.name || "";
 
-  const userId          = localStorage.getItem("id")    || "";
-  const userDisplayName = localStorage.getItem("name")  || userName || "";
-  const token           = localStorage.getItem("token") || "";
+  const userId = localStorage.getItem("id") || "";
+  const userDisplayName = localStorage.getItem("name") || userName || "";
+  const token = localStorage.getItem("token") || "";
 
   // ── State ──────────────────────────────────────────────────────────────────
-  const [messages, setMessages]                 = useState<(FirebaseMessage & { key: string })[]>([]);
-  const [inputText, setInputText]               = useState("");
-  const [isLoading, setIsLoading]               = useState(false);
-  const [isRecording, setIsRecording]           = useState(false);
+  const [messages, setMessages] = useState<(FirebaseMessage & { key: string })[]>([]);
+  const [inputText, setInputText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
-  const [showEndDialog, setShowEndDialog]       = useState(false);
+  const [showEndDialog, setShowEndDialog] = useState(false);
   const [showRatingDialog, setShowRatingDialog] = useState(false);
-  const [previewImage, setPreviewImage]         = useState<string | null>(null);
-  const [isEnding, setIsEnding]                 = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isEnding, setIsEnding] = useState(false);
 
   // ── Refs ───────────────────────────────────────────────────────────────────
-  const messagesEndRef    = useRef<HTMLDivElement>(null);
-  const fileInputRef      = useRef<HTMLInputElement>(null);
-  const statusPollRef     = useRef<ReturnType<typeof setInterval> | null>(null);
-  const mediaRecorderRef  = useRef<MediaRecorder | null>(null);
-  const audioChunksRef    = useRef<Blob[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const statusPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const dbRef             = useRef<DatabaseReference | null>(null);
-  const initialMsgSent    = useRef<boolean>(
+  const dbRef = useRef<DatabaseReference | null>(null);
+  const initialMsgSent = useRef<boolean>(
     !!gid && sessionStorage.getItem(`kundli_sent_${gid}`) === "1"
   );
   const isEndingRef = useRef(false);
-  const streamRef   = useRef<MediaStream | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
-  const formatTime    = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const formatTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
   const formatMsgTime = (ts: number) =>
     new Date(ts).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true });
 
   // ── Timer from global context ──────────────────────────────────────────────
-  const timeLeft       = chatCtx.chatTimeLeft;
+  const timeLeft = chatCtx.chatTimeLeft;
   const showLowBalance = timeLeft > 0 && timeLeft <= 5 * 60;
-  const showRecharge   = timeLeft > 0 && timeLeft <= 1 * 60;
+  const showRecharge = timeLeft > 0 && timeLeft <= 1 * 60;
 
   // ── Start / resume global timer ────────────────────────────────────────────
   useEffect(() => {
@@ -362,22 +420,22 @@ export default function ChatScreen() {
 
     const info: ActiveChatInfo = {
       gid,
-      fbchannelID:     fbchannelID     || "",
-      astrologer_id:   astrologer_id   || "",
-      astroName:       astroName       || "",
+      fbchannelID: fbchannelID || "",
+      astrologer_id: astrologer_id || "",
+      astroName: astroName || "",
       astrologerImage: astrologerImage || "",
-      rate:            rate            || "0",
-      wallet:          wallet          || "0",
-      name:            userName        || userDisplayName || "",
-      gender:          gender          || "",
-      dob:             dob             || "",
-      tob:             tob             || "",
-      place:           place           || "",
+      rate: rate || "0",
+      wallet: wallet || "0",
+      name: userName || userDisplayName || "",
+      gender: gender || "",
+      dob: dob || "",
+      tob: tob || "",
+      place: place || "",
     };
 
     // AFTER ✅
     const w = parseFloat(wallet || "0");
-    const r = parseFloat(rate   || "1");
+    const r = parseFloat(rate || "1");
     const initialSeconds = r > 0 ? Math.floor((w / r) * 60) : 0;
 
     chatCtx.startChatTimer(info, initialSeconds);
@@ -457,25 +515,25 @@ export default function ChatScreen() {
         return;
       }
 
-      const timestamp    = Date.now();
-      const senderPath   = `Group/${gid}/${userId}/${astrologer_id}`;
+      const timestamp = Date.now();
+      const senderPath = `Group/${gid}/${userId}/${astrologer_id}`;
       const receiverPath = `Group/${gid}/${astrologer_id}/${userId}`;
       const msgId = push(ref(db, senderPath)).key;
       if (!msgId) { showToast("Failed to generate message ID", "error"); return; }
 
       const msgBody: FirebaseMessage = {
-        name:       userDisplayName || userName || "User",
-        to:         astrologer_id,
-        from:       userId,
-        message:    content,
+        name: userDisplayName || userName || "User",
+        to: astrologer_id,
+        from: userId,
+        message: content,
         type,
         message_id: msgId,
-        date_time:  timestamp,
-        seen:       false,
+        date_time: timestamp,
+        seen: false,
       };
 
       try {
-        await set(ref(db, `${senderPath}/${msgId}`),   msgBody);
+        await set(ref(db, `${senderPath}/${msgId}`), msgBody);
         await set(ref(db, `${receiverPath}/${msgId}`), msgBody);
       } catch {
         showToast("Failed to send message. Check your connection.", "error");
@@ -486,8 +544,8 @@ export default function ChatScreen() {
 
   // ── CHANGE 5: Detect personal info (phone / email / website) ──────────────
   const containsPersonalInfo = (text: string): boolean => {
-    const phoneRegex   = /(\+?\d[\d\s\-().]{7,}\d)/g;
-    const emailRegex   = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
+    const phoneRegex = /(\+?\d[\d\s\-().]{7,}\d)/g;
+    const emailRegex = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
     const websiteRegex = /(https?:\/\/|www\.)[^\s]+/gi;
     return phoneRegex.test(text) || emailRegex.test(text) || websiteRegex.test(text);
   };
@@ -621,7 +679,7 @@ export default function ChatScreen() {
       if (data?.status !== true || !data?.results) {
         const fd2 = new FormData();
         fd2.append("image", file);
-        res  = await fetch(`${API_BASE}/user_api/upload_a_file`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd2 });
+        res = await fetch(`${API_BASE}/user_api/upload_a_file`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd2 });
         data = await res.json();
       }
 
@@ -638,16 +696,16 @@ export default function ChatScreen() {
     }
   };
   // Block browser back button — show end dialog instead
-useEffect(() => {
-  const onPop = (e: PopStateEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    const onPop = (e: PopStateEvent) => {
+      e.preventDefault();
+      window.history.pushState(null, "", window.location.href);
+      setShowEndDialog(true);
+    };
     window.history.pushState(null, "", window.location.href);
-    setShowEndDialog(true);
-  };
-  window.history.pushState(null, "", window.location.href);
-  window.addEventListener("popstate", onPop);
-  return () => window.removeEventListener("popstate", onPop);
-}, []);
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
 
   // ── End chat ───────────────────────────────────────────────────────────────
   const handleEndChat = async (confirmed = false) => {
@@ -703,7 +761,8 @@ useEffect(() => {
         />
       );
     }
-    if (msg.type === "audio") return <AudioPlayer src={msg.message} />;
+    if (msg.type === "audio")
+      return <AudioPlayer src={msg.message} />;
     return (
       <p className={`text-sm leading-relaxed font-medium whitespace-pre-wrap break-words ${isMe ? "text-white" : "text-gray-800"}`}>
         {msg.message}
@@ -721,16 +780,16 @@ useEffect(() => {
         <div className="flex items-center gap-2 px-3 py-2.5">
           {/* Astrologer info */}
           {/* ── Minimize / Back button ── */}
-<button
-  onClick={() => navigate(-1)}
-  className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors mr-1"
-  aria-label="Minimize chat"
-  title="Minimize — chat stays active"
->
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M15 18l-6-6 6-6" />
-  </svg>
-</button>
+          <button
+            onClick={() => navigate(-1)}
+            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors mr-1"
+            aria-label="Minimize chat"
+            title="Minimize — chat stays active"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <div className="relative flex-shrink-0">
               <img
@@ -748,7 +807,7 @@ useEffect(() => {
               <p className="text-sm font-bold text-gray-900 truncate">{astroName}</p>
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-[10px] text-green-500 font-semibold">● Live Chat</span>
-                <span className="text-[10px] text-gray-400">·</span>
+                <span className="text-[10px]" style={{ color: "#C05A00" }}>·</span>
                 <span className={`text-[11px] font-semibold ${showLowBalance ? "text-red-500" : "text-orange-500"}`}>
                   ⏱ {formatTime(timeLeft)}
                 </span>
@@ -763,10 +822,10 @@ useEffect(() => {
 
           {/* CHANGE 2: Wallet balance — larger font */}
           {/* Wallet balance — bordered pill */}
-<div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-orange-400 bg-orange-50 mr-1">
-  <WalletIcon />
-  <span className="text-[17px] font-extrabold text-orange-600 leading-none">₹{wallet}</span>
-</div>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-orange-400 bg-orange-50 mr-1">
+            <WalletIcon />
+            <span className="text-[17px] font-extrabold text-orange-600 leading-none">₹{wallet}</span>
+          </div>
 
           {/* CHANGE 3: END button — dark red */}
           <button
@@ -818,8 +877,7 @@ useEffect(() => {
                 <div className={`rounded-2xl px-4 py-2.5 shadow-sm ${isMe ? "bg-orange-500 rounded-br-sm" : "bg-white rounded-bl-sm border border-gray-100"}`}>
                   {renderContent(msg)}
                 </div>
-                <span className="text-[9px] text-gray-400 mt-1 px-1 flex items-center gap-1">
-                  {msg.date_time ? formatMsgTime(msg.date_time) : ""}
+                <span className="text-[9px] mt-1 px-1 flex items-center gap-1" style={{ color: "#C05A00" }}>                  {msg.date_time ? formatMsgTime(msg.date_time) : ""}
                   {isMe && (
                     <span className={msg.seen ? "text-blue-400" : "text-gray-300"}>
                       {msg.seen ? "✓✓" : "✓"}
@@ -915,11 +973,10 @@ useEffect(() => {
 
           <button
             onClick={isRecording ? stopRecording : startRecording}
-            className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white transition-all shadow-sm ${
-              isRecording
-                ? "bg-red-500 scale-110 animate-pulse"
-                : "bg-green-500 hover:bg-green-600 hover:scale-105"
-            }`}
+            className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white transition-all shadow-sm ${isRecording
+              ? "bg-red-500 scale-110 animate-pulse"
+              : "bg-green-500 hover:bg-green-600 hover:scale-105"
+              }`}
             title={isRecording ? "Tap to stop & send" : "Tap to record voice"}
           >
             {isRecording ? <StopIcon /> : <MicIcon />}
@@ -942,11 +999,11 @@ useEffect(() => {
 
       {/* Dialogs */}
       {showEndDialog && (
-  <EndChatDialog
-    onConfirm={() => { setShowEndDialog(false); handleEndChat(true); }}
-    onExplore={() => { setShowEndDialog(false); navigate("/", { replace: false }); }}
-  />
-)}
+        <EndChatDialog
+          onConfirm={() => { setShowEndDialog(false); handleEndChat(true); }}
+          onExplore={() => { setShowEndDialog(false); navigate("/", { replace: false }); }}
+        />
+      )}
       {showRatingDialog && <RatingDialog onSubmit={handleSubmitRating} />}
       {previewImage && (
         <div

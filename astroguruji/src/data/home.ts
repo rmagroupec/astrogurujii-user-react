@@ -166,33 +166,33 @@ export interface Testimonial {
 export const TESTIMONIALS: Testimonial[] = [
   {
     name: "Anshul Jangid",
-    text: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.",
+    text: "The consultation was incredibly insightful and helped me gain clarity about my career and personal life. The astrologer explained everything in detail and provided practical remedies that were easy to follow. I truly appreciate the professionalism and accuracy of the guidance provided.",
     date: "2024-01-15",
     avatar: "/images/v2/user-avatar-1.png",
   },
-  {
-    name: "Priya Sharma",
+{
+  name: "Priya Sharma",
     text: "Amazing experience with Astrogurujii! The astrologer was very knowledgeable and gave me accurate predictions about my career and personal life.",
-    date: "2024-02-10",
-    avatar: "/images/v2/user-avatar-2.png",
+      date: "2024-02-10",
+        avatar: "/images/v2/user-avatar-2.png",
   },
-  {
-    name: "Rahul Mehta",
+{
+  name: "Rahul Mehta",
     text: "I was skeptical at first but the reading was surprisingly accurate. Will definitely consult again for important life decisions.",
-    date: "2024-03-05",
-    avatar: "/images/v2/user-avatar-3.png",
+      date: "2024-03-05",
+        avatar: "/images/v2/user-avatar-3.png",
   },
-  {
-    name: "Sunita Rao",
+{
+  name: "Sunita Rao",
     text: "The kundali analysis was very detailed and helpful. Got clarity on my marriage prospects and family matters.",
-    date: "2024-03-20",
-    avatar: "/images/v2/user-avatar-1.png",
+      date: "2024-03-20",
+        avatar: "/images/v2/user-avatar-1.png",
   },
-  {
-    name: "Vikash Kumar",
+{
+  name: "Vikash Kumar",
     text: "Best astrology app I have used so far. The astrologers are genuine and the predictions are accurate.",
-    date: "2024-04-01",
-    avatar: "/images/v2/user-avatar-2.png",
+      date: "2024-04-01",
+        avatar: "/images/v2/user-avatar-2.png",
   },
 ];
 

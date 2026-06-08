@@ -12,12 +12,30 @@ import EmptyState from "@/components/v2/common/EmptyState";
 
 const API_BASE_URL = "https://admin.astrogurujii.com";
 
+// ── Client-side sort helper ───────────────────────────────────────────────────
+function clientSort(data: any[], sortValue: string): any[] {
+  if (!sortValue) return data;
+  return [...data].sort((a, b) => {
+    switch (sortValue) {
+      case "low_to_high": return (parseFloat(a.per_min_voice_call) || 0) - (parseFloat(b.per_min_voice_call) || 0);
+      case "high_to_low": return (parseFloat(b.per_min_voice_call) || 0) - (parseFloat(a.per_min_voice_call) || 0);
+      case "experience":  return (parseFloat(b.experience)         || 0) - (parseFloat(a.experience)         || 0);
+      case "rating":      return (parseFloat(b.avg_rate)           || 0) - (parseFloat(a.avg_rate)           || 0);
+      case "orders":      return (parseInt(b.consult)              || 0) - (parseInt(a.consult)              || 0);
+      default: return 0;
+    }
+  });
+}
+
 export default function CallWithAstrologer() {
-  const [consultants, setConsultants] = useState<any[]>([]);
-  const [isLoading, setIsLoading]     = useState(true);
-  const [activeTab, setActiveTab]     = useState("");   // "" = All | category.id
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortValue, setSortValue]     = useState("");
+  const [consultants,  setConsultants]  = useState<any[]>([]);
+  const [isLoading,    setIsLoading]    = useState(true);
+  const [activeTab,    setActiveTab]    = useState("");
+  const [searchQuery,  setSearchQuery]  = useState("");
+  const [sortValue,    setSortValue]    = useState("");
+
+  // ── Client-side sort applied on top of API results ────────────────────────
+  const sortedConsultants = clientSort(consultants, sortValue);
 
   const fetchAstrologers = useCallback(async () => {
     try {
@@ -32,7 +50,7 @@ export default function CallWithAstrologer() {
           followAstro:   "",
           is_voice_call: "on",
           is_video_call: "",
-          cat_id:        activeTab,   // category.id from API (or "" for All)
+          cat_id:        activeTab,
           language_id:   "",
           gender:        "",
           sort_val:      sortValue,
@@ -44,6 +62,7 @@ export default function CallWithAstrologer() {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       setConsultants(res.data?.status ? (res.data.results ?? []) : []);
     } catch {
       setConsultants([]);
@@ -75,7 +94,9 @@ export default function CallWithAstrologer() {
         sortValue={sortValue}
         onSortChange={setSortValue}
       />
-<div className="mt-4 mb-4"></div>
+
+      <div className="mt-4 mb-4" />
+
       <main className="container mx-auto px-4 pb-12 mt-4">
         {isLoading ? (
           <MasterLoader text="Fetching Astrologers..." />
@@ -83,11 +104,13 @@ export default function CallWithAstrologer() {
           <EmptyState />
         ) : (
           <ConsultantGrid
-            consultants={consultants}
+            consultants={sortedConsultants}
             callType="audio"
             onFollowToggle={(id, followed) =>
               setConsultants((prev) =>
-                prev.map((c) => (String(c.id) === id ? { ...c, is_Follow: followed ? "yes" : "no" } : c))
+                prev.map((c) =>
+                  String(c.id) === id ? { ...c, is_Follow: followed ? "yes" : "no" } : c
+                )
               )
             }
           />
@@ -96,7 +119,11 @@ export default function CallWithAstrologer() {
 
       <TalkToAstrologerSection />
       <Faq
-        title={<h2 className="font-inter text-[22px] md:text-[30px] font-bold text-black uppercase">Frequently Asked Questions</h2>}
+        title={
+          <h2 className="font-inter text-[22px] md:text-[30px] font-bold text-black uppercase">
+            Frequently Asked Questions
+          </h2>
+        }
         showTabs={false}
       />
       <Footer />
