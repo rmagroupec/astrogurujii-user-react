@@ -167,14 +167,11 @@ export default function ConsultantDetail() {
       rating: Number(r.rating || 0),
       text: r.review || "No review",
       date:
-        r.createdDate ||
-        r.created_date ||
-        r.createdAt ||
-        r.created_at ||
-        r.date ||
-        r.reviewDate ||
-        r.review_date ||
-        "",
+        r.Created_date ||
+        r.Created_date ||
+        r.Created_date ||
+        r.created_at
+        
     })) || [];
 
   const consultantForSidebar = consultant

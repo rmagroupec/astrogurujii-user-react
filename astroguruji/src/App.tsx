@@ -38,13 +38,21 @@ import RechargeStatusPage from "./components/v2/User Account/component/Recharges
 import LiveWatchScreen from "./pages/Livewatchscreen";
 import WhatsAppButton from "./components/v2/WhatsAppButton";
 import PromoPopup from "@/components/v2/PromoPopup";
+import { useLastCallStatus } from "./pages/useLastCallStatus";
 
+
+function AppInit() {
+  useLastCallStatus();
+  return null;
+}
 
 
 function App() {
   return (
     <AudioCallProvider>
       <ChatProvider>
+        <AppInit />
+
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/chat-with-astrologer" element={<ConsultantListing />} />

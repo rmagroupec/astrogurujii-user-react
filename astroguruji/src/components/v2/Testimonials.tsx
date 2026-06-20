@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 type ApiTestimonial = {
   _id: string;
@@ -30,11 +30,13 @@ function StarRating({ count = 5 }: { count?: number }) {
 function GoogleStars() {
   return (
     <svg width="170" height="31" viewBox="0 0 170 31" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M31.1302 12.7757L24.2354 19.4967L25.8636 28.9894C25.9344 29.4045 25.764 29.824 25.4231 30.0719C25.2305 30.2125 25.0013 30.2833 24.7722 30.2833C24.5962 30.2833 24.4191 30.2413 24.2575 30.156L15.7323 25.6743L7.20811 30.1549C6.83619 30.352 6.38348 30.3199 6.04256 30.0708C5.70163 29.8229 5.53117 29.4034 5.60201 28.9883L7.23025 19.4956L0.334333 12.7757C0.0332592 12.4813 -0.0763227 12.0407 0.0542901 11.6411C0.184903 11.2415 0.531359 10.9482 0.948656 10.8873L10.4779 9.50373L14.7394 0.867785C15.1124 0.11178 16.3521 0.11178 16.7251 0.867785L20.9867 9.50373L30.5159 10.8873C30.9332 10.9482 31.2796 11.2404 31.4102 11.6411C31.5408 12.0418 31.4313 12.4801 31.1302 12.7757Z" fill="#FF6F00" />
-      <path d="M67.0149 12.4749L60.1201 19.1959L61.7484 28.6886C61.8192 29.1037 61.6487 29.5232 61.3078 29.7711C61.1152 29.9117 60.8861 29.9826 60.657 29.9826C60.481 29.9826 60.3039 29.9405 60.1423 29.8553L51.617 25.3735L43.0929 29.8542C42.721 30.0512 42.2682 30.0191 41.9273 29.77C41.5864 29.5221 41.4159 29.1026 41.4868 28.6875L43.115 19.1948L36.2191 12.4749C35.918 12.1805 35.8084 11.7399 35.9391 11.3403C36.0697 10.9408 36.4161 10.6474 36.8334 10.5866L46.3626 9.20294L50.6241 0.567003C50.9972 -0.189001 52.2369 -0.189001 52.6099 0.567003L56.8714 9.20294L66.4006 10.5866C66.8179 10.6474 67.1644 10.9397 67.295 11.3403C67.4256 11.741 67.316 12.1794 67.0149 12.4749Z" fill="#FF6F00" />
-      <path d="M101.214 12.4749L94.3194 19.1959L95.9476 28.6886C96.0184 29.1037 95.848 29.5232 95.507 29.7711C95.3144 29.9117 95.0853 29.9826 94.8562 29.9826C94.6802 29.9826 94.5031 29.9405 94.3415 29.8553L85.8162 25.3735L77.2921 29.8542C76.9202 30.0512 76.4675 30.0191 76.1265 29.77C75.7856 29.5221 75.6152 29.1026 75.686 28.6875L77.3142 19.1948L70.4183 12.4749C70.1172 12.1805 70.0077 11.7399 70.1383 11.3403C70.2689 10.9408 70.6153 10.6474 71.0326 10.5866L80.5618 9.20294L84.8234 0.567003C85.1964 -0.189001 86.4361 -0.189001 86.8091 0.567003L91.0706 9.20294L100.6 10.5866C101.017 10.6474 101.364 10.9397 101.494 11.3403C101.625 11.741 101.515 12.1794 101.214 12.4749Z" fill="#FF6F00" />
-      <path d="M135.413 12.4749L128.519 19.1959L130.147 28.6886C130.218 29.1037 130.047 29.5232 129.706 29.7711C129.514 29.9117 129.285 29.9826 129.055 29.9826C128.879 29.9826 128.702 29.9405 128.541 29.8553L120.015 25.3735L111.491 29.8542C111.119 30.0512 110.667 30.0191 110.326 29.77C109.985 29.5221 109.814 29.1026 109.885 28.6875L111.513 19.1948L104.618 12.4749C104.316 12.1805 104.207 11.7399 104.337 11.3403C104.468 10.9408 104.815 10.6474 105.232 10.5866L114.761 9.20294L119.023 0.567003C119.396 -0.189001 120.635 -0.189001 121.008 0.567003L125.27 9.20294L134.799 10.5866C135.216 10.6474 135.563 10.9397 135.693 11.3403C135.824 11.741 135.714 12.1794 135.413 12.4749Z" fill="#FF6F00" />
-      <path d="M169.613 12.4749L162.718 19.1959L164.346 28.6886C164.417 29.1037 164.246 29.5232 163.905 29.7711C163.713 29.9117 163.484 29.9826 163.255 29.9826C163.079 29.9826 162.902 29.9405 162.74 29.8553L154.215 25.3735L145.691 29.8542C145.319 30.0512 144.866 30.0191 144.525 29.77C144.184 29.5221 144.014 29.1026 144.084 28.6875L145.713 19.1948L138.817 12.4749C138.516 12.1805 138.406 11.7399 138.537 11.3403C138.667 10.9408 139.014 10.6474 139.431 10.5866L148.96 9.20294L153.222 0.567003C153.595 -0.189001 154.835 -0.189001 155.208 0.567003L159.469 9.20294L168.998 10.5866C169.416 10.6474 169.762 10.9397 169.893 11.3403C170.023 11.741 169.914 12.1794 169.613 12.4749Z" fill="#FF6F00" />
+      {[0, 35, 70, 105, 138].map((offset, index) => (
+        <path 
+          key={index}
+          d={`M${31.1302 + offset} 12.7757L${24.2354 + offset} 19.4967L${25.8636 + offset} 28.9894C${25.9344 + offset} 29.4045 ${25.764 + offset} 29.824 ${25.4231 + offset} 30.0719C${25.2305 + offset} 30.2125 ${25.0013 + offset} 30.2833 ${24.7722 + offset} 30.2833C${24.5962 + offset} 30.2833 ${24.4191 + offset} 30.2413 ${24.2575 + offset} 30.156L${15.7323 + offset} 25.6743L${7.20811 + offset} 30.1549C${6.83619 + offset} 30.352 ${6.38348 + offset} 30.3199 ${6.04256 + offset} 30.0708C${5.70163 + offset} 29.8229 ${5.53117 + offset} 29.4034 ${5.60201 + offset} 28.9883L${7.23025 + offset} 19.4956L${0.334333 + offset} 12.7757C${0.0332592 + offset} 12.4813 ${-0.0763227 + offset} 12.0407 ${0.0542901 + offset} 11.6411C${0.184903 + offset} 11.2415 ${0.531359 + offset} 10.9482 ${0.948656 + offset} 10.8873L${10.4779 + offset} 9.50373L${14.7394 + offset} 0.867785C${15.1124 + offset} 0.11178 ${16.3521 + offset} 0.11178 ${16.7251 + offset} 0.867785L${20.9867 + offset} 9.50373L${30.5159 + offset} 10.8873C${30.9332 + offset} 10.9482 ${31.2796 + offset} 11.2404 ${31.4102 + offset} 11.6411C${31.5408 + offset} 12.0418 ${31.4313 + offset} 12.4801 ${31.1302 + offset} 12.7757Z`} 
+          fill="#FF6F00" 
+        />
+      ))}
     </svg>
   );
 }
@@ -80,38 +82,58 @@ function CheckedBlueIcon() {
 }
 
 function TestimonialCard({ testimonial }: { testimonial: ApiTestimonial }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const cleanDescription = stripHtml(testimonial.description);
+  
+  // Rules for shortening text if it's too long
+  const shouldTruncate = cleanDescription.length > 120;
+  const displayText = isExpanded 
+    ? cleanDescription 
+    : (shouldTruncate ? `${cleanDescription.slice(0, 120)}...` : cleanDescription);
+
   return (
-    <div className="w-[232px] min-w-[232px] h-[204px] rounded-[11px] border border-black/5 bg-white p-[10px] shadow-[0_4px_4px_0_rgba(0,0,0,0.05)]">
-      <div className="flex items-center gap-2">
-        <img
-          src={testimonial.img}
-          alt={testimonial.title}
-          className="h-[35px] w-[35px] rounded-full border border-[#F26633] object-cover"
-        />
-        <div className="flex-1">
-          <p className="font-euclid text-[10px] font-semibold leading-[31px] text-black">
-            {testimonial.title}
-          </p>
-          <p className="font-euclid text-[8px] font-medium leading-[31px] text-[#7E7E7E] -mt-4">
-            &nbsp;
+    <div className={`w-[232px] min-w-[232px] rounded-[11px] border border-black/5 bg-white p-[10px] shadow-[0_4px_4px_0_rgba(0,0,0,0.05)] transition-all duration-200 flex flex-col justify-between ${isExpanded ? 'h-auto min-h-[204px]' : 'h-[204px]'}`}>
+      <div>
+        <div className="flex items-center gap-2">
+          <img
+            src={testimonial.img}
+            alt={testimonial.title}
+            className="h-[35px] w-[35px] rounded-full border border-[#F26633] object-cover"
+          />
+          <div className="flex-1 min-w-0">
+            <p className="font-euclid text-[10px] font-semibold text-black truncate">
+              {testimonial.title}
+            </p>
+          </div>
+          <GoogleGIcon />
+        </div>
+
+        <div className="mt-1 flex items-center gap-1.5">
+          <StarRating count={5} />
+          <CheckedBlueIcon />
+        </div>
+
+        <div className="mt-2">
+          <p className="font-outfit text-[11px] font-normal leading-[16px] text-black whitespace-pre-line">
+            {displayText}
           </p>
         </div>
-        <GoogleGIcon />
       </div>
 
-      <div className="mt-1 flex items-center gap-1.5">
-        <StarRating count={5} />
-        <CheckedBlueIcon />
-      </div>
-
-      <div className="mt-1">
-        <p className="font-outfit text-[11px] font-normal leading-[18px] text-black line-clamp-5">
-          {stripHtml(testimonial.description)}
-        </p>
-        <button className="font-euclid text-[9px] font-semibold leading-[31px] text-[#F26633]">
-          Read More
-        </button>
-      </div>
+      {shouldTruncate && (
+        <div className="mt-1 pt-1 border-t border-black/5">
+          <button 
+            type="button"
+            className="font-euclid text-[9px] font-semibold text-[#F26633] hover:underline cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation(); // Prevents dragging handlers from triggering if inside a slider
+              setIsExpanded(!isExpanded);
+            }}
+          >
+            {isExpanded ? 'Read Less' : 'Read More'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -157,8 +179,7 @@ export default function Testimonials({ data = [] }: { data: ApiTestimonial[] }) 
         </div>
 
         <div className="mt-10 flex flex-col gap-4 md:flex-row md:gap-[16px]">
-          {/* Google review summary — unchanged */}
-          <div className="flex w-full flex-col items-center justify-center md:w-[170px]">
+          <div className="flex w-full flex-col items-center justify-center md:w-[170px] flex-shrink-0">
             <p className="font-euclid text-[22px] font-semibold leading-[31px] text-black">
               EXCELLENT
             </p>
@@ -174,10 +195,9 @@ export default function Testimonials({ data = [] }: { data: ApiTestimonial[] }) 
             <GoogleLogo />
           </div>
 
-          {/* Slider — same div, now drag-scrollable */}
           <div
             ref={sliderRef}
-            className="flex flex-1 gap-[26px] overflow-x-auto scrollbar-hide select-none"
+            className="flex flex-1 gap-[26px] overflow-x-auto scrollbar-hide select-none items-start pb-4"
             style={{
               scrollbarWidth: "none",
               msOverflowStyle: "none",

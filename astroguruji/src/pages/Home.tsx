@@ -23,6 +23,7 @@ export default function Home() {
   const fetchHomeData = async () => {
     try {
       setLoading(true);
+const controller = new AbortController();
 
       const token = localStorage.getItem("token");
       const headers: Record<string, string> = {};
@@ -32,6 +33,10 @@ export default function Home() {
 
       const res = await axios.get(`${API_BASE_URL}/user_api/home_data`, {
         headers,
+          cache: "no-store",
+
+            signal: controller.signal,
+
         timeout: 10000,
       });
 

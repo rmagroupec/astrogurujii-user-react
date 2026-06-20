@@ -57,12 +57,12 @@ export default function ConsultantCardNew({
 
   return (
     <div onClick={() => navigate(`/consultants/${consultant.id}`)} className="group relative w-full rounded-[10px] border border-[#DADADA] bg-white transition-all hover:border-brand-amber">
-      {showStatusBadge &&
+      {/* {showStatusBadge &&
         (consultant.online ? (
           <div className="absolute left-[9px] top-[9px] z-10 rounded-[5px] bg-[#34a853] px-3 py-1 font-poppins text-[10px] font-semibold text-white">Online</div>
         ) : (
           <div className="absolute left-[9px] top-[9px] z-10 rounded-[5px] bg-brand-red px-3 py-1 font-poppins text-[10px] font-semibold uppercase text-white">Offline</div>
-        ))}
+        ))} */}
 
       {/* Discount badge */}
       {hasDiscount && (

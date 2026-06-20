@@ -389,7 +389,8 @@ export default function ChatScreen() {
   const [showRatingDialog, setShowRatingDialog] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isEnding, setIsEnding] = useState(false);
-
+const hasMountedRef = useRef(false);
+const wasEverActiveRef = useRef(false); // ← ADD THIS
   // ── Refs ───────────────────────────────────────────────────────────────────
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -412,7 +413,101 @@ export default function ChatScreen() {
   const timeLeft = chatCtx.chatTimeLeft;
   const showLowBalance = timeLeft > 0 && timeLeft <= 5 * 60;
   const showRecharge = timeLeft > 0 && timeLeft <= 1 * 60;
+// Add inside ChatScreen, after existing useEffects
+// ── Status poll ─────────────────────────────────────────────────────────────
+const ratingShownRef = useRef(false);   // ← add this ref near other refs
+// ── Status poll ─────────────────────────────────────────────────────────────
+// ── Status poll ─────────────────────────────────────────────────────────────
+useEffect(() => {
+  if (!fbchannelID) return;
 
+  console.log("[STATUS POLL] Starting poll for fbchannelID:", fbchannelID);
+
+  const startDelay = setTimeout(() => {
+    console.log("[STATUS POLL] Delay done, beginning interval...");
+
+    statusPollRef.current = setInterval(async () => {
+      if (ratingShownRef.current) {
+        console.log("[STATUS POLL] Skipping — rating already shown");
+        return;
+      }
+      try {
+        const res = await apiPost(
+          "user_api/call_initiate_status",
+          { channel_id: fbchannelID },
+          token
+        );
+
+        console.log("[STATUS POLL] Full response:", JSON.stringify(res));
+        console.log("[STATUS POLL] status =", res?.results?.status, "| time:", new Date().toLocaleTimeString());
+
+        const st = res?.results?.status;
+
+        if (st === "end_astro") {
+          console.log("[STATUS POLL] ⚠️ end_astro detected — showing rating modal!");
+          clearInterval(statusPollRef.current!);
+          if (!ratingShownRef.current) {
+            ratingShownRef.current = true;
+            chatCtx.stopChatTimer();
+            setShowRatingDialog(true);
+          }
+        } else if (st === "reject_astro") {
+          console.log("[STATUS POLL] reject_astro — navigating back");
+          clearInterval(statusPollRef.current!);
+          navigate(-1);
+        }
+      } catch (err) {
+        console.error("[STATUS POLL] API error:", err);
+      }
+    }, 3000);
+  }, 5000);
+
+  return () => {
+    clearTimeout(startDelay);
+    clearInterval(statusPollRef.current!);
+  };
+}, [fbchannelID]);
+
+// ── Firebase signals call end via context ────────────────────────────────────
+useEffect(() => {
+  console.log("[CHAT CTX]", { chatActive: chatCtx.chatActive, chatTimeLeft: chatCtx.chatTimeLeft, gid });
+
+  // Track once chat becomes active
+  if (chatCtx.chatActive) {
+    wasEverActiveRef.current = true;
+  }
+
+  // Only trigger rating if chat WAS active before and now stopped
+  if (wasEverActiveRef.current && !chatCtx.chatActive && chatCtx.chatTimeLeft === 0 && gid) {
+    console.log("[CHAT CTX] ⚠️ Triggering rating modal here!");
+    clearInterval(statusPollRef.current!);
+    if (dbRef.current) off(dbRef.current);
+    if (!ratingShownRef.current) {
+      ratingShownRef.current = true;
+      setShowRatingDialog(true);
+    }
+  }
+}, [chatCtx.chatActive, chatCtx.chatTimeLeft, gid]);
+// Add near top of ChatScreen, after existing state declarations
+const [liveWallet, setLiveWallet] = useState<string>(wallet);
+
+// Add this useEffect to sync wallet from context
+useEffect(() => {
+  if (chatCtx.chatInfo?.wallet) {
+    setLiveWallet(chatCtx.chatInfo.wallet);
+  }
+}, [chatCtx.chatInfo?.wallet]);
+
+// Also compute live wallet from timeLeft + rate
+useEffect(() => {
+  const r = parseFloat(rate || "1");
+  if (r > 0 && timeLeft > 0) {
+    const estimated = ((timeLeft / 60) * r).toFixed(0);
+    setLiveWallet(estimated);
+  } else if (timeLeft === 0) {
+    setLiveWallet("0");
+  }
+}, [timeLeft, rate]);
   // ── Start / resume global timer ────────────────────────────────────────────
   useEffect(() => {
     if (!gid || !astrologer_id) return;
@@ -433,12 +528,11 @@ export default function ChatScreen() {
       place: place || "",
     };
 
-    // AFTER ✅
-    const w = parseFloat(wallet || "0");
-    const r = parseFloat(rate || "1");
-    const initialSeconds = r > 0 ? Math.floor((w / r) * 60) : 0;
-
-    chatCtx.startChatTimer(info, initialSeconds);
+ // In ChatScreen.tsx, before calling startChatTimer:
+const w = parseFloat(wallet || "0");
+const r = parseFloat(rate || "1");
+const initialSeconds = r > 0 && w > 0 ? Math.floor((w / r) * 60) : 300; // fallback to 5 min
+chatCtx.startChatTimer(info, initialSeconds);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gid, astrologer_id]);
 
@@ -482,31 +576,7 @@ export default function ChatScreen() {
   }, [gid, userId, astrologer_id, gender]);
 
   // ── Status poll ────────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!fbchannelID) return;
-
-    statusPollRef.current = setInterval(async () => {
-      try {
-        const res = await apiPost(
-          "user_api/call_initiate_status",
-          { channel_id: fbchannelID },
-          token
-        );
-        const st = res?.results?.status;
-        if (st === "end_astro") {
-          clearInterval(statusPollRef.current!);
-          setShowRatingDialog(true);
-        } else if (st === "reject_astro") {
-          clearInterval(statusPollRef.current!);
-          navigate(-1);
-        }
-      } catch { /* silent */ }
-    }, 2000);
-
-    return () => clearInterval(statusPollRef.current!);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fbchannelID]);
-
+  
   // ── Send Firebase message ──────────────────────────────────────────────────
   const sendFirebaseMessage = useCallback(
     async (content: string, type: MessageType) => {
@@ -709,28 +779,32 @@ export default function ChatScreen() {
 
   // ── End chat ───────────────────────────────────────────────────────────────
   const handleEndChat = async (confirmed = false) => {
-    if (isEndingRef.current) return;
-    if (!confirmed) { setShowEndDialog(true); return; }
+  if (isEndingRef.current) return;
+  if (!confirmed) { setShowEndDialog(true); return; }
 
-    isEndingRef.current = true;
-    setIsEnding(true);
+  isEndingRef.current = true;
+  setIsEnding(true);
 
-    clearInterval(statusPollRef.current!);
-    if (dbRef.current) off(dbRef.current);
+  clearInterval(statusPollRef.current!);
+  if (dbRef.current) off(dbRef.current);
 
-    try {
-      await apiPost(
-        "user_api/call_status_update",
-        { channel_id: gid, status: "end_user" },
-        token
-      );
-    } catch { /* silent */ }
+  try {
+    await apiPost(
+      "user_api/call_status_update",
+      { channel_id: gid, status: "end_user" },
+      token
+    );
+  } catch { /* silent */ }
 
-    chatCtx.stopChatTimer();
-    try { sessionStorage.removeItem(`kundli_sent_${gid}`); } catch { /* ignore */ }
+  chatCtx.stopChatTimer();
+  try { sessionStorage.removeItem(`kundli_sent_${gid}`); } catch { /* ignore */ }
+
+  // ← guard against double fire
+  if (!ratingShownRef.current) {
+    ratingShownRef.current = true;
     setShowRatingDialog(true);
-  };
-
+  }
+};
   // ── Submit rating ──────────────────────────────────────────────────────────
   const handleSubmitRating = async (r: RatingState) => {
     try {

@@ -22,6 +22,7 @@ export default function WalletPage() {
   const getWalletData = async () => {
     try {
       setLoading(true);
+      const controller = new AbortController();
 
       const res = await axios.get(
         "https://admin.astrogurujii.com/user_api/get_profile",
@@ -29,6 +30,9 @@ export default function WalletPage() {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
+          cache: "no-store",
+
+          signal: controller.signal,
         }
       );
 
@@ -91,11 +95,11 @@ export default function WalletPage() {
           </h2>
 
           <button
-  className="mt-4 rounded-full bg-white text-brand-orange px-6 py-2 text-sm font-semibold hover:opacity-90"
-  onClick={() => navigate("/recharge-now")}
->
-  Recharge Now
-</button>
+            className="mt-4 rounded-full bg-white text-brand-orange px-6 py-2 text-sm font-semibold hover:opacity-90"
+            onClick={() => navigate("/recharge-now")}
+          >
+            Recharge Now
+          </button>
         </div>
 
         {/* Transactions */}

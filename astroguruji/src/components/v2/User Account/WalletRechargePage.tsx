@@ -16,10 +16,15 @@ export default function RechargePage() {
   // ─── Fetch offer/amount list ──────────────────────────────────────────────
   const getWalletAmounts = async () => {
     try {
+            const controller = new AbortController();
+
       const res = await axios.post(
         "https://admin.astrogurujii.com/user_api/Wallet_amount_list",
         {},
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          cache: "no-store",
+
+          signal: controller.signal, }
       );
       if (res.data.status) setOffers(res.data.results || []);
     } catch (e) {
