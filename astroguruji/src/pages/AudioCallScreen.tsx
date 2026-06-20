@@ -520,16 +520,16 @@ export default function AudioCallScreen() {
         onDismiss={() => setToastVisible(false)}
       />
 
-      <div
-        className="fixed inset-0 z-[150] flex flex-col"
-        style={{
-          background: "linear-gradient(160deg, #FF6F00 0%, #FF9800 40%, #FFC107 100%)",
-          fontFamily: "'DM Sans', sans-serif",
-          height: "100dvh",
-          width: "100vw",
-          overflow: "hidden",
-        }}
-      >
+     <div
+  className="fixed inset-0 z-[150] flex flex-col"
+  style={{
+    background: "linear-gradient(135deg, #FF6F00 0%, #FF9800 50%, #FFC107 100%)",
+    fontFamily: "'DM Sans', sans-serif",
+    height: "100dvh",
+    width: "100vw",
+    overflow: "hidden",
+  }}
+>
         {/* ── Top bar ── */}
         <div className="flex-shrink-0 flex items-center justify-between px-4 pt-8 pb-2">
           <button onClick={() => navigate(-1)} className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors">

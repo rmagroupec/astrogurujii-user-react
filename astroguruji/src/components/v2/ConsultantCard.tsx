@@ -296,8 +296,18 @@ export default function ConsultantCard({
           {/* Primary: Chat / Call / Notify me */}
           <button
             onClick={handleActionClick}
-            className="flex flex-1 items-center justify-center gap-2 rounded-[20px] border-2 py-[8px] font-poppins text-[12px] font-semibold transition-colors"
-            style={{ borderColor: borderColor, color: borderColor }}
+            className="flex flex-1 items-center justify-center gap-2 rounded-[20px] border-2 py-[8px] font-poppins text-[12px] font-semibold transition-all duration-200 hover:shadow-md active:scale-95"
+            style={{ borderColor: borderColor, color: borderColor, backgroundColor: "transparent" }}
+            onMouseEnter={(e) => {
+              const btn = e.currentTarget;
+              btn.style.backgroundColor = borderColor;
+              btn.style.color = "white";
+            }}
+            onMouseLeave={(e) => {
+              const btn = e.currentTarget;
+              btn.style.backgroundColor = "transparent";
+              btn.style.color = borderColor;
+            }}
           >
             {canConnect && callType === "chat" && (
               <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
@@ -324,15 +334,30 @@ export default function ConsultantCard({
             {buttonLabel}
           </button>
 
-          {/* Second CALL button — only on chat page */}
+          {/* Second CALL button — only on chat page with matching Chat button style + hover effect */}
           {callType === "chat" && (
             <button
               onClick={handleActionClick}
-              className="flex flex-1 items-center justify-center gap-2 rounded-md border border-gray-200 bg-gray-100 py-[8px] font-poppins text-[12px] font-semibold text-black transition-colors group-hover:border-brand-orange group-hover:bg-brand-orange group-hover:text-white"
+              className="flex flex-1 items-center justify-center gap-2 rounded-[20px] border-2 py-[8px] font-poppins text-[12px] font-semibold transition-all duration-200 hover:shadow-md active:scale-95"
+              style={{
+                borderColor: borderColor,
+                color: borderColor,
+                backgroundColor: "transparent"
+              }}
+              onMouseEnter={(e) => {
+                const btn = e.currentTarget;
+                btn.style.backgroundColor = borderColor;
+                btn.style.color = "white";
+              }}
+              onMouseLeave={(e) => {
+                const btn = e.currentTarget;
+                btn.style.backgroundColor = "transparent";
+                btn.style.color = borderColor;
+              }}
             >
               <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
                 <g clipPath="url(#ph2)">
-                  <path d="M10.1549 7.66139L8.69811 6.20455C8.17781 5.68426 7.2933 5.8924 7.08519 6.56876C6.9291 7.03705 6.4088 7.2972 5.94053 7.19312C4.89993 6.93297 3.49513 5.5802 3.23498 4.48757C3.07889 4.01928 3.39107 3.49898 3.85934 3.34291C4.53573 3.1348 4.74384 2.25029 4.22355 1.72999L2.76671 0.273156C2.35047 -0.0910521 1.72612 -0.0910521 1.36191 0.273156L0.373342 1.26172C-0.615225 2.30232 0.477401 5.0599 2.9228 7.5053C5.3682 9.9507 8.12578 11.0954 9.16638 10.0548L10.1549 9.06619C10.5192 8.64995 10.5192 8.0256 10.1549 7.66139Z" className="fill-black transition-colors group-hover:fill-white" />
+                  <path d="M10.1549 7.66139L8.69811 6.20455C8.17781 5.68426 7.2933 5.8924 7.08519 6.56876C6.9291 7.03705 6.4088 7.2972 5.94053 7.19312C4.89993 6.93297 3.49513 5.5802 3.23498 4.48757C3.07889 4.01928 3.39107 3.49898 3.85934 3.34291C4.53573 3.1348 4.74384 2.25029 4.22355 1.72999L2.76671 0.273156C2.35047 -0.0910521 1.72612 -0.0910521 1.36191 0.273156L0.373342 1.26172C-0.615225 2.30232 0.477401 5.0599 2.9228 7.5053C5.3682 9.9507 8.12578 11.0954 9.16638 10.0548L10.1549 9.06619C10.5192 8.64995 10.5192 8.0256 10.1549 7.66139Z" fill="currentColor" />
                 </g>
                 <defs><clipPath id="ph2"><rect width="10.4393" height="10.4393" fill="white" /></clipPath></defs>
               </svg>

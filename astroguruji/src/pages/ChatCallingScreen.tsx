@@ -227,7 +227,7 @@ export default function ChatCallingScreen() {
         </div>
       </div>
 
-      {/* Middle */}<div className="relative z-10 flex-1 flex flex-col items-center justify-center gap-3 px-6 text-center">
+      {/* Middle */}<div className="relative z-10 flex-1 flex flex-col items-center justify-center gap-4 px-6 text-center">
         <PulseRings src={s.astrologerImage ?? ""} />
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{s.astroName ?? "Astrologer"}</h1>
@@ -241,45 +241,62 @@ export default function ChatCallingScreen() {
             {formatTime(secondsLeft)}
           </p>
           {status === "waiting" && <ConnectingDots />}
-        </div><div className="w-full max-w-xs rounded-2xl px-4 py-2 shadow-sm"
-          style={{ background: "rgba(255,255,255,0.8)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,111,0,0.15)" }}>
-          <div className="flex justify-between items-center">
-            <div className="text-left">
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Wallet</p>
-              <p className="text-lg font-bold text-gray-800">₹{s.wallet ?? "0"}</p>
+        </div>
+
+        {/* 💰 Improved Wallet & Duration Box */}
+        <div className="w-full max-w-sm rounded-3xl px-6 py-4 shadow-lg"
+          style={{ background: "rgba(255,255,255,0.95)", backdropFilter: "blur(12px)", border: "1.5px solid rgba(255,111,0,0.2)" }}>
+          <div className="flex justify-between items-center gap-6">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1.5">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                  <path d="M16 11h.01"></path>
+                </svg>
+                <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Wallet</p>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">₹{s.wallet ?? "0"}</p>
             </div>
-            <div className="w-px h-10 bg-gray-100" />
-            <div className="text-right">
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Max Duration</p>
-              <p className="text-lg font-bold text-orange-600">{maxChatMins} min</p>
+            <div className="w-px h-14 bg-gray-200" />
+            <div className="flex-1 text-right">
+              <div className="flex items-center justify-end gap-2 mb-1.5">
+                <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Duration</p>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+              <p className="text-2xl font-bold text-orange-600">{maxChatMins} min</p>
             </div>
           </div>
         </div>
+
         <p className="hidden">
   Please wait while we connect you to your astrologer. Do not close or navigate away.
 </p>
       </div>
 
-      {/* End button */}
-     <div className="relative z-10 w-full flex flex-col items-center gap-4 px-6" style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}>        <button onClick={endCall} disabled={isEnding}
-        className="group flex flex-col items-center gap-2 disabled:opacity-50">
-        <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all group-hover:scale-110 group-active:scale-95"
-          style={{ background: "linear-gradient(135deg, #ef4444, #dc2626)", boxShadow: "0 4px 20px rgba(239,68,68,0.4)" }}>
-          {isEnding ? (
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07C9.44 17.29 7.76 15.6 6.06 13" />
-              <path d="M6.06 13A19.79 19.79 0 0 1 3 4.36 2 2 0 0 1 5 2.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L9 9.91" />
-              <line x1="23" y1="1" x2="1" y2="23" />
-            </svg>
-          )}
-        </div>
-        <span className="text-xs font-semibold text-red-500">
-          {isEnding ? "Cancelling..." : "End Call"}
-        </span>
-      </button>
-      </div>
+{/* End button - with more spacing */}
+<div className="relative z-10 w-full flex flex-col items-center gap-7 sm:gap-10 px-6 mt-6 sm:mt-7" style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}>
+  <button onClick={endCall} disabled={isEnding}
+    className="group flex flex-col items-center gap-2 disabled:opacity-50">
+    <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all group-hover:scale-110 group-active:scale-95"
+      style={{ background: "linear-gradient(135deg, #ef4444, #dc2626)", boxShadow: "0 4px 20px rgba(239,68,68,0.4)" }}>
+      {isEnding ? (
+        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+      ) : (
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07C9.44 17.29 7.76 15.6 6.06 13" />
+          <path d="M6.06 13A19.79 19.79 0 0 1 3 4.36 2 2 0 0 1 5 2.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L9 9.91" />
+          <line x1="23" y1="1" x2="1" y2="23" />
+        </svg>
+      )}
+    </div>
+    <span className="text-xs font-semibold text-red-500">
+      {isEnding ? "Cancelling..." : "End Call"}
+    </span>
+  </button>
+</div>
     </div>
   );
 }
