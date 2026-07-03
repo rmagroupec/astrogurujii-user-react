@@ -30,7 +30,7 @@ export default function WalletPage() {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          cache: "no-store",
+          
 
           signal: controller.signal,
         }

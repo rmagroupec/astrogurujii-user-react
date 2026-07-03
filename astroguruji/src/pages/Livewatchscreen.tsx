@@ -767,19 +767,20 @@ export default function LiveWatchScreen() {
   }, [navigate]);
 
   // ── Send message ───────────────────────────────────────────────────────────
-  const sendMsg = () => {
-    const text = input.trim();
-    if (!text || !channelId) return;
-    const msgRef = push(ref(db, `GroupLive/${channelId}`));
-    const payload = {
-      name: myName(), message: text, from: myId(),
-      date_time: Date.now(), is_system: false, message_id: msgRef.key,
-    };
-    set(msgRef, payload).catch(() => {});
-    setMsgs(p => [...p, { id: msgRef.key!, ...payload }]);
-    setInput("");
-    inputRef.current?.focus();
+ // ── Send message ───────────────────────────────────────────────────────────
+const sendMsg = () => {
+  const text = input.trim();
+  if (!text || !channelId) return;
+  const msgRef = push(ref(db, `GroupLive/${channelId}`));
+  const payload = {
+    name: myName(), message: text, from: myId(),
+    date_time: Date.now(), is_system: false, message_id: msgRef.key,
   };
+  set(msgRef, payload).catch(() => {});
+  // ← REMOVED: setMsgs(p => [...p, { id: msgRef.key!, ...payload }]);
+  setInput("");
+  inputRef.current?.focus();
+};
 
   // ── Send gift ──────────────────────────────────────────────────────────────
   const onGiftSent = (result?: { gift: GiftItem }) => {

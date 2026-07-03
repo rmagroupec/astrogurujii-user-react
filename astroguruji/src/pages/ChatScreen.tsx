@@ -157,78 +157,98 @@ const StarIcon = ({ filled }: { filled: boolean }) => (
 
 // Update the fmt function and add a loaded state:
 
+function AudioPlayerWithScroll({ src, onReady }: { src: string; onReady: () => void }) {
+  useEffect(() => {
+    // Fire once on mount so scroll happens when audio bubble appears
+    onReady();
+  }, []);                             // eslint-disable-line react-hooks/exhaustive-deps
+  return <AudioPlayer src={src} />;
+}
+
 function AudioPlayer({ src }: { src: string }) {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [isPlaying, setIsPlaying]   = useState(false);
+  const [progress,  setProgress]    = useState(0);
+  const [duration,  setDuration]    = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [error, setError]           = useState(false);
 
   const fmt = (s: number) =>
-    isNaN(s) || !isFinite(s) || s <= 0
+    !isFinite(s) || s <= 0
       ? "0:00"
       : `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 
-  // ← THE REAL FIX: seek to end to force browser to calculate duration
+  // ── Grab duration as soon as any metadata arrives ──────────────────────────
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    const tryGetDuration = () => {
-      if (isFinite(audio.duration) && audio.duration > 0) {
+    const sync = () => {
+      if (isFinite(audio.duration) && audio.duration > 0)
         setDuration(audio.duration);
-        return;
-      }
-      // Seek to a huge number — browser will clamp to actual end
-      // and fire "durationchange" with real value
-      audio.currentTime = 1e101;
     };
 
-    const onDurationChange = () => {
-      if (isFinite(audio.duration) && audio.duration > 0) {
-        setDuration(audio.duration);
-        audio.currentTime = 0; // reset back to start
-      }
-    };
+    audio.addEventListener("loadedmetadata", sync);
+    audio.addEventListener("durationchange", sync);
+    // Also fires when enough data has buffered
+    audio.addEventListener("canplay", sync);
 
-    const onSeeked = () => {
-      if (isFinite(audio.duration) && audio.duration > 0) {
-        setDuration(audio.duration);
-        audio.currentTime = 0; // reset back to start
-      }
-    };
-
-    audio.addEventListener("durationchange", onDurationChange);
-    audio.addEventListener("seeked", onSeeked);
-    audio.addEventListener("loadedmetadata", tryGetDuration);
-
-    if (audio.readyState >= 1) tryGetDuration();
+    // If already ready (e.g. cached)
+    sync();
 
     return () => {
-      audio.removeEventListener("durationchange", onDurationChange);
-      audio.removeEventListener("seeked", onSeeked);
-      audio.removeEventListener("loadedmetadata", tryGetDuration);
+      audio.removeEventListener("loadedmetadata", sync);
+      audio.removeEventListener("durationchange", sync);
+      audio.removeEventListener("canplay", sync);
     };
   }, [src]);
 
-  const toggle = () => {
-    if (!audioRef.current) return;
-    if (isPlaying) { audioRef.current.pause(); setIsPlaying(false); }
-    else { audioRef.current.play(); setIsPlaying(true); }
+  const toggle = async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    try {
+      if (isPlaying) {
+        audio.pause();
+        setIsPlaying(false);
+      } else {
+        await audio.play();
+        setIsPlaying(true);
+      }
+    } catch (e) {
+      console.error("Audio play error:", e);
+      setError(true);
+    }
   };
 
+  if (error) {
+    return (
+      <>
+        <a
+          href={src}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs underline opacity-70"
+        >
+          Open audio ↗
+        </a>
+      </>
+    );
+  }
+
   return (
-    <div className="flex items-center gap-2 min-w-[160px]">
+    <div className="flex items-center gap-2 min-w-[180px]">
+      {/* ── Hidden native audio element ── */}
       <audio
         ref={audioRef}
         src={src}
-        preload="metadata"
+        preload="auto"          // ← "auto" not "metadata" — loads enough to play
+        crossOrigin="anonymous" // ← required for Firebase Storage CORS
         onTimeUpdate={() => {
           const a = audioRef.current;
           if (!a) return;
           setCurrentTime(a.currentTime);
           if (isFinite(a.duration) && a.duration > 0) {
-            if (duration === 0) setDuration(a.duration);
+            setDuration(a.duration);
             setProgress((a.currentTime / a.duration) * 100);
           }
         }}
@@ -237,10 +257,13 @@ function AudioPlayer({ src }: { src: string }) {
           setProgress(0);
           setCurrentTime(0);
         }}
+        onError={() => setError(true)}
       />
+
+      {/* Play / Pause */}
       <button
         onClick={toggle}
-        className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0"
+        className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center flex-shrink-0 transition-colors"
       >
         {isPlaying ? (
           <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
@@ -253,20 +276,28 @@ function AudioPlayer({ src }: { src: string }) {
           </svg>
         )}
       </button>
-      <div className="flex-1">
+
+      {/* Waveform progress bar + time */}
+      <div className="flex-1 space-y-1">
         <div
           className="h-1.5 bg-white/30 rounded-full overflow-hidden cursor-pointer"
           onClick={(e) => {
-            if (!audioRef.current || !duration) return;
+            const audio = audioRef.current;
+            if (!audio || !duration) return;
             const rect = e.currentTarget.getBoundingClientRect();
-            audioRef.current.currentTime = ((e.clientX - rect.left) / rect.width) * duration;
+            audio.currentTime = ((e.clientX - rect.left) / rect.width) * duration;
           }}
         >
-          <div className="h-full bg-white rounded-full transition-all" style={{ width: `${progress}%` }} />
+          <div
+            className="h-full bg-white rounded-full"
+            style={{ width: `${progress}%`, transition: "width 0.1s linear" }}
+          />
         </div>
-        <span className="text-[11px] font-bold mt-0.5 block" style={{ color: "#7B3000" }}>
-          {fmt(currentTime)} / {duration > 0 ? fmt(duration) : "--:--"}
-        </span>
+
+        <div className="flex justify-between text-[11px] font-semibold" style={{ color: "#7B3000" }}>
+          <span>{fmt(currentTime)}</span>
+          <span>{duration > 0 ? fmt(duration) : "--:--"}</span>
+        </div>
       </div>
     </div>
   );
@@ -302,34 +333,119 @@ function EndChatDialog({ onConfirm, onExplore }: { onConfirm: () => void; onExpl
 function RatingDialog({ onSubmit }: { onSubmit: (r: RatingState) => void }) {
   const [score, setScore] = useState(0);
   const [review, setReview] = useState("");
+
+  const labels = ["", "Poor", "Fair", "Good", "Great", "Excellent"];
+  const tagsByScore: Record<number, string[]> = {
+    1: ["Not helpful", "Wrong predictions", "Rude behavior"],
+    2: ["Vague answers", "Too short", "Needs improvement"],
+    3: ["Decent session", "Mostly helpful", "Average"],
+    4: ["Very helpful", "Good insights", "Friendly"],
+    5: ["Amazing!", "Highly accurate", "Will consult again"],
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
-        <h3 className="text-center text-lg font-semibold text-gray-800">Rate Your Experience</h3>
-        <div className="flex justify-center gap-1">
-          {[1, 2, 3, 4, 5].map((n) => (
-            <button key={n} onClick={() => setScore(n)}>
-              <StarIcon filled={n <= score} />
-            </button>
-          ))}
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 pb-0">
+      <div className="bg-white rounded-t-3xl shadow-2xl w-full max-w-md overflow-hidden">
+        {/* Top accent bar */}
+        <div className="h-1 w-full bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500" />
+
+        <div className="p-6 space-y-5">
+          {/* Drag handle */}
+          <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto" />
+
+          {/* Title */}
+          <div className="text-center space-y-1">
+            <h3 className="text-xl font-bold text-gray-900">How was your session?</h3>
+            <p className="text-xs text-gray-400">Your feedback helps improve our astrologers</p>
+          </div>
+
+          {/* Stars */}
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button
+                  key={n}
+                  onClick={() => setScore(n)}
+                  className="transition-transform hover:scale-110 active:scale-95"
+                >
+                  <svg
+                    width="40"
+                    height="40"
+                    viewBox="0 0 24 24"
+                    fill={n <= score ? "#f59e0b" : "none"}
+                    stroke={n <= score ? "#f59e0b" : "#d1d5db"}
+                    strokeWidth="1.5"
+                    style={{
+                      filter: n <= score ? "drop-shadow(0 0 4px #f59e0b66)" : "none",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                </button>
+              ))}
+            </div>
+            {score > 0 && (
+              <span className="text-sm font-semibold text-amber-500 animate-pulse">
+                {labels[score]}
+              </span>
+            )}
+          </div>
+
+          {/* Quick tags */}
+          {score > 0 && (
+            <div className="flex flex-wrap gap-2 justify-center">
+              {tagsByScore[score].map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() =>
+                    setReview((prev) =>
+                      prev.includes(tag)
+                        ? prev.replace(tag, "").trim()
+                        : (prev ? `${prev}, ${tag}` : tag)
+                    )
+                  }
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                    review.includes(tag)
+                      ? "bg-orange-500 text-white border-orange-500 shadow-sm"
+                      : "bg-gray-50 text-gray-600 border-gray-200 hover:border-orange-300"
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Text review */}
+          <textarea
+            value={review}
+            onChange={(e) => setReview(e.target.value)}
+            placeholder="Add a personal note (optional)..."
+            rows={2}
+            className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm text-gray-700 resize-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 bg-gray-50 placeholder-gray-300 transition-all"
+          />
+
+          {/* Submit */}
+          <button
+            onClick={() => { if (score) onSubmit({ score, review }); }}
+            disabled={!score}
+            className="w-full py-3.5 rounded-2xl font-bold text-sm transition-all shadow-md
+              bg-gradient-to-r from-orange-400 to-orange-500 text-white
+              hover:from-orange-500 hover:to-orange-600 hover:shadow-lg
+              disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+          >
+            {score ? "Submit Rating ✨" : "Select a star to continue"}
+          </button>
+
+          {/* Skip */}
+          <button
+            onClick={() => onSubmit({ score: score || 0, review })}
+            className="w-full text-center text-xs text-gray-400 hover:text-gray-500 py-1 transition-colors"
+          >
+            Skip for now
+          </button>
         </div>
-        <textarea
-          value={review}
-          onChange={(e) => setReview(e.target.value)}
-          placeholder="Share your experience (optional)..."
-          rows={3}
-          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 resize-none focus:outline-none focus:border-orange-400"
-        />
-        <button
-          onClick={() => { if (score) onSubmit({ score, review }); }}
-          disabled={!score}
-          className="w-full py-3 rounded-xl bg-orange-500 text-white font-semibold text-sm hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Submit Rating
-        </button>
-        {!score && (
-          <p className="text-center text-xs text-gray-400">Please select a star rating</p>
-        )}
       </div>
     </div>
   );
@@ -560,7 +676,11 @@ chatCtx.startChatTimer(info, initialSeconds);
 
   // ── Auto-scroll ────────────────────────────────────────────────────────────
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Small timeout ensures DOM has painted (important for image/audio bubbles)
+    const t = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 80);
+    return () => clearTimeout(t);
   }, [messages]);
 
   // ── Initial kundli message ─────────────────────────────────────────────────
@@ -748,7 +868,7 @@ chatCtx.startChatTimer(info, initialSeconds);
       // Fallback upload_a_file
       if (data?.status !== true || !data?.results) {
         const fd2 = new FormData();
-        fd2.append("image", file);
+        fd2.append("file", file);
         res = await fetch(`${API_BASE}/user_api/upload_a_file`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd2 });
         data = await res.json();
       }
@@ -831,12 +951,17 @@ chatCtx.startChatTimer(info, initialSeconds);
           alt="Attachment"
           className="max-w-[200px] rounded-xl cursor-pointer hover:opacity-90 transition-opacity"
           onClick={() => setPreviewImage(msg.message)}
+          onLoad={() =>                    // ← scroll after image paints
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+          }
           onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
         />
       );
     }
     if (msg.type === "audio")
-      return <AudioPlayer src={msg.message} />;
+      return <AudioPlayerWithScroll src={msg.message} onReady={() =>
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+      } />;
     return (
       <p className={`text-sm leading-relaxed font-medium whitespace-pre-wrap break-words ${isMe ? "text-white" : "text-gray-800"}`}>
         {msg.message}

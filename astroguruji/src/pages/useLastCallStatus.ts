@@ -25,12 +25,12 @@ export function useLastCallStatus() {
       try {
         console.log("[useLastCallStatus] calling lastCallList...");
         const res = await lastCallList();
-        console.log("[useLastCallStatus] result:", res?.result, "status:", res?.data2?.status, "callType:", res?.data2?.callType, "channelId:", res?.data2?.channelId);
+        // console.log("[useLastCallStatus] result:", res?.result, "status:", res?.data2?.status, "callType:", res?.data2?.callType, "channelId:", res?.data2?.channelId);
 
         if (cancelled || !res?.result || !res.data2) return;
 
-const d         = res.data2;
-const status    = String(d.status        ?? d.status        ?? "");
+        const d = res.data2 as any; 
+
 const callType  = String(d.callType      ?? d.call_type     ?? "").toLowerCase();
 const channelId = String(d.channelId     ?? d.channel_id    ?? "");
 const astroId   = d.astroId              ?? d.astro_id      ?? "";
@@ -39,10 +39,9 @@ const astroImg  = d.astroProfileImg      ?? d.astro_profile_img ?? "";
 const userName  = d.userName             ?? d.user_name     ?? "";
 const callRate  = d.callRate             ?? d.call_rate     ?? "1";
 const totalAmt  = d.totalAmount          ?? d.total_amount  ?? "0";
-const diff      = d.difference           ?? d.difference    ?? null;
 const fbChannel = d.fbChannelId          ?? d.fb_channel_id ?? "";
 
-console.log("[useLastCallStatus] mapped:", { status, callType, channelId, astroId });
+// console.log("[useLastCallStatus] mapped:", { status, callType, channelId, astroId });
         if (status !== "accept_astro" || !channelId) {
           console.log("[useLastCallStatus] no active session, status:", status);
           return;
@@ -148,19 +147,38 @@ const handler = onValue(sessionRef, (snap) => {
         }
 
         // ── AUDIO / VIDEO ────────────────────────────────────────────────
-        if (callType === "audio" || callType === "video") {
-          if (audioCtxRef.current.callInfo?.channelId === channelId) return;
-          console.log("[useLastCallStatus] restoring audio/video call");
+        if (callType === "audio") {
+          // Already in a call for same channel — skip
+          if (audioCtxRef.current.callInfo?.channelId === channelId) {
+            console.log("[useLastCallStatus] audio already active, skipping");
+            return;
+          }
+ 
+          // difference from API = seconds elapsed on this call
+          const elapsedSeconds = Number(d.difference ?? 0);
+ 
+          console.log("[useLastCallStatus] restoring audio, elapsed:", elapsedSeconds, "s");
+ 
+          // Populate the context — ActiveCallBar will appear automatically
           audioCtxRef.current.startCall({
-            channelId,
-            astrologerId: String(d.astroId        ?? ""),
-            astroName:    String(d.astroName       ?? ""),
-            astroImage:   String(d.astroProfileImg ?? ""),
-            rate,
-            wallet,
+            channelId:    channelId,
+            astrologerId: astroId,
+            astroName:    astroName,
+            astroImage:   astroImg,
+            rate:         callRate,
+            wallet:       totalAmt,
           });
+ 
+          // Set elapsed seconds AFTER startCall (startCall resets it to 0)
+          // Small timeout ensures state has settled
+          setTimeout(() => {
+            if (cancelled) return;
+            audioCtxRef.current.setElapsedSeconds(elapsedSeconds);
+            audioCtxRef.current.setCallStatus("connected");
+            audioCtxRef.current.minimize(); // show as floating bar, not full screen
+          }, 50);
         }
-
+ 
       } catch (err) {
         console.error("[useLastCallStatus] error:", err);
       }

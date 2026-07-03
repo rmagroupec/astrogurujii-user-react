@@ -1,24 +1,32 @@
 /**
  * AudioCallContext.tsx
  *
- * Global React context that holds the active audio call state.
- * This allows the minimized "Active Call Bar" to be visible on any page
- * while the user navigates — mirroring Flutter's floatingActionButton
- * on MainHomeScreenWithBottomNavigation.
+ * Global context for active audio call state.
+ * Restore logic is handled by useLastCallStatus hook (same pattern as chat).
+ *
+ * KEY: When call is minimized (floating bar), context ticks elapsed seconds
+ * internally so the bar shows a live timer even without AudioCallScreen open.
  */
 
-import React, { createContext, useContext, useState, useCallback, useRef } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 
 export type CallStatus =
   | "idle"
-  | "connecting"   // waiting for astrologer to accept
-  | "ringing"      // call_initiate done, waiting for astrologer to join Agora
-  | "connected"    // astrologer joined Agora channel
+  | "connecting"
+  | "ringing"
+  | "connected"
   | "on_hold"
   | "ended";
 
 export type ActiveCallInfo = {
-  channelId: string;       // Agora channel name (from call_initiate response)
+  channelId: string;
   astrologerId: string;
   astroName: string;
   astroImage: string;
@@ -33,7 +41,6 @@ type AudioCallContextType = {
   isMuted: boolean;
   isSpeakerOn: boolean;
   isMinimized: boolean;
-  // Actions
   startCall: (info: ActiveCallInfo) => void;
   setCallStatus: (s: CallStatus) => void;
   setElapsedSeconds: (n: number) => void;
@@ -47,17 +54,59 @@ type AudioCallContextType = {
 const AudioCallContext = createContext<AudioCallContextType | null>(null);
 
 export function AudioCallProvider({ children }: { children: React.ReactNode }) {
-  const [callStatus, _setCallStatus] = useState<CallStatus>("idle");
-  const [callInfo, setCallInfo] = useState<ActiveCallInfo | null>(null);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isSpeakerOn, setIsSpeakerOn] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [callStatus,     _setCallStatus]    = useState<CallStatus>("idle");
+  const [callInfo,       setCallInfo]       = useState<ActiveCallInfo | null>(null);
+  const [elapsedSeconds, _setElapsedSeconds] = useState(0);
+  const [isMuted,        setIsMuted]        = useState(false);
+  const [isSpeakerOn,    setIsSpeakerOn]    = useState(false);
+  const [isMinimized,    setIsMinimized]    = useState(false);
 
+  // Internal ref so the ticker always reads the latest value
+  const elapsedRef   = useRef(0);
+  const tickerRef    = useRef<ReturnType<typeof setInterval> | null>(null);
+  const callStatusRef = useRef<CallStatus>("idle");
+
+  const setElapsedSeconds = useCallback((n: number) => {
+    elapsedRef.current = n;
+    _setElapsedSeconds(n);
+  }, []);
+
+  // ─── Ticker: runs when minimized + connected ───────────────────────────────
+  // AudioCallScreen ticks elapsed itself when open.
+  // When minimized, the context takes over so the floating bar stays live.
+  useEffect(() => {
+    callStatusRef.current = callStatus;
+  }, [callStatus]);
+
+  useEffect(() => {
+    if (isMinimized && callStatus === "connected") {
+      // Start ticking from current elapsed
+      if (tickerRef.current) clearInterval(tickerRef.current);
+      tickerRef.current = setInterval(() => {
+        elapsedRef.current += 1;
+        _setElapsedSeconds(elapsedRef.current);
+      }, 1000);
+    } else {
+      // AudioCallScreen is open — it manages the timer, stop the context ticker
+      if (tickerRef.current) {
+        clearInterval(tickerRef.current);
+        tickerRef.current = null;
+      }
+    }
+    return () => {
+      if (tickerRef.current) {
+        clearInterval(tickerRef.current);
+        tickerRef.current = null;
+      }
+    };
+  }, [isMinimized, callStatus]);
+
+  // ─── Actions ───────────────────────────────────────────────────────────────
   const startCall = useCallback((info: ActiveCallInfo) => {
     setCallInfo(info);
     _setCallStatus("connecting");
-    setElapsedSeconds(0);
+    elapsedRef.current = 0;
+    _setElapsedSeconds(0);
     setIsMuted(false);
     setIsSpeakerOn(false);
     setIsMinimized(false);
@@ -73,7 +122,8 @@ export function AudioCallProvider({ children }: { children: React.ReactNode }) {
   const endCall = useCallback(() => {
     _setCallStatus("idle");
     setCallInfo(null);
-    setElapsedSeconds(0);
+    elapsedRef.current = 0;
+    _setElapsedSeconds(0);
     setIsMuted(false);
     setIsSpeakerOn(false);
     setIsMinimized(false);

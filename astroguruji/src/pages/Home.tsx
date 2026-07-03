@@ -33,7 +33,7 @@ const controller = new AbortController();
 
       const res = await axios.get(`${API_BASE_URL}/user_api/home_data`, {
         headers,
-          cache: "no-store",
+          
 
             signal: controller.signal,
 

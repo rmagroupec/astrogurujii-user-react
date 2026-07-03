@@ -22,7 +22,7 @@ export default function RechargePage() {
         "https://admin.astrogurujii.com/user_api/Wallet_amount_list",
         {},
         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-          cache: "no-store",
+          
 
           signal: controller.signal, }
       );

@@ -36,16 +36,28 @@ export type CallInitiateStatusResponse = {
 };
 
 export type LastCallData = {
-  callType: string;        // "chat" | "audio"
-  status: string;          // "accept_astro" | "pending" | etc
-  channelId: string;       // API channel_id — used as gid for Firebase + polling
-  fbChannelId: string;     // fb_channel_id
+  // camelCase (typed)
+  callType: string;
+  channelId: string;
+  fbChannelId: string;
   astroId: string;
   astroName: string;
   astroProfileImg: string;
   callRate: string;
   userName: string;
-  difference: number;      // elapsed seconds
+  difference: number;
+  totalAmount?: string;
+
+  // snake_case (from API response — marked optional)
+  call_type?: string;
+  channel_id?: string;
+  fb_channel_id?: string;
+  astro_id?: string;
+  astro_name?: string;
+  astro_profile_img?: string;
+  call_rate?: string;
+  user_name?: string;
+  total_amount?: string;
 };
 
 export type LastCallListResponse = {
